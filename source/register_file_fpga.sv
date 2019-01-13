@@ -30,4 +30,14 @@ assign rfif.WEN = ~KEY[3];
 assign LEDR[8:5] = rfif.rdat1[3:0];
 assign LEDR[13:10] = rfif.rdat2[3:0];
 
+always_comb
+  begin
+    unique casez (rfif.rdat1[3:0])
+      'h0: HEX0 = 4'd0;
+      'h1: HEX0 = 4'd1;
+      'h2: HEX0 = 4'd02;
+      'h3: HEX0 = 4'd02;
+  endcase
+end
+
 endmodule
