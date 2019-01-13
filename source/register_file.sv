@@ -5,13 +5,27 @@
   register file 
 */
 
-module register_file(input logic CLK, nRST, register_file_if.rf rfif); 
+`include "cpu_types_pkg.vh"
+`include "register_file_if.vh"
+
+module register_file 
+	import cpu_types_pkg::*;
+	(
+	input logic CLK,
+ 	nRST, 
+ 	register_file_if.rf rfif); 
+
+
 
 // array to hold all of the register memory. 32 word locations
-logic [31:0] [31:0] registers, registers_next; 
+word_t [31:0] registers, registers_next; 
 
 // values to define outputs for rdata lines 
-logic [31:0] rdata_out1, rdata_out2; 
+word_t rdata_out1, rdata_out2; 
+
+// creating data flow assignments for the read data busses 
+assign rfif.rdat1 = rdata_out1; 
+assign rfif.rdat2 = rdata_out2; 
 
 // combination block for determining registers
 always_comb begin: DECODER 
@@ -27,7 +41,7 @@ always_comb begin: DECODER
 	rdata_out2 = 'b0; 
 
 	// if writing and not to the zero memory location 
-	if ( (rfif.WEN = 1'b1) & (rfif.wsel != 32'd0) ) begin 
+	if ( (rfif.WEN == 1'b1) & (rfif.wsel != 5'd0) ) begin 
 
 		// update the register that wsel is pointing to and set its value to write data
 		registers_next[rfif.wsel] = rfif.wdat;
