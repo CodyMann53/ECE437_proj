@@ -190,6 +190,7 @@ program test(
   memory_selection = 5'd0; 
   reg_data = 32'd100; 
 
+    test_description = "Testing asynchronous reset";
     // reset the register file 
     reset_dut();
 
@@ -227,6 +228,17 @@ program test(
 
       // increment test case number 
       test_case_num = test_case_num + 1; 
-    end 
+    end
+
+    test_description = "Writing and reading to register 0 with rdat1";
+    // deliberately trying to write to register 0
+    write(32'd150, 5'd0); 
+    read1(32'd0, 5'd0); 
+
+    test_description = "Writing and reading to register 0 with rdat2";
+    // deliberately trying to write to register 0
+    write(32'd150, 5'd0); 
+    read2(32'd0, 5'd0); 
+
   end 
 endprogram
