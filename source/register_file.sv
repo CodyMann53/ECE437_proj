@@ -5,7 +5,7 @@
   register file 
 */
 
-module rf(input logic CLK, nRST, register_file_if.rf rfif); 
+module register_file(input logic CLK, nRST, register_file_if.rf rfif); 
 
 // array to hold all of the register memory. 32 word locations
 logic [31:0] [31:0] registers, registers_next; 
@@ -30,7 +30,7 @@ always_comb begin: DECODER
 	if ( (rfif.WEN = 1'b1) & (rfif.wsel != 32'd0) ) begin 
 
 		// update the register that wsel is pointing to and set its value to write data
-		registers_next[rfif.wsel] = rfif.wdat
+		registers_next[rfif.wsel] = rfif.wdat;
 	end 
 	// reading
 	else begin
@@ -41,7 +41,7 @@ always_comb begin: DECODER
 	end 
 end 
 
-always_ff (@posedge CLK, @negedge nRST) begin: REGISTER_MEMORY_LOGIC
+always_ff @(posedge CLK, negedge nRST) begin: REGISTER_MEMORY_LOGIC
 
 	// if reset is brought low 
 	if (nRST == 1'b0) begin 
@@ -56,5 +56,6 @@ always_ff (@posedge CLK, @negedge nRST) begin: REGISTER_MEMORY_LOGIC
 		registers = registers_next; 
 	end  
 end 
+endmodule
 
 
