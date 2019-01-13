@@ -74,6 +74,10 @@ program test(
   // import statements 
   import cpu_types_pkg::*; 
 
+  // variable definitions for test case description 
+  int test_case_num = 0; 
+  string test_description = "NULL"; 
+
   // parameter definitions  
   parameter PERIOD = 10;
   parameter REGISTER_SIZE = 32; 
@@ -134,22 +138,50 @@ program test(
 
       // get away from rising edge 
       @(negedge CLK); 
-
       // set write enable to 0 for reading 
       WEN = 1'b0;
 
       // set write memory location 
       rsel1 = mem_location; 
 
+      // wait a bit to check outputs 
+      #(1)
+
       // check if read data is equal to expected data 
       if (expected_data != rdat1) begin 
 
         // display error message 
-        $display("Error in reading from memory location %0d", mem_location); 
+        $monitor("Time: @%00g ns,  Error in reading from memory location %0d on data bus 1", $time, mem_location); 
       end 
     end 
   endtask 
 
+  task read2; 
+    input word_t expected_data;
+    input regbits_t mem_location;  
+    begin 
+
+      // get away from rising edge 
+      @(negedge CLK); 
+
+      // set write enable to 0 for reading 
+      WEN = 1'b0;
+
+      // set write memory location 
+      rsel2 = mem_location; 
+
+      // wait a bit to check outputs 
+      #(1)
+
+      // check if read data is equal to expected data 
+      if (expected_data != rdat2) begin 
+
+        // display error message 
+        $monitor("Time @%00g ns, Error in reading from memory location %0d on data bus 2", $time, mem_location); 
+
+      end 
+    end 
+  endtask 
 
   //initial block  
   initial begin
@@ -161,21 +193,40 @@ program test(
     // reset the register file 
     reset_dut();
 
+    // update test description 
+    test_description = "Testing write then read to register file memory locations";
+
     // loop through all of the registers
     for (int i = 0; i < REGISTER_SIZE; i++) begin 
 
       // write to memory 
       write(reg_data, memory_selection); 
 
-      // read from memory using read selection one and check 
-      read1(reg_data, memory_selection);
+      // if on memory location 0
+      if (i == 0) begin 
 
-      // read from memory using read selectio none and check 
-      read2(reg_data, memory_selection);
+        // read from memory using read selection one and check 
+        read1(32'd0, memory_selection);
+
+        // read from memory using read selectio none and check 
+        read2(32'd0, memory_selection);
+      end 
+      // not location 0
+      else begin 
+
+        // read from memory using read selection one and check 
+        read1(reg_data, memory_selection);
+
+        // read from memory using read selectio none and check 
+        read2(reg_data, memory_selection);
+      end 
 
       // increment memory selection 
       memory_selection = memory_selection + 1; 
       reg_data = reg_data + 1; 
+
+      // increment test case number 
+      test_case_num = test_case_num + 1; 
     end 
   end 
 endprogram
