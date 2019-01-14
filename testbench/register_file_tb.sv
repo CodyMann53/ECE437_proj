@@ -188,7 +188,7 @@ program test(
 
   // initialize local variables 
   memory_selection = 5'd0; 
-  reg_data = 32'd100; 
+  reg_data = 32'hFFFF; 
 
     test_description = "Testing asynchronous reset";
     // reset the register file 
@@ -199,6 +199,9 @@ program test(
 
     // loop through all of the registers
     for (int i = 0; i < REGISTER_SIZE; i++) begin 
+
+    reg_data = '1; 
+
 
       // write to memory 
       write(reg_data, memory_selection); 
@@ -222,9 +225,33 @@ program test(
         read2(reg_data, memory_selection);
       end 
 
+      // update reg data 
+      reg_data = '0; 
+
+      // write to memory 
+      write(reg_data, memory_selection); 
+
+      // if on memory location 0
+      if (i == 0) begin 
+
+        // read from memory using read selection one and check 
+        read1('b0, memory_selection);
+
+        // read from memory using read selectio none and check 
+        read2('b0, memory_selection);
+      end 
+      // not location 0
+      else begin 
+
+        // read from memory using read selection one and check 
+        read1(reg_data, memory_selection);
+
+        // read from memory using read selectio none and check 
+        read2(reg_data, memory_selection);
+      end 
+
       // increment memory selection 
-      memory_selection = memory_selection + 1; 
-      reg_data = reg_data + 1; 
+      memory_selection = memory_selection + 1;  
 
       // increment test case number 
       test_case_num = test_case_num + 1; 
