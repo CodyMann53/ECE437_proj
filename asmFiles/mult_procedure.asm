@@ -5,18 +5,45 @@ main:
 	#initialize the stack pointer 
 	addi $31, $0, 0xFFFC
 
-	#push 2 on to the stack 
+	#push 1 on to the stack 
 	addi $4, $0, 1
 	jal push_stack 
 
-	#push 2 on to the stack 
-	addi $4, $0, 4
+	#push 4 on to the stack 
+	addi $4, $0, 5
 	jal push_stack
 
-	#multiply the top two elements of the stack (result in $2)
-	jal multiply 
+	#multiply the top two elements of the stack
+	jal multiply_proced
+
+	#push 2 on to the stack 
+	addi $4, $0, 5
+	jal push_stack
+
+
+	#pop result into register $2
+	jal pop_stack
 
 	halt
+
+# takes the two top elements of the stack and places the product in stack location as first operand 
+multiply_proced:
+	
+	#save return address into $17
+	or $17, $0, $31
+
+	#call multiply procedure because two operands should already be on stack 
+	jal multiply
+
+	#push return value on top of stack 
+	or $4, $0, $2
+	jal push_stack
+
+	#move return address for multiply procedure back to the return addr reg
+	or $31, $0, $17
+
+	#return 
+	jr $31
 
 #multiply subroutine ($8 = op1, $9 = op2, $2 = result), $9 is what determines number of times to add.
 multiply:	
@@ -83,5 +110,6 @@ pop_stack:
 
 	#return from subroutine
 	jr $31
+
 	
 
