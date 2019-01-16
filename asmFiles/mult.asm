@@ -6,7 +6,7 @@ main:
 	addi $31, $0, 0xFFFC
 
 	#push 2 on to the stack 
-	addi $4, $0, 167
+	addi $4, $0, 0
 	jal push_stack 
 
 	#push 2 on to the stack 
