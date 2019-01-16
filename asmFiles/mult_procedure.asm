@@ -20,6 +20,7 @@ main:
 	addi $4, $0, 5
 	jal push_stack
 
+	jal multiply_proced
 
 	#pop result into register $2
 	jal pop_stack
