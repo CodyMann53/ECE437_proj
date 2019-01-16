@@ -5,13 +5,11 @@ main:
 	#initialize the stack pointer 
 	addi $31, $0, 0xFFFC
 
-	#$8 = current day
-	ori $8, $0, CurrentDay
-
 	#$9 = Current month 
-	ori $9, $0, CurrentMonth
+	ori $9, $0, 0x0804
+	lw $9, 0($9)
 
-	#$9 = Current Month - 1 
+	#$9 = Current Month - 1 0x0804
 	addi $9, $9, -1
 
 	#push 30 on to the stack 
@@ -20,20 +18,18 @@ main:
 
 	#push (Current Month -1) on to the stack)
 	add $4, $0, $9
+	jal push_stack
 
 	#Top of stack (CurrentMont -1 ) * 30 
 	jal multiply_proced
-
-	#pop result off of stack to $9 = (CurrentMont -1 ) * 30
-	jal pop_stack 
-	or $9, $0, $2
 
 	#push 365 on to the stack 
 	addi $4, $0, 365
 	jal push_stack 
 
 	#move current year to $10 
-	ori $10, $0, CurrentYear
+	ori $10, $0, 0x0808
+	lw $10, 0($10)
 	
 	#$10 = currentyear - 2000
 	addi $10, $10, -2000
@@ -45,16 +41,25 @@ main:
 	#call multiply 
 	jal multiply_proced
 
-	#pop result off of stack $10 = 365 * (CurrentYear - 2000)
-	jal pop_stack 
-	or $10, $0, $2
+	# pop 365 * (CurrentYear - 2000) to $8
+	jal pop_stack
+	or $8, $0, $2
 
-	#add $9 = $9 + $10
-	add $9, $9, $10
+	#pop (CurrentMonth -1) * 30 to $9
+	jal pop_stack
+	or $9, $0, $2
 
-	#add $4 = $9 + $8
-	add $4, $9, $8
+	#$8 = 30 * (CurrentMonth - 1) + 365 * (CurrentYear - 2000)
+	add $8, $8, $9
 
+	#load Current Day to $9
+	ori $9, $0, 0x0800
+	lw $9, 0($9)
+
+	#$2 = $8 + $9
+	add $2, $8, $9
+
+End:
 
 	halt
 
@@ -142,7 +147,6 @@ pop_stack:
 
 	#return from subroutine
 	jr $31
-
 
 CurrentDay:
 	org 0x0800
