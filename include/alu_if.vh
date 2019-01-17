@@ -27,9 +27,8 @@ interface alu_if;
 
   // alu test bench file ports
   modport tb (
-    input  negative, result, overflow, zero 
-    output   port_a, port_b, alu_op,
-
+    input  negative, result, overflow, zero,
+    output   port_a, port_b, alu_op
   );
 
 endinterface

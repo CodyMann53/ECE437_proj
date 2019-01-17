@@ -43,7 +43,7 @@ module alu_tb;
     .result(aluif.result), 
     .alu_op(aluif.alu_op), 
     .port_a(aluif.port_a), 
-    .port_b(aluif.port_b); 
+    .port_b(aluif.port_b)); 
 
 endmodule
 
@@ -58,7 +58,6 @@ program test
   ); 
 
   // parameter definitions  
-  parameter PERIOD = 10;
 
   // Test vector definitions 
   typedef struct{
@@ -73,11 +72,67 @@ program test
   } test_vector; 
 
   // variable definitions for test case description 
-  int test_case_num = 0; 
-  string test_description = "NULL"; 
+  logic test_num = 0; 
+  string test_description = "";
 
   // declare the unpacted/dynamically sized test-vector array 
   test_vector tb_test_cases []; 
+
+  // task definitions 
+  task check_outputs; 
+    input word_t expected_result; 
+    input logic     expected_overflow,
+                    expected_zero, 
+                    expected_negative; 
+    input string test_name;   
+    begin 
+
+      // checking result 
+      if (expected_result != result) begin 
+
+        // display error message
+        $monitor("Time: @%00g ns,  Error in result for test case %s. Expected_result =  %0d ", 
+                  $time, test_name, expected_result); 
+                // display error message
+        $display("Time: @%00g ns,  Error in result for test case %s. Expected_result =  %0d ", 
+                  $time, test_name, expected_result); 
+      end 
+
+      // checking overflow
+      if (expected_overflow != overflow) begin 
+
+        // display error message
+        $monitor("Time: @%00g ns,  Error in overflow for test case %s. expected_overflow =  %0d ", 
+                  $time, test_name, expected_overflow); 
+                // display error message
+        $display("Time: @%00g ns,  Error in overflow for test case %s. expected_overflow =  %0d ", 
+                  $time, test_name, expected_overflow); 
+      end 
+
+      // checking zero
+      if (expected_zero != zero) begin 
+
+        // display error message
+        $monitor("Time: @%00g ns,  Error in zero for test case %s. expected_zero = %0d ", 
+                  $time, test_name, expected_zero); 
+
+        // display error message
+        $display("Time: @%00g ns,  Error in zero for test case %s. expected_zero = %0d ", 
+                  $time, test_name, expected_zero); 
+      end 
+
+      // checking negative
+      if (expected_negative != negative) begin 
+
+        // display error message
+        $monitor("Time: @%00g ns,  Error in negative for test case %s. expected_negative = %0d ", 
+                  $time, test_name, expected_negative); 
+                // display error message
+        $display("Time: @%00g ns,  Error in negative for test case %s. expected_negative = %0d ", 
+                  $time, test_name, expected_negative); 
+      end 
+    end 
+  endtask
 
   //initial block  
   initial begin
@@ -86,29 +141,37 @@ program test
     tb_test_cases = new[1]; 
 
     // First Test Case 
+    tb_test_cases[0].test_name = "Logical Shift Left"; 
     tb_test_cases[0].op = ALU_SLL; 
-    tb_test_cases[0].port_a = 32'd5; 
-    tb_test_cases[0].port_b = 32'd3; 
+    tb_test_cases[0].port_a = 32'd3; 
+    tb_test_cases[0].port_b = 32'd5; 
     tb_test_cases[0].expected_result = 32'd40; 
     tb_test_cases[0].expected_overflow = 1'b0; 
     tb_test_cases[0].expected_negative = 1'b0; 
     tb_test_cases[0].expected_zero = 1'b0; 
 
-    
-
-    test_description = "Testing asynchronous reset";
-    // reset the register file 
-    reset_dut();
-
     // loop through all of the registers
-    for (int i = 0; i < REGISTER_SIZE; i++) begin 
+    for (int i = 0; i < tb_test_cases.size(); i++) begin 
 
+      // update the test number and description 
+      test_num = i; 
+      test_description = tb_test_cases[i].test_name; 
 
-      end 
-      // not location 0
-      else begin 
+      // apply the inputs 
+      port_a = tb_test_cases[i].port_a; 
+      port_b = tb_test_cases[i].port_b; 
+      alu_op = tb_test_cases[i].op; 
 
+      // wait a little to allow outputs to settle
+      #(1)
 
-      end 
+      // check the outputs 
+      check_outputs(tb_test_cases[i].expected_result, 
+                    tb_test_cases[i].expected_overflow, 
+                    tb_test_cases[i].expected_negative, 
+                    tb_test_cases[i].expected_zero, 
+                    tb_test_cases[i].test_name); 
+
+    end 
   end 
 endprogram

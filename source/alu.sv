@@ -10,7 +10,7 @@
 
 module alu 
 	import cpu_types_pkg::*;
-	(alu_if.rf aluif); 
+	(alu_if.alu aluif); 
 
 /********** variable declarations **************/
 // used for extending one bit to make it easier for checking overflow
@@ -36,33 +36,36 @@ always_comb begin
 
 	casez (aluif.alu_op)
 	    
-		ALU_SLL: result_OF =  port_b << port_a[4:0];
-	    ALU_SRL: result_OF = port_b >> port_a[4:0]; 
-	    ALU_ADD: result_OF = port_b + port_a; aluif.overflow = result_OF[WORD_W]; 
-	    ALU_SUB: result_OF = port_a - port_b; aluif.overflow = result_OF[WORD_W];
-	    ALU_AND: result_OF = port_a & port_b; 
-	    ALU_OR:  result_OF = port_a | port_b; 
-	    ALU_XOR: result_OF = port_a ^ port_b; 
-	    ALU_NOR: result_OF = port_a ~| port_bl 
-	    ALU_SLT: begin 
-
-	    			if (port_a < port_b) begin 
-	    				result_OF = 33'd1; 
+		ALU_SLL: 	result_OF =  aluif.port_b << aluif.port_a[4:0];
+	    ALU_SRL: 	result_OF = aluif.port_b >> aluif.port_a[4:0]; 
+	    ALU_ADD: 	begin 
+	    				result_OF = aluif.port_b + aluif.port_a;
+	    				aluif.overflow = result_OF[WORD_W]; 
 	    			end 
-	    			else begin 
-	    				result_OF = 33'd0; 
+	    ALU_SUB:	begin 
+	    				result_OF = aluif.port_a - aluif.port_b; 
+	    				aluif.overflow = result_OF[WORD_W];
 	    			end 
-	    		end 
-	    ALU_SLTU: begin
-
-	    			if (port_a < port_b) begin 
-	    				result_OF = 33'd1; 
+	    ALU_AND: 	result_OF = aluif.port_a & aluif.port_b; 
+	    ALU_OR:  	result_OF = aluif.port_a | aluif.port_b; 
+	    ALU_XOR: 	result_OF = aluif.port_a ^ aluif.port_b; 
+	    ALU_NOR: 	result_OF = ~(aluif.port_a | aluif.port_b); 
+	    ALU_SLT: 	begin 
+		    			if (aluif.port_a < aluif.port_b) begin 
+		    				result_OF = 33'd1; 
+		    			end 
+		    			else begin 
+		    				result_OF = 33'd0; 
+		    			end 
 	    			end 
-	    			else begin 
-	    				result_OF = 33'd0; 
-	    			end 	    	
-	    		end 
-	    default:
+	    ALU_SLTU: 	begin
+		    			if (aluif.port_a < aluif.port_b) begin 
+		    				result_OF = 33'd1; 
+		    			end 
+		    			else begin 
+		    				result_OF = 33'd0; 
+		    			end 	    	
+	    			end 
 	endcase
 end
 endmodule // alu module end
