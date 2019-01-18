@@ -25,8 +25,8 @@ always_comb begin
 		// set default value to prevent latches
 		aluif.overflow = 1'b0; 
 
-		// if operation is an add or subtract 
-		if ((aluif.alu_op == ALU_ADD ) | (aluif.alu_op == ALU_SUB)) begin 
+		// if operation is an add
+		if (aluif.alu_op == ALU_ADD ) begin 
 
 			// if porta and port b are the same sign 
 			if (aluif.port_a[WORD_W-1] == aluif.port_b[WORD_W-1]) begin 
@@ -39,12 +39,27 @@ always_comb begin
 				end 
 			end 
 		end
+
+		// if operation is an add
+		if (aluif.alu_op == ALU_SUB) begin 
+
+			// if porta and port b are the same sign 
+			if (aluif.port_a[WORD_W-1] != aluif.port_b[WORD_W-1]) begin 
+
+				// check to see if the result sign did no chang after operation 
+				if (aluif.result[WORD_W-1] == aluif.port_b[WORD_W-1])  begin 
+
+					// set an overflow 
+					aluif.overflow = 1'b1; 
+				end 
+			end 
+		end
 end 
 
 always_comb begin
 
 	// set default values for result and overflow to prevent latches 
-	aluif.result = 33'd0; 
+	aluif.result = 32'd0; 
 
 
 	casez (aluif.alu_op)
@@ -59,18 +74,18 @@ always_comb begin
 	    ALU_NOR: 	aluif.result = ~(aluif.port_a | aluif.port_b); 
 	    ALU_SLT: 	begin 
 		    			if ( $signed(aluif.port_a) < $signed(aluif.port_b)) begin 
-		    				aluif.result = 33'd1; 
+		    				aluif.result = 32'd1; 
 		    			end 
 		    			else begin 
-		    				aluif.result = 33'd0; 
+		    				aluif.result = 32'd0; 
 		    			end 
 	    			end 
 	    ALU_SLTU: 	begin
 		    			if (aluif.port_a < aluif.port_b) begin 
-		    				aluif.result = 33'd1; 
+		    				aluif.result = 32'd1; 
 		    			end 
 		    			else begin 
-		    				aluif.result = 33'd0; 
+		    				aluif.result = 32'd0; 
 		    			end 	    	
 	    			end 
 	endcase

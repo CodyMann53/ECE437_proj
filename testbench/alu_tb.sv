@@ -138,7 +138,7 @@ program test
   initial begin
 
     // Creating the test vecotr array 
-    tb_test_cases = new[14]; 
+    tb_test_cases = new[22]; 
 
     // Writing test cases
     tb_test_cases[0].test_name = "Logical Shift Left."; 
@@ -266,7 +266,82 @@ program test
     tb_test_cases[13].expected_overflow = 1'b0; 
     tb_test_cases[13].expected_negative = 1'b0; 
     tb_test_cases[13].expected_zero = 1'b1; 
- 
+
+    
+    tb_test_cases[14].test_name = "Adding a negative and positive number together"; 
+    tb_test_cases[14].op = ALU_ADD; 
+    tb_test_cases[14].port_a = -32'd31; 
+    tb_test_cases[14].port_b = 32'd56; 
+    tb_test_cases[14].expected_result = 32'd25; 
+    tb_test_cases[14].expected_overflow = 1'b0; 
+    tb_test_cases[14].expected_negative = 1'b0; 
+    tb_test_cases[14].expected_zero = 1'b0; 
+
+    tb_test_cases[15].test_name = "Adding two negative numbers"; 
+    tb_test_cases[15].op = ALU_ADD; 
+    tb_test_cases[15].port_a = -32'd31; 
+    tb_test_cases[15].port_b = -32'd56; 
+    tb_test_cases[15].expected_result = -32'd87; 
+    tb_test_cases[15].expected_overflow = 1'b0; 
+    tb_test_cases[15].expected_negative = 1'b1; 
+    tb_test_cases[15].expected_zero = 1'b0; 
+
+    tb_test_cases[16].test_name = "Subtracting a positive and negative number"; 
+    tb_test_cases[16].op = ALU_SUB; 
+    tb_test_cases[16].port_a = 32'd31; 
+    tb_test_cases[16].port_b = -32'd56; 
+    tb_test_cases[16].expected_result = 32'd87; 
+    tb_test_cases[16].expected_overflow = 1'b0; 
+    tb_test_cases[16].expected_negative = 1'b0; 
+    tb_test_cases[16].expected_zero = 1'b0; 
+
+    tb_test_cases[17].test_name = "Subtracting two negative numbers"; 
+    tb_test_cases[17].op = ALU_SUB; 
+    tb_test_cases[17].port_a = -32'd31; 
+    tb_test_cases[17].port_b = -32'd56; 
+    tb_test_cases[17].expected_result = 32'd25; 
+    tb_test_cases[17].expected_overflow = 1'b0; 
+    tb_test_cases[17].expected_negative = 1'b0; 
+    tb_test_cases[17].expected_zero = 1'b0; 
+
+    tb_test_cases[18].test_name = "Setting less unsigned but using a negative number."; 
+    tb_test_cases[18].op = ALU_SLTU; 
+    tb_test_cases[18].port_a = -32'd31; 
+    tb_test_cases[18].port_b = 32'd56; 
+    tb_test_cases[18].expected_result = 32'd0; 
+    tb_test_cases[18].expected_overflow = 1'b0; 
+    tb_test_cases[18].expected_negative = 1'b0; 
+    tb_test_cases[18].expected_zero = 1'b1; 
+
+    tb_test_cases[19].test_name = "Setting less unsigned but using a negative number."; 
+    tb_test_cases[19].op = ALU_SLTU; 
+    tb_test_cases[19].port_a = 32'd31; 
+    tb_test_cases[19].port_b = -32'd56; 
+    tb_test_cases[19].expected_result = 32'd1; 
+    tb_test_cases[19].expected_overflow = 1'b0; 
+    tb_test_cases[19].expected_negative = 1'b0; 
+    tb_test_cases[19].expected_zero = 1'b0; 
+
+    tb_test_cases[20].test_name = "Subtracting a positive and negative to produce overflow."; 
+    tb_test_cases[20].op = ALU_SUB; 
+    tb_test_cases[20].port_a = 32'h7FFFFFFF; 
+    tb_test_cases[20].port_b = -32'd1; 
+    tb_test_cases[20].expected_result = 32'h80000000; 
+    tb_test_cases[20].expected_overflow = 1'b1; 
+    tb_test_cases[20].expected_negative = 1'b1; 
+    tb_test_cases[20].expected_zero = 1'b0;
+
+    tb_test_cases[21].test_name = "Subtracting a positive and negative to produce overflow."; 
+    tb_test_cases[21].op = ALU_SUB; 
+    tb_test_cases[21].port_a =  32'd1; 
+    tb_test_cases[21].port_b =  -32'h7FFFFFFF; 
+    tb_test_cases[21].expected_result = 32'h80000000; 
+    tb_test_cases[21].expected_overflow = 1'b1; 
+    tb_test_cases[21].expected_negative = 1'b1; 
+    tb_test_cases[21].expected_zero = 1'b0;  
+
+
+
     // loop through all of the registers
     for (int i = 0; i < tb_test_cases.size(); i++) begin 
 
