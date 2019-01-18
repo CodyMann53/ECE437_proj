@@ -25,13 +25,13 @@ module alu_tb;
     alu DUT(aluif);
   `else
     alu DUT(
-      .\alu.port_a (aluif.port_b),
-      .\alu.port_b(aluif.port_b), 
-      .\alu.alu_op(aluif.alu_op), 
-      .\alu.result(aluif.result), 
-      .\alu.negative(aluif.negative), 
-      .\alu.overflow(aluif.overflow), 
-      .\alu.zero(aluif.zero)
+      .\aluif.port_a (aluif.port_a),
+      .\aluif.port_b (aluif.port_b), 
+      .\aluif.alu_op (aluif.alu_op), 
+      .\aluif.result (aluif.result), 
+      .\aluif.negative (aluif.negative), 
+      .\aluif.overflow (aluif.overflow), 
+      .\aluif.zero (aluif.zero)
     );
   `endif
 
@@ -138,7 +138,7 @@ program test
   initial begin
 
     // Creating the test vecotr array 
-    tb_test_cases = new[13]; 
+    tb_test_cases = new[14]; 
 
     // Writing test cases
     tb_test_cases[0].test_name = "Logical Shift Left."; 
@@ -249,7 +249,6 @@ program test
     tb_test_cases[11].expected_negative = 1'b0; 
     tb_test_cases[11].expected_zero = 1'b1; 
 
-
     tb_test_cases[12].test_name = "Add that will produce an overflow"; 
     tb_test_cases[12].op = ALU_ADD; 
     tb_test_cases[12].port_a = 32'h7FFFFFFF; 
@@ -258,6 +257,15 @@ program test
     tb_test_cases[12].expected_overflow = 1'b1; 
     tb_test_cases[12].expected_negative = 1'b1; 
     tb_test_cases[12].expected_zero = 1'b0; 
+
+    tb_test_cases[13].test_name = "Setting less than for unsigned numbers, and will produce a false"; 
+    tb_test_cases[13].op = ALU_SLTU; 
+    tb_test_cases[13].port_a = 32'hFFFF; 
+    tb_test_cases[13].port_b = 32'hFF; 
+    tb_test_cases[13].expected_result = 32'd0; 
+    tb_test_cases[13].expected_overflow = 1'b0; 
+    tb_test_cases[13].expected_negative = 1'b0; 
+    tb_test_cases[13].expected_zero = 1'b1; 
  
     // loop through all of the registers
     for (int i = 0; i < tb_test_cases.size(); i++) begin 

@@ -6,7 +6,7 @@
 */
 
 `include "cpu_types_pkg.vh"
-`include "register_file_if.vh"
+`include "alu_if.vh"
 
 module alu 
 	import cpu_types_pkg::*;
