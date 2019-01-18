@@ -138,7 +138,7 @@ program test
   initial begin
 
     // Creating the test vecotr array 
-    tb_test_cases = new[12]; 
+    tb_test_cases = new[13]; 
 
     // Writing test cases
     tb_test_cases[0].test_name = "Logical Shift Left."; 
@@ -213,7 +213,7 @@ program test
     tb_test_cases[7].expected_negative = 1'b1; 
     tb_test_cases[7].expected_zero = 1'b0; 
 
-    tb_test_cases[8].test_name = "Setting less for signed numbers, and will produce a true"; 
+    tb_test_cases[8].test_name = "Setting less than for signed numbers, and will produce a true"; 
     tb_test_cases[8].op = ALU_SLT; 
     tb_test_cases[8].port_a = -32'd25; 
     tb_test_cases[8].port_b = 32'd64; 
@@ -222,7 +222,7 @@ program test
     tb_test_cases[8].expected_negative = 1'b0; 
     tb_test_cases[8].expected_zero = 1'b0; 
 
-    tb_test_cases[9].test_name = "Setting less for signed numbers, and will produce a false"; 
+    tb_test_cases[9].test_name = "Setting less than for signed numbers, and will produce a false"; 
     tb_test_cases[9].op = ALU_SLT; 
     tb_test_cases[9].port_a = 32'd64; 
     tb_test_cases[9].port_b = -32'd25; 
@@ -231,23 +231,33 @@ program test
     tb_test_cases[9].expected_negative = 1'b0; 
     tb_test_cases[9].expected_zero = 1'b1; 
 
-    tb_test_cases[10].test_name = "Setting less for unsigned numbers, and will produce a true"; 
+    tb_test_cases[10].test_name = "Setting less than for unsigned numbers, and will produce a true"; 
     tb_test_cases[10].op = ALU_SLTU; 
-    tb_test_cases[10].port_a = -32'd25; 
+    tb_test_cases[10].port_a = 32'd25; 
     tb_test_cases[10].port_b = 32'd64; 
     tb_test_cases[10].expected_result = 32'd1; 
     tb_test_cases[10].expected_overflow = 1'b0; 
     tb_test_cases[10].expected_negative = 1'b0; 
     tb_test_cases[10].expected_zero = 1'b0; 
 
-    tb_test_cases[11].test_name = "Setting less for unsigned numbers, and will produce a false"; 
+    tb_test_cases[11].test_name = "Setting less than for unsigned numbers, and will produce a false"; 
     tb_test_cases[11].op = ALU_SLTU; 
     tb_test_cases[11].port_a = 32'd64; 
-    tb_test_cases[11].port_b = -32'd25; 
+    tb_test_cases[11].port_b = 32'd25; 
     tb_test_cases[11].expected_result = 32'd0; 
     tb_test_cases[11].expected_overflow = 1'b0; 
     tb_test_cases[11].expected_negative = 1'b0; 
     tb_test_cases[11].expected_zero = 1'b1; 
+
+
+    tb_test_cases[12].test_name = "Add that will produce an overflow"; 
+    tb_test_cases[12].op = ALU_ADD; 
+    tb_test_cases[12].port_a = 32'h7FFFFFFF; 
+    tb_test_cases[12].port_b = 32'h1; 
+    tb_test_cases[12].expected_result = 32'h80000000; 
+    tb_test_cases[12].expected_overflow = 1'b1; 
+    tb_test_cases[12].expected_negative = 1'b1; 
+    tb_test_cases[12].expected_zero = 1'b0; 
  
     // loop through all of the registers
     for (int i = 0; i < tb_test_cases.size(); i++) begin 
