@@ -29,7 +29,7 @@ module memory_control_tb;
   // DUT declarations 
   `ifndef MAPPED
     memory_control DUT_MEMORY_CONTROL(CLK, nRST, ccif);
-    ram DUT_RAM(CLK, nRST, cpu_ram_if.ram ramif); 
+    ram DUT_RAM(CLK, nRST, ramif); 
   `else
     memory_control DUT_MEMORY_CONTROL(
       .\ccif.iREN (ccif.iREN),
@@ -66,7 +66,7 @@ module memory_control_tb;
       .\ramstate (ramif.ramstate), 
       .\ramload (ramif.ramload)
     );
-  `endiff
+  `endif
 
   // assign statements memory control -> ram 
   assign ramif.ramaddr = ccif.ramaddr; 
@@ -266,52 +266,53 @@ program test
   //initial block  
   initial begin
 
-  // allocating space for test cases 
-  tb_test_cases = [1]; 
+    // allocating space for test cases 
+    tb_test_cases = new[1]; 
 
-  // assigning test cases to array 
-  add_test(1, "writing data to memory", 32'd0, 32'd1, WRITE_DATA); 
+    // assigning test cases to array 
+    add_test(0, "writing data to memory", 32'd0, 32'd1, WRITE_DATA); 
 
-  // initialize the copy of ram to all zero values 
-  ram_copy = 'b0; 
+    // initialize the copy of ram to all zero values 
+    ram_copy = 'b0; 
 
-  // initialize all of the outputs to the memory controller (default values)
-  nRST = 1'b0; 
-  iREN = 1'b0; 
-  dREN = 1'b0; 
-  dWEN = 1'b0; 
-  dstore = 32'd0; 
-  iaddr = 32'd0; 
-  daddr = 32'd0; 
+    // initialize all of the outputs to the memory controller (default values)
+    nRST = 1'b0; 
+    iREN = 1'b0; 
+    dREN = 1'b0; 
+    dWEN = 1'b0; 
+    dstore = 32'd0; 
+    iaddr = 32'd0; 
+    daddr = 32'd0; 
 
-  // reset the devices under test 
-  reset_dut(); 
+    // reset the devices under test 
+    reset_dut(); 
 
-  // loop through all of the test cases
-  for (int i = 0; i < tb_test_cases.size(); i++) begin 
+    // loop through all of the test cases
+    for (int i = 0; i < tb_test_cases.size(); i++) begin 
 
-    // update the test number and description 
-    test_num = i; 
-    test_description = tb_test_cases[i].test_name; 
+      // update the test number and description 
+      test_case_num = i; 
+      test_description = tb_test_cases[i].test_name; 
 
-    // wait a little before applying next test 
-    #(1)
+      // wait a little before applying next test 
+      #(1)
 
-    // if a write data test 
-    if (tb_test_cases[i].test_type == WRITE_DATA) begin 
+      // if a write data test 
+      if (tb_test_cases[i].test_type == WRITE_DATA) begin 
 
-      // call write data task 
-      write_data( tb_test_cases[i].test_data, 
-                  tb_test_cases[i].memory_address
-                ); 
-    end 
-    // if a read instruction test 
-    else if (tb_test_cases[i].test_type == READ_INSTR) begin 
+        // call write data task 
+        write_data( tb_test_cases[i].test_data, 
+                    tb_test_cases[i].memory_address
+                  ); 
+      end 
+      // if a read instruction test 
+      else if (tb_test_cases[i].test_type == READ_INSTR) begin 
 
-      // call write data task 
-      write_data( tb_test_cases[i].memory_address, 
-                  tb_test_cases[i].test_name
-                ); 
+        // call write data task 
+        read_instruction( tb_test_cases[i].memory_address, 
+                    tb_test_cases[i].test_name
+                  ); 
+      end 
     end 
   end 
 endprogram

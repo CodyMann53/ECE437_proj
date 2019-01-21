@@ -69,7 +69,7 @@ module memory_control (
         else if ((ccif.dREN == 1'b0) & (ccif.dWEN == 1'b1)) begin 
 
           // go the the write data state 
-          nxt_state = WRITE_DATA
+          nxt_state = WRITE_DATA;
         end 
       end
       READ_INSTR: begin
