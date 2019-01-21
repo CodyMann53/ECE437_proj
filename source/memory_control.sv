@@ -59,22 +59,152 @@ module memory_control (
           // move to read instruction state 
           nxt_state = READ_INSTR; 
         end 
+        // if a read data request 
+        else if ((ccif.dREN == 1'b1) & (ccif.dWEN == 1'b0)) begin
+
+          // go to the read data state 
+          nxt_state = READ_DATA;  
+        end 
+        // if a write data request
+        else if ((ccif.dREN == 1'b0) & (ccif.dWEN == 1'b1)) begin 
+
+          // go the the write data state 
+          nxt_state = WRITE_DATA
+        end 
       end
       READ_INSTR: begin
 
-         
+        // if ram is busy
+        if ((ccif.ramstate) == BUSY) begin 
+
+          // stay in current state 
+          nxt_state = state; 
+        end
+        // ir ram had data ready
+        else if ((ccif.ramstate) == ACCESS) begin 
+
+          // move the the grab instruction state 
+          nxt_state = GRAB_INSTR; 
+        end 
       end 
       GRAB_INSTR: nxt_state = IDLE; 
       WRITE_DATA: begin 
+
+        // if ram is busy
+        if ((ccif.ramstate) == BUSY) begin 
+
+          // stay in current state 
+          nxt_state = state; 
+        end
+        // ir ram is ready
+        else if ((ccif.ramstate) == ACCESS) begin 
+
+          // move the the send data state 
+          nxt_state = SEND_DATA; 
+        end 
       end 
       SEND_DATA: nxt_state = IDLE; 
-      READ_DATA: 
+      READ_DATA: begin 
+        // if ram is busy
+        if ((ccif.ramstate) == BUSY) begin 
+
+          // stay in current state 
+          nxt_state = state; 
+        end
+        // ir ram is ready
+        else if ((ccif.ramstate) == ACCESS) begin 
+
+          // move the the grab data state 
+          nxt_state = GRAB_DATA; 
+        end 
+      end 
       GRAB_DATA: nxt_state = IDLE; 
     endcase
+  end 
 
+  // always comb block to determine outputs based on current state
+  always_comb begin: STATE_OUTPUT_LOGIC
 
+    // assign default values for outputs to cache/datapath 
+    ccif.iload = 32'd0; 
+    ccif.iwait = 1'b0; 
+    ccif.dwait = 1'd0; 
+    ccif.dload = 32'd0; 
 
+    // assign default values for outputs to ram
+    ccif.ramaddr = 32'd0; 
+    ccif.ramREN = 1'b0; 
+    ccif.ramWEN = 1'b0; 
+    ccif.ramstore = 1'b0; 
 
+    // find what state currently in 
+    casez (state)
+
+      IDLE: // do nothing (keep all default values)
+
+      // reading data from ram 
+      READ_INSTR: begin 
+
+        // set outputs to cache/datapath
+        ccif.iwait = 1'b1; 
+
+        // set outputs to ram 
+        ccif.ramaddr = ccif.iaddr; 
+        ccif.ramREN = 1'b1; 
+      end 
+      GRAB_INSTR: begin 
+
+        // set outputs to cache/datapath
+        ccif.iwait = 1'b1; 
+        ccif.iload = ccif.ramload; 
+
+        // set outputs to ram 
+        ccif.ramaddr = ccif.iaddr; 
+        ccif.ramREN = 1'b1; 
+      end 
+
+      // reading data from ram 
+      READ_DATA: begin 
+
+        // set the outputs to cache/datapath 
+        ccif.dwait = 1'b1; 
+
+        // set the outputs to ram 
+        ccif.ramaddr = ccif.daddr; 
+        ccif.ramREN = 1'b1; 
+      end 
+      GRAB_DATA: begin 
+
+        // set the outputs to cache/datapath 
+        ccif.dwait = 1'b1; 
+        ccif.dload = ccif.ramload; 
+
+        // set outputs to ram 
+        ccif.ramaddr = ccif.daddr; 
+        ccif.ramREN = 1'b1; 
+      end 
+
+      // writing data to ram 
+      WRITE_DATA: begin 
+
+        // set the outputs to cache/datapath
+        ccif.dwait = 1'b1; 
+
+        // set outputs to ram 
+        ccif.ramaddr = ccif.daddr; 
+        ccif.ramWEN = 1'b1; 
+      end 
+      SEND_DATA: begin 
+
+        // set the outputs to cache/datapath 
+        ccif.dwait = 1'b1; 
+        ccif.dload = ccif.ramload; 
+
+        // set outputs to ram 
+        ccif.ramaddr = ccif.daddr; 
+        ccif.ramWEN = 1'b1; 
+      end 
+    endcase
   end 
 
   // flip flop to hold the state memory 
