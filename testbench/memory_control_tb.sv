@@ -17,13 +17,20 @@ module memory_control_tb;
   // parameter definitions 
   parameter PERIOD = 10;
 
+  // number of cpus for cc
+  parameter CPUS = 1;
+
   logic CLK = 0, nRST;
 
   // clock generation block 
   always #(PERIOD/2) CLK++;
 
   // interface
-  cache_control_if ccif ();
+    // coherence interface
+  caches_if                 cif0();
+  // cif1 will not be used, but ccif expects it as an input
+  caches_if                 cif1();
+  cache_control_if #(.CPUS(1))   ccif (cif0, cif1);
   cpu_ram_if ramif (); 
 
   // DUT declarations 
@@ -83,21 +90,15 @@ module memory_control_tb;
     .CLK(CLK),
     .nRST(nRST),
     .iwait(ccif.iwait), 
-    .dwait(ccif.dwait), 
-    .ramWEN(ccif.ramWEN), 
-    .ramREN(ccif.ramREN), 
+    .dwait(ccif.dwait),  
     .iload(ccif.iload), 
     .dload(ccif.dload),
-    .ramaddr(ccif.ramaddr), 
-    .ramstore(ccif.ramstore), 
-    .iREN(ccif.iREN), 
-    .dREN(ccif.dREN), 
-    .dWEN(ccif.dWEN),
-    .dstore(ccif.dstore),
-    .iaddr(ccif.iaddr), 
-    .daddr(ccif.daddr), 
-    .ramload(ccif.ramload), 
-    .ramstate(ccif.ramstate) 
+    .iREN(cif0.iREN), 
+    .dREN(cif0.dREN), 
+    .dWEN(cif0.dWEN),
+    .dstore(cif0.dstore),
+    .iaddr(cif0.iaddr), 
+    .daddr(cif0.daddr)
     ); 
 endmodule
 
@@ -108,7 +109,7 @@ program test
   (
   input logic CLK, iwait, dwait,  
   input word_t iload, dload,
-  output logic nRST, iREN, dREN, dWEN, 
+  output logic nRST, iREN, dREN, dWEN,
   output word_t dstore, iaddr, daddr
   ); 
 
@@ -191,7 +192,7 @@ program test
         // send error message to both questasim and terminal 
         $monitor("Incorrect value for test case: %s.", test_description); 
         $monitor("Expected value: %0d. Produced value: %0d.", ram_copy[memory_address], test_data);
-        $display("Time: @%00g ns, Incorrect value for test case: %s.", test_description); 
+        $display("Time: @%00g ns, Incorrect value for test case: %s.", $time, test_description); 
         $display("Expected value: %0d. Produced value: %0d.", ram_copy[memory_address], test_data); 
       end 
     end 
