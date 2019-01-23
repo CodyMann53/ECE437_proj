@@ -75,6 +75,53 @@ module memory_control_tb;
     );
   `endif
 
+  /***************Task definitions ********************/
+
+  task automatic dump_memory();
+    string filename = "memcpu.hex";
+    int memfd;
+
+    //syif.tbCTRL = 1;
+    ccif.ramaddr = 0;
+    ccif.ramWEN = 0;
+    ccif.ramREN = 0;
+
+    memfd = $fopen(filename,"w");
+    if (memfd)
+      $display("Starting memory dump.");
+    else
+      begin $display("Failed to open %s.",filename); $finish; end
+
+    for (int unsigned i = 0; memfd && i < 16384; i++)
+    begin
+      int chksum = 0;
+      bit [7:0][7:0] values;
+      string ihex;
+
+      ccif.ramaddr = i << 2;
+      ccif.ramREN = 1;
+      repeat (4) @(posedge CLK);
+      if (ramif.ramload === 0)
+        continue;
+      values = {8'h04,16'(i),8'h00,ramif.ramload};
+      foreach (values[j])
+        chksum += values[j];
+      chksum = 16'h100 - chksum;
+      ihex = $sformatf(":04%h00%h%h",16'(i),ramif.ramload,8'(chksum));
+      $fdisplay(memfd,"%s",ihex.toupper());
+    end //for
+    if (memfd)
+    begin
+      //syif.tbCTRL = 0;
+      ccif.ramREN = 0;
+      $fdisplay(memfd,":00000001FF");
+      $fclose(memfd);
+      $display("Finished memory dump.");
+    end
+  endtask
+
+  /***************Assign statements ********************/
+
   // assign statements memory control -> ram 
   assign ramif.ramaddr = ccif.ramaddr; 
   assign ramif.ramREN = ccif.ramREN; 
@@ -84,6 +131,9 @@ module memory_control_tb;
   // assign statements ram -> memory control 
   assign ccif.ramload = ramif.ramload; 
   assign ccif.ramstate = ramif.ramstate; 
+
+
+  /***************Program Calls********************/
 
   // test program
   test PROG ( 
@@ -98,9 +148,15 @@ module memory_control_tb;
     .dWEN(cif0.dWEN),
     .dstore(cif0.dstore),
     .iaddr(cif0.iaddr), 
-    .daddr(cif0.daddr), 
-    .ramload(ccif.ramload)
+    .daddr(cif0.daddr)
     ); 
+
+/***************Dumping Memory********************/
+initial begin
+  dump_memory();
+end 
+
+
 endmodule
 
 program test
@@ -109,7 +165,7 @@ program test
   // modports
   (
   input logic CLK, iwait, dwait,  
-  input word_t iload, dload, ramload,
+  input word_t iload, dload,
   output logic nRST, iREN, dREN, dWEN,
   output word_t dstore, iaddr, daddr
   ); 
@@ -125,7 +181,8 @@ program test
   typedef enum logic [1:0] {
     READ_INSTR = 2'd0, 
     READ_DATA = 2'd1, 
-    WRITE_DATA = 2'd2
+    WRITE_DATA = 2'd2, 
+    READ_DATA_INSTR = 2'd3
   } operation_command; 
 
   // test vector definitions 
@@ -230,7 +287,7 @@ program test
 
       // wait a little bit to allow output to settle once access signal is shown 
       #(1)
-      check_read(test_data, memory_address);
+      check_read_instruction(test_data, memory_address);
 
       // get away from rising edge before deasserting inputs 
       @(negedge CLK); 
@@ -241,22 +298,122 @@ program test
     end 
   endtask
 
-  // task to check data and instruction reads from ram (based on expected values)
-  task check_read;
+    // task to read data from memory
+  task read_data; 
+    input word_t memory_address, test_data; 
+    input string test_description; 
+    begin 
+
+      // get away from rising edge before applying inputs 
+      @(negedge CLK); 
+
+      // apply propper inputs to memory control for a read instruciton
+      dREN = 1'b1; 
+      daddr = memory_address; 
+
+      // wait a little to allow inputs to be applied before checking iwait 
+      #(1)
+
+      // wait unitl iwait is brought low 
+      @(negedge dwait); 
+
+      // wait a little bit to allow output to settle once access signal is shown 
+      #(1)
+      check_read_data(test_data, memory_address);
+
+      // get away from rising edge before deasserting inputs 
+      @(negedge CLK); 
+      
+      // deassert the inputs 
+      dREN = 1'b0; 
+      daddr = 32'd0; 
+    end 
+  endtask
+
+      // task to read data from memory
+  task read_data_instr; 
+    input word_t memory_address, test_data; 
+    input string test_description; 
+    begin 
+
+      // get away from rising edge before applying inputs 
+      @(negedge CLK); 
+
+      // apply propper inputs to memory control for a read instruciton and data instruction
+      dREN = 1'b1; 
+      daddr = memory_address; 
+      iREN = 1'b1; 
+      iaddr = memory_address; 
+
+      // wait a little to allow inputs to be applied before checking iwait 
+      #(1)
+
+      // wait unitl dwait is brought low (should retreive data first if memory control is written properly)
+      @(negedge dwait); 
+
+      // wait a little bit to allow output to settle once access signal is shown 
+      #(1)
+      check_read_data(test_data, memory_address);
+
+      // get away from rising edge before deasserting read data inputs
+      @(negedge CLK); 
+      
+      // deassert the read data inputs
+      dREN = 1'b0; 
+      daddr = 32'd0; 
+
+      // wait a little to allow new combnational inputs to settle 
+      #(1)
+
+      // wait until the iwait is brought low 
+      @(negedge iwait);
+
+        // wait a little bit to allow output to settle once access signal is shown 
+      #(1)
+      check_read_instruction(test_data, memory_address);
+
+      // get away form rising edge before deasserting the read instruction inputs 
+      @(negedge CLK)
+      iREN = 1'b0; 
+      iaddr = 32'd0;
+    end 
+  endtask
+
+  // task to check instruction reads from ram (based on expected values)
+  task check_read_instruction;
     input word_t expected_data, memory_location; 
     begin 
 
       // if expected data is not the same as ramload value
-      if (expected_data != ramload) begin 
+      if (expected_data != iload) begin 
 
         // flag an error message to both the terminal and display window 
         //$monitor("Incorrect read from memroy location 0x%0h. Expected value = %0h Read value = %0h",
         //memory_location, expected_data, ramload); 
-        $display("Time: %00gns Incorrect read from memroy location 0x%0h. Expected value = %0h Read value = %0h",
-        $time, memory_location, expected_data, ramload); 
+        $display("Time: %00gns Incorrect read instruction from memroy location 0x%0h. Expected value = %0h Read value = %0h",
+        $time, memory_location, expected_data, dload); 
       end 
     end 
   endtask
+
+  // task to data reads from ram (based on expected values)
+  task check_read_data;
+    input word_t expected_data, memory_location; 
+    begin 
+
+      // if expected data is not the same as ramload value
+      if (expected_data != dload) begin 
+
+        // flag an error message to both the terminal and display window 
+        //$monitor("Incorrect read from memroy location 0x%0h. Expected value = %0h Read value = %0h",
+        //memory_location, expected_data, ramload); 
+        $display("Time: %00gns Incorrect read data from memroy location 0x%0h. Expected value = %0h Read value = %0h",
+        $time, memory_location, expected_data, iload); 
+      end 
+    end 
+  endtask
+
+
 
   //initial block  
   initial begin
@@ -264,60 +421,80 @@ program test
     // allocating space for test cases 
 
     // for test.loadstore.asm
-    tb_test_cases = new[15]; 
+    tb_test_cases = new[32]; 
 
     // for test.rtype.asm
     //tb_test_cases = new[29]; 
 
     // assigning test cases to array (for test.loadstore.asm)
     // array_element, test_name, memory_address, test_data, test_type 
-    add_test(0, "Reading data back from memory 0x0.", 32'h0, 32'h340100F0, READ_INSTR); 
-    add_test(1, "Reading data back from memory 0x4.", 32'h4, 32'h34020080, READ_INSTR); 
-    add_test(2, "Reading data back from memory 0x8.", 32'h8, 32'h3C07DEAD, READ_INSTR); 
-    add_test(3, "Reading data back from memory 0xc.", 32'hc, 32'h34E7BEEF, READ_INSTR); 
-    add_test(4, "Reading data back from memory 0x10.", 32'h10, 32'h8C230000, READ_INSTR); 
-    add_test(5, "Reading data back from memory 0x14.", 32'h14, 32'h8C240004, READ_INSTR); 
-    add_test(6, "Reading data back from memory 0x18.", 32'h18, 32'h8C250008, READ_INSTR); 
-    add_test(7, "Reading data back from memory 0x1c.", 32'h1c, 32'hAC430000, READ_INSTR); 
-    add_test(8, "Reading data back from memory 0x20.", 32'h20, 32'hAC440004, READ_INSTR); 
-    add_test(9, "Reading data back from memory 0x24.", 32'h24, 32'hAC450008, READ_INSTR); 
-    add_test(10, "Reading data back from memory 0x28.", 32'h28, 32'hAC47000C, READ_INSTR); 
-    add_test(11, "Reading data back from memory 0x2c.", 32'h2C, 32'hFFFFFFFF, READ_INSTR); 
-    add_test(12, "Reading data back from memory 0xF0.", 32'hF0, 32'h00007337, READ_INSTR); 
-    add_test(13, "Reading data back from memory 0xF4.", 32'hF4, 32'h00002701, READ_INSTR);
-    add_test(14, "Reading data back from memory 0xF8.", 32'hF8, 32'h00001337, READ_INSTR);
+    add_test(0, "Reading instruction back from memory 0x0.", 32'h0, 32'h340100F0, READ_INSTR); 
+    add_test(1, "Reading instruction back from memory 0x4.", 32'h4, 32'h34020080, READ_INSTR); 
+    add_test(2, "Reading instruction back from memory 0x8.", 32'h8, 32'h3C07DEAD, READ_INSTR); 
+    add_test(3, "Reading instruction back from memory 0xc.", 32'hc, 32'h34E7BEEF, READ_INSTR); 
+    add_test(4, "Reading instruction back from memory 0x10.", 32'h10, 32'h8C230000, READ_INSTR); 
+    add_test(5, "Reading instruction back from memory 0x14.", 32'h14, 32'h8C240004, READ_INSTR); 
+    add_test(6, "Reading instruction back from memory 0x18.", 32'h18, 32'h8C250008, READ_INSTR); 
+    add_test(7, "Reading instruction back from memory 0x1c.", 32'h1c, 32'hAC430000, READ_INSTR); 
+    add_test(8, "Reading instruction back from memory 0x20.", 32'h20, 32'hAC440004, READ_INSTR); 
+    add_test(9, "Reading instruction back from memory 0x24.", 32'h24, 32'hAC450008, READ_INSTR); 
+    add_test(10, "Reading instruction back from memory 0x28.", 32'h28, 32'hAC47000C, READ_INSTR); 
+    add_test(11, "Reading instruction back from memory 0x2c.", 32'h2C, 32'hFFFFFFFF, READ_INSTR); 
+    add_test(12, "Reading instruction back from memory 0xF0.", 32'hF0, 32'h00007337, READ_INSTR); 
+    add_test(13, "Reading instruction back from memory 0xF4.", 32'hF4, 32'h00002701, READ_INSTR);
+    add_test(14, "Reading instruction back from memory 0xF8.", 32'hF8, 32'h00001337, READ_INSTR);
+
+    add_test(15, "Reading data back from memory 0xF4.", 32'hF4, 32'h00002701, READ_DATA);
+    add_test(16, "Request to read data and instruction at same time from memory 0xF8.", 32'hF8, 32'h00001337, READ_DATA_INSTR);
+
+    // writing different data values back to memory 
+    add_test(17, "Writing instruction to memory0x0.", 32'h0, 32'h340100F0, WRITE_DATA); 
+    add_test(18, "Writing instruction to memory0x4.", 32'h4, 32'h34020080, WRITE_DATA); 
+    add_test(19, "Writing instruction to memory0x8.", 32'h8, 32'h3C07DEAD, WRITE_DATA); 
+    add_test(20, "Writing instruction to memory0xc.", 32'hc, 32'h34E7BEEF, WRITE_DATA); 
+    add_test(21, "Writing instruction to memory0x10.", 32'h10, 32'h8C230000, WRITE_DATA); 
+    add_test(22, "Writing instruction to memory0x14.", 32'h14, 32'h8C240004, WRITE_DATA); 
+    add_test(23, "Writing instruction to memory0x18.", 32'h18, 32'h8C250008, WRITE_DATA); 
+    add_test(24, "Writing instruction to memory0x1c.", 32'h1c, 32'hAC430000, WRITE_DATA); 
+    add_test(25, "Writing instruction to memory0x20.", 32'h20, 32'hAC440004, WRITE_DATA); 
+    add_test(26, "Writing instruction to memory0x24.", 32'h24, 32'hAC450008, WRITE_DATA); 
+    add_test(27, "Writing instruction to memory0x28.", 32'h28, 32'hAC47000C, WRITE_DATA); 
+    add_test(28, "Writing instruction to memory0x2c.", 32'h2C, 32'hFFFFFFFF, WRITE_DATA); 
+    add_test(29, "Writing instruction to memory0xF0.", 32'hF0, 32'h00007337, WRITE_DATA); 
+    add_test(30, "Writing instruction to memory0xF4.", 32'hF4, 32'h00002701, WRITE_DATA);
+    add_test(31, "Writing instruction to memory0xF8.", 32'hF8, 32'h00001337, WRITE_DATA);
 
     // assigning test cases to array (for test.rtype.asm)
     // array_element, test_name, memory_address, test_data, test_type 
-    /*add_test(0, "Reading data back from memory 0x0.", 32'h0, 32'h3401D269, READ_INSTR); 
-    add_test(1, "Reading data back from memory 0x4.", 32'h4, 32'h340237F1, READ_INSTR); 
-    add_test(2, "Reading data back from memory 0x8.", 32'h8, 32'h34150080, READ_INSTR); 
-    add_test(3, "Reading data back from memory 0xC.", 32'hc, 32'h341600F0, READ_INSTR); 
-    add_test(4, "Reading data back from memory 0x10.", 32'h10, 32'h00221825, READ_INSTR); 
-    add_test(5, "Reading data back from memory 0x14.", 32'h14, 32'h00222024, READ_INSTR); 
-    add_test(6, "Reading data back from memory 0x18.", 32'h18, 32'h3025000F, READ_INSTR); 
-    add_test(7, "Reading data back from memory 0x1C.", 32'h1c, 32'h00223021, READ_INSTR); 
-    add_test(8, "Reading data back from memory 0x20.", 32'h20, 32'h24678740, READ_INSTR); 
-    add_test(9, "Reading data back from memory 0x24.", 32'h24, 32'h00824023, READ_INSTR); 
-    add_test(10, "Reading data back from memory 0x28.", 32'h28, 32'h00A24826, READ_INSTR); 
-    add_test(11, "Reading data back from memory 0x2C.", 32'h2c, 32'h382AF33F, READ_INSTR); 
-    add_test(12, "Reading data back from memory 0x30.", 32'h30, 32'h340E0004, READ_INSTR); 
-    add_test(13, "Reading data back from memory 0x34.", 32'h34, 32'h01C15804, READ_INSTR);
-    add_test(14, "Reading data back from memory 0x38.", 32'h38, 32'h340E0005, READ_INSTR);
-    add_test(15, "Reading data back from memory 0x3C.", 32'h3c, 32'h01C16006, READ_INSTR); 
-    add_test(16, "Reading data back from memory 0x40.", 32'h40, 32'h00226827, READ_INSTR); 
-    add_test(17, "Reading data back from memory 0x44.", 32'h44, 32'hAECD0000, READ_INSTR); 
-    add_test(18, "Reading data back from memory 0x48.", 32'h48, 32'hAEA30000, READ_INSTR); 
-    add_test(19, "Reading data back from memory 0x4c.", 32'h4c, 32'hAEA40004, READ_INSTR); 
-    add_test(20, "Reading data back from memory 0x50.", 32'h50, 32'hAEA50008, READ_INSTR); 
-    add_test(21, "Reading data back from memory 0x54.", 32'h54, 32'hAEA6000C, READ_INSTR); 
-    add_test(22, "Reading data back from memory 0x58.", 32'h58, 32'hAEA70010, READ_INSTR); 
-    add_test(23, "Reading data back from memory 0x5c.", 32'h5c, 32'hAEA80014, READ_INSTR); 
-    add_test(24, "Reading data back from memory 0x60.", 32'h60, 32'hAEA90018, READ_INSTR); 
-    add_test(25, "Reading data back from memory 0x64.", 32'h64, 32'hAEAA001C, READ_INSTR); 
-    add_test(26, "Reading data back from memory 0x68.", 32'h68, 32'hAEAB0020, READ_INSTR); 
-    add_test(27, "Reading data back from memory 0x6c.", 32'h6c, 32'hAEAC0024, READ_INSTR);
-    add_test(28, "Reading data back from memory 0x70.", 32'h70, 32'hFFFFFFFF, READ_INSTR);*/
+    /*add_test(0, "Reading instruction back from memory 0x0.", 32'h0, 32'h3401D269, READ_INSTR); 
+    add_test(1, "Reading instruction from memory 0x4.", 32'h4, 32'h340237F1, READ_INSTR); 
+    add_test(2, "Reading instruction from memory 0x8.", 32'h8, 32'h34150080, READ_INSTR); 
+    add_test(3, "Reading instruction from memory 0xC.", 32'hc, 32'h341600F0, READ_INSTR); 
+    add_test(4, "Reading instruction from memory 0x10.", 32'h10, 32'h00221825, READ_INSTR); 
+    add_test(5, "Reading instruction from memory 0x14.", 32'h14, 32'h00222024, READ_INSTR); 
+    add_test(6, "Reading instruction from memory 0x18.", 32'h18, 32'h3025000F, READ_INSTR); 
+    add_test(7, "Reading instruction from memory 0x1C.", 32'h1c, 32'h00223021, READ_INSTR); 
+    add_test(8, "Reading instruction from memory 0x20.", 32'h20, 32'h24678740, READ_INSTR); 
+    add_test(9, "Reading instruction from memory 0x24.", 32'h24, 32'h00824023, READ_INSTR); 
+    add_test(10, "Reading instruction from memory 0x28.", 32'h28, 32'h00A24826, READ_INSTR); 
+    add_test(11, "Reading instruction from memory 0x2C.", 32'h2c, 32'h382AF33F, READ_INSTR); 
+    add_test(12, "Reading instruction from memory 0x30.", 32'h30, 32'h340E0004, READ_INSTR); 
+    add_test(13, "Reading instruction from memory 0x34.", 32'h34, 32'h01C15804, READ_INSTR);
+    add_test(14, "Reading instruction from memory 0x38.", 32'h38, 32'h340E0005, READ_INSTR);
+    add_test(15, "Reading instruction from memory 0x3C.", 32'h3c, 32'h01C16006, READ_INSTR); 
+    add_test(16, "Reading instruction from memory 0x40.", 32'h40, 32'h00226827, READ_INSTR); 
+    add_test(17, "Reading instruction from memory 0x44.", 32'h44, 32'hAECD0000, READ_INSTR); 
+    add_test(18, "Reading instruction from memory 0x48.", 32'h48, 32'hAEA30000, READ_INSTR); 
+    add_test(19, "Reading instruction from memory 0x4c.", 32'h4c, 32'hAEA40004, READ_INSTR); 
+    add_test(20, "Reading instruction from memory 0x50.", 32'h50, 32'hAEA50008, READ_INSTR); 
+    add_test(21, "Reading instruction from memory 0x54.", 32'h54, 32'hAEA6000C, READ_INSTR); 
+    add_test(22, "Reading instruction from memory 0x58.", 32'h58, 32'hAEA70010, READ_INSTR); 
+    add_test(23, "Reading instruction from memory 0x5c.", 32'h5c, 32'hAEA80014, READ_INSTR); 
+    add_test(24, "Reading instruction from memory 0x60.", 32'h60, 32'hAEA90018, READ_INSTR); 
+    add_test(25, "Reading instruction from memory 0x64.", 32'h64, 32'hAEAA001C, READ_INSTR); 
+    add_test(26, "Reading instruction from memory 0x68.", 32'h68, 32'hAEAB0020, READ_INSTR); 
+    add_test(27, "Reading instruction from memory 0x6c.", 32'h6c, 32'hAEAC0024, READ_INSTR);
+    add_test(28, "Reading instruction from memory 0x70.", 32'h70, 32'hFFFFFFFF, READ_INSTR);*/
 
     // initialize all of the outputs to the memory controller (default values)
     nRST = 1'b0; 
@@ -354,6 +531,24 @@ program test
 
         // call write data task 
         read_instruction( tb_test_cases[i].memory_address, 
+                    tb_test_cases[i].test_data,
+                    tb_test_cases[i].test_name
+                  ); 
+      end 
+      // if a read data test 
+      else if (tb_test_cases[i].test_type == READ_DATA) begin 
+
+        // call read data task 
+        read_data( tb_test_cases[i].memory_address, 
+                    tb_test_cases[i].test_data,
+                    tb_test_cases[i].test_name
+                  ); 
+      end 
+      // if a read data and instruction at same time test
+      else if (tb_test_cases[i].test_type == READ_DATA_INSTR) begin 
+
+        // call read data and instruction request task 
+        read_data_instr( tb_test_cases[i].memory_address, 
                     tb_test_cases[i].test_data,
                     tb_test_cases[i].test_name
                   ); 
