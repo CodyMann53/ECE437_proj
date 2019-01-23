@@ -71,17 +71,22 @@ module memory_control (
           // go the the write data state 
           nxt_state = WRITE_DATA;
         end 
+        else begin 
+
+          // just stay in idle 
+          nxt_state = IDLE; 
+        end 
       end
       READ_INSTR: begin
 
         // if ram is busy
-        if ((ccif.ramstate) == BUSY) begin 
+        if (ccif.ramstate == BUSY) begin 
 
           // stay in current state 
           nxt_state = state; 
         end
         // ir ram had data ready
-        else if ((ccif.ramstate) == ACCESS) begin 
+        else if (ccif.ramstate == ACCESS) begin 
 
           // move the the grab instruction state 
           nxt_state = GRAB_INSTR; 
@@ -140,8 +145,6 @@ module memory_control (
     // find what state currently in 
     casez (state)
 
-      IDLE: // do nothing (keep all default values)
-
       // reading data from ram 
       READ_INSTR: begin 
 
@@ -155,7 +158,6 @@ module memory_control (
       GRAB_INSTR: begin 
 
         // set outputs to cache/datapath
-        ccif.iwait = 1'b1; 
         ccif.iload = ccif.ramload; 
 
         // set outputs to ram 
@@ -175,8 +177,7 @@ module memory_control (
       end 
       GRAB_DATA: begin 
 
-        // set the outputs to cache/datapath 
-        ccif.dwait = 1'b1; 
+        // set the outputs to cache/datapath  
         ccif.dload = ccif.ramload; 
 
         // set outputs to ram 
@@ -197,7 +198,6 @@ module memory_control (
       SEND_DATA: begin 
 
         // set the outputs to cache/datapath 
-        ccif.dwait = 1'b1; 
         ccif.dload = ccif.ramload; 
 
         // set outputs to ram 

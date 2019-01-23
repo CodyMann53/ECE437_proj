@@ -100,6 +100,7 @@ module memory_control_tb;
     .iaddr(cif0.iaddr), 
     .daddr(cif0.daddr), 
     .ramload(ccif.ramload)
+    .
     ); 
 endmodule
 
@@ -223,15 +224,13 @@ program test
       iaddr = memory_address; 
 
       // wait a little to allow inputs to be applied before checking iwait 
-      #(0.5)
+      #(1)
 
-      // wait until iwait is brought back low 
-      while (iwait == 1'b1) begin 
-        // do nothing here (just waiting)
-      end 
+      // wait unitl iwait is brought low 
+      @(negedge iwait); 
 
       // wait a little bit to allow output to settle once access signal is shown 
-      #(0.5)
+      #(1)
       check_read(test_data, memory_address);
 
       // get away from rising edge before deasserting inputs 
@@ -252,9 +251,9 @@ program test
       if (expected_data != ramload) begin 
 
         // flag an error message to both the terminal and display window 
-        $monitor("Incorrect read from memroy location %0d. Expected value = %0d Read value = %0d",
+        $monitor("Incorrect read from memroy location %0h. Expected value = %0h Read value = %0h",
         memory_location, expected_data, ramload); 
-        $display("Time: %00g Incorrect read from memroy location %0d. Expected value = %0d Read value = %0d",
+        $display("Time: %00gns Incorrect read from memroy location %0d. Expected value = %0h Read value = %0h",
         $time, memory_location, expected_data, ramload); 
       end 
     end 
