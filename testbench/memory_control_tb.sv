@@ -98,7 +98,8 @@ module memory_control_tb;
     .dWEN(cif0.dWEN),
     .dstore(cif0.dstore),
     .iaddr(cif0.iaddr), 
-    .daddr(cif0.daddr)
+    .daddr(cif0.daddr), 
+    .ramload(ccif.ramload)
     ); 
 endmodule
 
@@ -108,14 +109,14 @@ program test
   // modports
   (
   input logic CLK, iwait, dwait,  
-  input word_t iload, dload,
+  input word_t iload, dload, ramload,
   output logic nRST, iREN, dREN, dWEN,
   output word_t dstore, iaddr, daddr
   ); 
 
   // variable definitions for test case description 
-  int test_case_num = 0; 
-  string test_description = "NULL"; 
+  int test_case_num; 
+  string test_description; 
 
   // parameter definitions  
   parameter PERIOD = 10;
@@ -137,9 +138,6 @@ program test
 
   // declare the unpacted/dynamically sized test-vector array 
   test_vector tb_test_cases []; 
-
-  // copy of memory for checking functionality of memory control 
-  word_t [31:0] ram_copy; 
 
   /*************** task definitions *************************************/
   
@@ -180,24 +178,6 @@ program test
     end 
   endtask
 
-  task check_data; 
-    input word_t memory_address; 
-    input word_t test_data; 
-    input string test_description; 
-    begin 
-
-      // if the data returned is not what should be expected 
-      if (test_data != ram_copy[memory_address]) begin 
-
-        // send error message to both questasim and terminal 
-        $monitor("Incorrect value for test case: %s.", test_description); 
-        $monitor("Expected value: %0d. Produced value: %0d.", ram_copy[memory_address], test_data);
-        $display("Time: @%00g ns, Incorrect value for test case: %s.", $time, test_description); 
-        $display("Expected value: %0d. Produced value: %0d.", ram_copy[memory_address], test_data); 
-      end 
-    end 
-  endtask
-
   task write_data; 
     input word_t test_data, memory_address; 
     begin
@@ -226,14 +206,12 @@ program test
       daddr = 32'd0; 
       dstore = 32'd0;
 
-      // update the copy of ram based on what was just written 
-      ram_copy[memory_address] = test_data;  
     end 
   endtask
 
   // task to read instruction from memory
   task read_instruction; 
-    input word_t memory_address; 
+    input word_t memory_address, test_data; 
     input string test_description; 
     begin 
 
@@ -252,8 +230,9 @@ program test
         // do nothing here (just waiting)
       end 
 
-      // check for expected instruction value
-      check_data(memory_address, iload, test_description);
+      // wait a little bit to allow output to settle once access signal is shown 
+      #(0.5)
+      check_read(test_data, memory_address);
 
       // get away from rising edge before deasserting inputs 
       @(negedge CLK); 
@@ -264,17 +243,46 @@ program test
     end 
   endtask
 
+  // task to check data and instruction reads from ram (based on expected values)
+  task check_read;
+    input word_t expected_data, memory_location; 
+    begin 
+
+      // if expected data is not the same as ramload value
+      if (expected_data != ramload) begin 
+
+        // flag an error message to both the terminal and display window 
+        $monitor("Incorrect read from memroy location %0d. Expected value = %0d Read value = %0d",
+        memory_location, expected_data, ramload); 
+        $display("Time: %00g Incorrect read from memroy location %0d. Expected value = %0d Read value = %0d",
+        $time, memory_location, expected_data, ramload); 
+      end 
+    end 
+  endtask
+
   //initial block  
   initial begin
 
     // allocating space for test cases 
-    tb_test_cases = new[1]; 
+    tb_test_cases = new[15]; 
 
-    // assigning test cases to array 
-    add_test(0, "writing data to memory", 32'd0, 32'd1, WRITE_DATA); 
-
-    // initialize the copy of ram to all zero values 
-    ram_copy = 'b0; 
+    // assigning test cases to array (for test.loadstore.asm)
+    // array_element, test_name, memory_address, test_data, test_type 
+    add_test(0, "Reading data back from memory 0x0.", 32'h0, 32'h340100F0, READ_DATA); 
+    add_test(1, "Reading data back from memory 0x1.", 32'h1, 32'h34020080, READ_DATA); 
+    add_test(2, "Reading data back from memory 0x2.", 32'h2, 32'h3C07DEAD, READ_DATA); 
+    add_test(3, "Reading data back from memory 0x3.", 32'h3, 32'h34E7BEEF, READ_DATA); 
+    add_test(4, "Reading data back from memory 0x4.", 32'h4, 32'h8C230000, READ_DATA); 
+    add_test(5, "Reading data back from memory 0x5.", 32'h5, 32'h8C240004, READ_DATA); 
+    add_test(6, "Reading data back from memory 0x6.", 32'h6, 32'h8C250008, READ_DATA); 
+    add_test(7, "Reading data back from memory 0x7.", 32'h7, 32'hAC430000, READ_DATA); 
+    add_test(8, "Reading data back from memory 0x8.", 32'h8, 32'hAC440004, READ_DATA); 
+    add_test(9, "Reading data back from memory 0x9.", 32'h9, 32'hAC450008, READ_DATA); 
+    add_test(10, "Reading data back from memory 0xA.", 32'hA, 32'hAC47000CF, READ_DATA); 
+    add_test(11, "Reading data back from memory 0xB.", 32'hB, 32'hFFFFFFFF, READ_DATA); 
+    add_test(12, "Reading data back from memory 0x3C.", 32'h3C, 32'h00007337, READ_DATA); 
+    add_test(13, "Reading data back from memory 0x3D.", 32'h3D, 32'h00002701, READ_DATA);
+    add_test(14, "Reading data back from memory 0x3E.", 32'h3E, 32'h00001337, READ_DATA);
 
     // initialize all of the outputs to the memory controller (default values)
     nRST = 1'b0; 
@@ -311,6 +319,7 @@ program test
 
         // call write data task 
         read_instruction( tb_test_cases[i].memory_address, 
+                    tb_test_cases[i].test_data,
                     tb_test_cases[i].test_name
                   ); 
       end 
