@@ -75,50 +75,8 @@ module memory_control_tb;
     );
   `endif
 
-  /***************Task definitions ********************/
 
-  task automatic dump_memory();
-    string filename = "memcpu.hex";
-    int memfd;
 
-    //syif.tbCTRL = 1;
-    ccif.ramaddr = 0;
-    ccif.ramWEN = 0;
-    ccif.ramREN = 0;
-
-    memfd = $fopen(filename,"w");
-    if (memfd)
-      $display("Starting memory dump.");
-    else
-      begin $display("Failed to open %s.",filename); $finish; end
-
-    for (int unsigned i = 0; memfd && i < 16384; i++)
-    begin
-      int chksum = 0;
-      bit [7:0][7:0] values;
-      string ihex;
-
-      ccif.ramaddr = i << 2;
-      ccif.ramREN = 1;
-      repeat (4) @(posedge CLK);
-      if (ramif.ramload === 0)
-        continue;
-      values = {8'h04,16'(i),8'h00,ramif.ramload};
-      foreach (values[j])
-        chksum += values[j];
-      chksum = 16'h100 - chksum;
-      ihex = $sformatf(":04%h00%h%h",16'(i),ramif.ramload,8'(chksum));
-      $fdisplay(memfd,"%s",ihex.toupper());
-    end //for
-    if (memfd)
-    begin
-      //syif.tbCTRL = 0;
-      ccif.ramREN = 0;
-      $fdisplay(memfd,":00000001FF");
-      $fclose(memfd);
-      $display("Finished memory dump.");
-    end
-  endtask
 
   /***************Assign statements ********************/
 
@@ -148,14 +106,12 @@ module memory_control_tb;
     .dWEN(cif0.dWEN),
     .dstore(cif0.dstore),
     .iaddr(cif0.iaddr), 
-    .daddr(cif0.daddr)
+    .daddr(cif0.daddr), 
+    .ramWEN(ramif.ramWEN), 
+    .ramREN(ramif.ramREN), 
+    .ramaddr(ramif.ramaddr), 
+    .ramload(ramif.ramload)
     ); 
-
-/***************Dumping Memory********************/
-initial begin
-  dump_memory();
-end 
-
 
 endmodule
 
@@ -165,9 +121,9 @@ program test
   // modports
   (
   input logic CLK, iwait, dwait,  
-  input word_t iload, dload,
-  output logic nRST, iREN, dREN, dWEN,
-  output word_t dstore, iaddr, daddr
+  input word_t iload, dload, ramload,
+  output logic nRST, iREN, dREN, dWEN, ramWEN, ramREN,
+  output word_t dstore, iaddr, daddr, ramaddr
   ); 
 
   // variable definitions for test case description 
@@ -235,6 +191,7 @@ program test
     end 
   endtask
 
+  // task to write data to memory
   task write_data; 
     input word_t test_data, memory_address; 
     begin
@@ -247,15 +204,12 @@ program test
       daddr = memory_address;
       dstore = test_data; 
 
-      // wait a little to allow inputs to be applied before checking dwait 
-      #(0.5)
+      @(negedge dwait); 
 
-      // wait until dwait is brought back low 
-      while (dwait == 1'b1) begin 
-        // do nothing here (just waiting)
-      end 
+      // wait one clock cycle to allow memory to latch on to value 
+      @(posedge CLK);
 
-      // get away from rising edge before deasserting inputs 
+      // get away from negative edge of clock to deassert ram signals
       @(negedge CLK)
 
       // deasert the inputs 
@@ -298,7 +252,7 @@ program test
     end 
   endtask
 
-    // task to read data from memory
+  // task to read data from memory
   task read_data; 
     input word_t memory_address, test_data; 
     input string test_description; 
@@ -330,7 +284,7 @@ program test
     end 
   endtask
 
-      // task to read data from memory
+  // task to read data from memory
   task read_data_instr; 
     input word_t memory_address, test_data; 
     input string test_description; 
@@ -413,7 +367,48 @@ program test
     end 
   endtask
 
+  task automatic dump_memory();
+    string filename = "memcpu.hex";
+    int memfd;
 
+    //syif.tbCTRL = 1;
+    ramaddr = 0;
+    ramWEN = 0;
+    ramREN = 0;
+
+    memfd = $fopen(filename,"w");
+    if (memfd)
+      $display("Starting memory dump.");
+    else
+      begin $display("Failed to open %s.",filename); $finish; end
+
+    for (int unsigned i = 0; memfd && i < 16384; i++)
+    begin
+      int chksum = 0;
+      bit [7:0][7:0] values;
+      string ihex;
+
+      ramaddr = i << 2;
+      ramREN = 1;
+      repeat (4) @(posedge CLK);
+      if (ramload === 0)
+        continue;
+      values = {8'h04,16'(i),8'h00,ramload};
+      foreach (values[j])
+        chksum += values[j];
+      chksum = 16'h100 - chksum;
+      ihex = $sformatf(":04%h00%h%h",16'(i),ramload,8'(chksum));
+      $fdisplay(memfd,"%s",ihex.toupper());
+    end //for
+    if (memfd)
+    begin
+      //syif.tbCTRL = 0;
+      ramREN = 0;
+      $fdisplay(memfd,":00000001FF");
+      $fclose(memfd);
+      $display("Finished memory dump.");
+    end
+  endtask
 
   //initial block  
   initial begin
@@ -448,21 +443,21 @@ program test
     add_test(16, "Request to read data and instruction at same time from memory 0xF8.", 32'hF8, 32'h00001337, READ_DATA_INSTR);
 
     // writing different data values back to memory 
-    add_test(17, "Writing instruction to memory0x0.", 32'h0, 32'h340100F0, WRITE_DATA); 
-    add_test(18, "Writing instruction to memory0x4.", 32'h4, 32'h34020080, WRITE_DATA); 
-    add_test(19, "Writing instruction to memory0x8.", 32'h8, 32'h3C07DEAD, WRITE_DATA); 
-    add_test(20, "Writing instruction to memory0xc.", 32'hc, 32'h34E7BEEF, WRITE_DATA); 
-    add_test(21, "Writing instruction to memory0x10.", 32'h10, 32'h8C230000, WRITE_DATA); 
-    add_test(22, "Writing instruction to memory0x14.", 32'h14, 32'h8C240004, WRITE_DATA); 
-    add_test(23, "Writing instruction to memory0x18.", 32'h18, 32'h8C250008, WRITE_DATA); 
-    add_test(24, "Writing instruction to memory0x1c.", 32'h1c, 32'hAC430000, WRITE_DATA); 
-    add_test(25, "Writing instruction to memory0x20.", 32'h20, 32'hAC440004, WRITE_DATA); 
-    add_test(26, "Writing instruction to memory0x24.", 32'h24, 32'hAC450008, WRITE_DATA); 
-    add_test(27, "Writing instruction to memory0x28.", 32'h28, 32'hAC47000C, WRITE_DATA); 
-    add_test(28, "Writing instruction to memory0x2c.", 32'h2C, 32'hFFFFFFFF, WRITE_DATA); 
-    add_test(29, "Writing instruction to memory0xF0.", 32'hF0, 32'h00007337, WRITE_DATA); 
-    add_test(30, "Writing instruction to memory0xF4.", 32'hF4, 32'h00002701, WRITE_DATA);
-    add_test(31, "Writing instruction to memory0xF8.", 32'hF8, 32'h00001337, WRITE_DATA);
+    add_test(17, "Writing instruction to memory0x0.", 32'h0, 32'h330100F0, WRITE_DATA); 
+    add_test(18, "Writing instruction to memory0x4.", 32'h4, 32'h33020080, WRITE_DATA); 
+    add_test(19, "Writing instruction to memory0x8.", 32'h8, 32'h3C37DEAD, WRITE_DATA); 
+    add_test(20, "Writing instruction to memory0xc.", 32'hc, 32'h3437BEEF, WRITE_DATA); 
+    add_test(21, "Writing instruction to memory0x10.", 32'h10, 32'h3C230000, WRITE_DATA); 
+    add_test(22, "Writing instruction to memory0x14.", 32'h14, 32'h3C240004, WRITE_DATA); 
+    add_test(23, "Writing instruction to memory0x18.", 32'h18, 32'h3C250008, WRITE_DATA); 
+    add_test(24, "Writing instruction to memory0x1c.", 32'h1c, 32'h3C430000, WRITE_DATA); 
+    add_test(25, "Writing instruction to memory0x20.", 32'h20, 32'h3C440004, WRITE_DATA); 
+    add_test(26, "Writing instruction to memory0x24.", 32'h24, 32'h3C450008, WRITE_DATA); 
+    add_test(27, "Writing instruction to memory0x28.", 32'h28, 32'h3C47000C, WRITE_DATA); 
+    add_test(28, "Writing instruction to memory0x2c.", 32'h2C, 32'h3FFFFFFF, WRITE_DATA); 
+    add_test(29, "Writing instruction to memory0xF0.", 32'hF0, 32'h30007337, WRITE_DATA); 
+    add_test(30, "Writing instruction to memory0xF4.", 32'hF4, 32'h30002701, WRITE_DATA);
+    add_test(31, "Writing instruction to memory0xF8.", 32'hF8, 32'h30001337, WRITE_DATA);
 
     // assigning test cases to array (for test.rtype.asm)
     // array_element, test_name, memory_address, test_data, test_type 
@@ -515,9 +510,6 @@ program test
       test_case_num = i; 
       test_description = tb_test_cases[i].test_name; 
 
-      // wait a little before applying next test 
-      #(1)
-
       // if a write data test 
       if (tb_test_cases[i].test_type == WRITE_DATA) begin 
 
@@ -553,6 +545,12 @@ program test
                     tb_test_cases[i].test_name
                   ); 
       end 
-    end 
+
+      // wait a clock cycle before next test case 
+      @(posedge CLK); 
+      @(posedge CLK);
+    end
+
+  dump_memory(); 
   end 
 endprogram

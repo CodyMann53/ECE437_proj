@@ -197,8 +197,8 @@ module memory_control (
       end 
       SEND_DATA: begin 
 
-        // set the outputs to cache/datapath 
-        ccif.dload = ccif.ramload; 
+        // set the the data to be stored to ram on the ramstore bus 
+        ccif.ramstore = ccif.dstore; 
 
         // set outputs to ram 
         ccif.ramaddr = ccif.daddr; 
