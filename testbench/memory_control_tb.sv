@@ -100,7 +100,6 @@ module memory_control_tb;
     .iaddr(cif0.iaddr), 
     .daddr(cif0.daddr), 
     .ramload(ccif.ramload)
-    .
     ); 
 endmodule
 
@@ -251,9 +250,9 @@ program test
       if (expected_data != ramload) begin 
 
         // flag an error message to both the terminal and display window 
-        $monitor("Incorrect read from memroy location %0h. Expected value = %0h Read value = %0h",
-        memory_location, expected_data, ramload); 
-        $display("Time: %00gns Incorrect read from memroy location %0d. Expected value = %0h Read value = %0h",
+        //$monitor("Incorrect read from memroy location 0x%0h. Expected value = %0h Read value = %0h",
+        //memory_location, expected_data, ramload); 
+        $display("Time: %00gns Incorrect read from memroy location 0x%0h. Expected value = %0h Read value = %0h",
         $time, memory_location, expected_data, ramload); 
       end 
     end 
@@ -265,60 +264,60 @@ program test
     // allocating space for test cases 
 
     // for test.loadstore.asm
-    //tb_test_cases = new[15]; 
+    tb_test_cases = new[15]; 
 
     // for test.rtype.asm
-    tb_test_cases = new[29]; 
+    //tb_test_cases = new[29]; 
 
     // assigning test cases to array (for test.loadstore.asm)
     // array_element, test_name, memory_address, test_data, test_type 
-    /*add_test(0, "Reading data back from memory 0x0.", 32'h0, 32'h340100F0, READ_INSTR); 
-    add_test(1, "Reading data back from memory 0x1.", 32'h1, 32'h34020080, READ_INSTR); 
-    add_test(2, "Reading data back from memory 0x2.", 32'h2, 32'h3C07DEAD, READ_INSTR); 
-    add_test(3, "Reading data back from memory 0x3.", 32'h3, 32'h34E7BEEF, READ_INSTR); 
-    add_test(4, "Reading data back from memory 0x4.", 32'h4, 32'h8C230000, READ_INSTR); 
-    add_test(5, "Reading data back from memory 0x5.", 32'h5, 32'h8C240004, READ_INSTR); 
-    add_test(6, "Reading data back from memory 0x6.", 32'h6, 32'h8C250008, READ_INSTR); 
-    add_test(7, "Reading data back from memory 0x7.", 32'h7, 32'hAC430000, READ_INSTR); 
-    add_test(8, "Reading data back from memory 0x8.", 32'h8, 32'hAC440004, READ_INSTR); 
-    add_test(9, "Reading data back from memory 0x9.", 32'h9, 32'hAC450008, READ_INSTR); 
-    add_test(10, "Reading data back from memory 0xA.", 32'hA, 32'hAC47000CF, READ_INSTR); 
-    add_test(11, "Reading data back from memory 0xB.", 32'hB, 32'hFFFFFFFF, READ_INSTR); 
-    add_test(12, "Reading data back from memory 0x3C.", 32'h3C, 32'h00007337, READ_INSTR); 
-    add_test(13, "Reading data back from memory 0x3D.", 32'h3D, 32'h00002701, READ_INSTR);
-    add_test(14, "Reading data back from memory 0x3E.", 32'h3E, 32'h00001337, READ_INSTR);*/
+    add_test(0, "Reading data back from memory 0x0.", 32'h0, 32'h340100F0, READ_INSTR); 
+    add_test(1, "Reading data back from memory 0x4.", 32'h4, 32'h34020080, READ_INSTR); 
+    add_test(2, "Reading data back from memory 0x8.", 32'h8, 32'h3C07DEAD, READ_INSTR); 
+    add_test(3, "Reading data back from memory 0xc.", 32'hc, 32'h34E7BEEF, READ_INSTR); 
+    add_test(4, "Reading data back from memory 0x10.", 32'h10, 32'h8C230000, READ_INSTR); 
+    add_test(5, "Reading data back from memory 0x14.", 32'h14, 32'h8C240004, READ_INSTR); 
+    add_test(6, "Reading data back from memory 0x18.", 32'h18, 32'h8C250008, READ_INSTR); 
+    add_test(7, "Reading data back from memory 0x1c.", 32'h1c, 32'hAC430000, READ_INSTR); 
+    add_test(8, "Reading data back from memory 0x20.", 32'h20, 32'hAC440004, READ_INSTR); 
+    add_test(9, "Reading data back from memory 0x24.", 32'h24, 32'hAC450008, READ_INSTR); 
+    add_test(10, "Reading data back from memory 0x28.", 32'h28, 32'hAC47000C, READ_INSTR); 
+    add_test(11, "Reading data back from memory 0x2c.", 32'h2C, 32'hFFFFFFFF, READ_INSTR); 
+    add_test(12, "Reading data back from memory 0xF0.", 32'hF0, 32'h00007337, READ_INSTR); 
+    add_test(13, "Reading data back from memory 0xF4.", 32'hF4, 32'h00002701, READ_INSTR);
+    add_test(14, "Reading data back from memory 0xF8.", 32'hF8, 32'h00001337, READ_INSTR);
 
     // assigning test cases to array (for test.rtype.asm)
     // array_element, test_name, memory_address, test_data, test_type 
-    add_test(0, "Reading data back from memory 0x0.", 32'h0, 32'h3401D269, READ_INSTR); 
-    add_test(1, "Reading data back from memory 0x1.", 32'h1, 32'h340237F1, READ_INSTR); 
-    add_test(2, "Reading data back from memory 0x2.", 32'h2, 32'h34150080, READ_INSTR); 
-    add_test(3, "Reading data back from memory 0x3.", 32'h3, 32'h341600F0, READ_INSTR); 
-    add_test(4, "Reading data back from memory 0x4.", 32'h4, 32'h00221825, READ_INSTR); 
-    add_test(5, "Reading data back from memory 0x5.", 32'h5, 32'h00222024, READ_INSTR); 
-    add_test(6, "Reading data back from memory 0x6.", 32'h6, 32'h3025000F, READ_INSTR); 
-    add_test(7, "Reading data back from memory 0x7.", 32'h7, 32'h00223021, READ_INSTR); 
-    add_test(8, "Reading data back from memory 0x8.", 32'h8, 32'h24678740, READ_INSTR); 
-    add_test(9, "Reading data back from memory 0x9.", 32'h9, 32'h00824023, READ_INSTR); 
-    add_test(10, "Reading data back from memory 0xA.", 32'hA, 32'h00A24826, READ_INSTR); 
-    add_test(11, "Reading data back from memory 0xB.", 32'hB, 32'h382AF33F, READ_INSTR); 
-    add_test(12, "Reading data back from memory 0xC.", 32'hC, 32'h340E0004, READ_INSTR); 
-    add_test(13, "Reading data back from memory 0xD.", 32'hD, 32'h01C15804, READ_INSTR);
-    add_test(14, "Reading data back from memory 0xE.", 32'hE, 32'h340E0005, READ_INSTR);
-    add_test(15, "Reading data back from memory 0xF.", 32'hF, 32'h01C16006, READ_INSTR); 
-    add_test(16, "Reading data back from memory 0x10.", 32'h10, 32'h00226827, READ_INSTR); 
-    add_test(17, "Reading data back from memory 0x11.", 32'h11, 32'hAECD0000, READ_INSTR); 
-    add_test(18, "Reading data back from memory 0x12.", 32'h12, 32'hAEA30000, READ_INSTR); 
-    add_test(19, "Reading data back from memory 0x13.", 32'h13, 32'hAEA40004, READ_INSTR); 
-    add_test(20, "Reading data back from memory 0x14.", 32'h14, 32'hAEA50008, READ_INSTR); 
-    add_test(21, "Reading data back from memory 0x15.", 32'h15, 32'hAEA6000C, READ_INSTR); 
-    add_test(22, "Reading data back from memory 0x16.", 32'h16, 32'hAEA70010, READ_INSTR); 
-    add_test(23, "Reading data back from memory 0x17.", 32'h17, 32'hAEA80014, READ_INSTR); 
-    add_test(24, "Reading data back from memory 0x18.", 32'h18, 32'hAEA90018, READ_INSTR); 
-    add_test(25, "Reading data back from memory 0x19.", 32'h19, 32'hAEAA001C, READ_INSTR); 
-    add_test(26, "Reading data back from memory 0x1A.", 32'h1A, 32'hAEAB0020, READ_INSTR); 
-    add_test(27, "Reading data back from memory 0x1B.", 32'h1B, 32'hAEAC0024, READ_INSTR);
-    add_test(28, "Reading data back from memory 0x1C.", 32'h1C, 32'hFFFFFFFF, READ_INSTR);
+    /*add_test(0, "Reading data back from memory 0x0.", 32'h0, 32'h3401D269, READ_INSTR); 
+    add_test(1, "Reading data back from memory 0x4.", 32'h4, 32'h340237F1, READ_INSTR); 
+    add_test(2, "Reading data back from memory 0x8.", 32'h8, 32'h34150080, READ_INSTR); 
+    add_test(3, "Reading data back from memory 0xC.", 32'hc, 32'h341600F0, READ_INSTR); 
+    add_test(4, "Reading data back from memory 0x10.", 32'h10, 32'h00221825, READ_INSTR); 
+    add_test(5, "Reading data back from memory 0x14.", 32'h14, 32'h00222024, READ_INSTR); 
+    add_test(6, "Reading data back from memory 0x18.", 32'h18, 32'h3025000F, READ_INSTR); 
+    add_test(7, "Reading data back from memory 0x1C.", 32'h1c, 32'h00223021, READ_INSTR); 
+    add_test(8, "Reading data back from memory 0x20.", 32'h20, 32'h24678740, READ_INSTR); 
+    add_test(9, "Reading data back from memory 0x24.", 32'h24, 32'h00824023, READ_INSTR); 
+    add_test(10, "Reading data back from memory 0x28.", 32'h28, 32'h00A24826, READ_INSTR); 
+    add_test(11, "Reading data back from memory 0x2C.", 32'h2c, 32'h382AF33F, READ_INSTR); 
+    add_test(12, "Reading data back from memory 0x30.", 32'h30, 32'h340E0004, READ_INSTR); 
+    add_test(13, "Reading data back from memory 0x34.", 32'h34, 32'h01C15804, READ_INSTR);
+    add_test(14, "Reading data back from memory 0x38.", 32'h38, 32'h340E0005, READ_INSTR);
+    add_test(15, "Reading data back from memory 0x3C.", 32'h3c, 32'h01C16006, READ_INSTR); 
+    add_test(16, "Reading data back from memory 0x40.", 32'h40, 32'h00226827, READ_INSTR); 
+    add_test(17, "Reading data back from memory 0x44.", 32'h44, 32'hAECD0000, READ_INSTR); 
+    add_test(18, "Reading data back from memory 0x48.", 32'h48, 32'hAEA30000, READ_INSTR); 
+    add_test(19, "Reading data back from memory 0x4c.", 32'h4c, 32'hAEA40004, READ_INSTR); 
+    add_test(20, "Reading data back from memory 0x50.", 32'h50, 32'hAEA50008, READ_INSTR); 
+    add_test(21, "Reading data back from memory 0x54.", 32'h54, 32'hAEA6000C, READ_INSTR); 
+    add_test(22, "Reading data back from memory 0x58.", 32'h58, 32'hAEA70010, READ_INSTR); 
+    add_test(23, "Reading data back from memory 0x5c.", 32'h5c, 32'hAEA80014, READ_INSTR); 
+    add_test(24, "Reading data back from memory 0x60.", 32'h60, 32'hAEA90018, READ_INSTR); 
+    add_test(25, "Reading data back from memory 0x64.", 32'h64, 32'hAEAA001C, READ_INSTR); 
+    add_test(26, "Reading data back from memory 0x68.", 32'h68, 32'hAEAB0020, READ_INSTR); 
+    add_test(27, "Reading data back from memory 0x6c.", 32'h6c, 32'hAEAC0024, READ_INSTR);
+    add_test(28, "Reading data back from memory 0x70.", 32'h70, 32'hFFFFFFFF, READ_INSTR);*/
 
     // initialize all of the outputs to the memory controller (default values)
     nRST = 1'b0; 
