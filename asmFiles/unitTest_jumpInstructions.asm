@@ -4,28 +4,29 @@
 org 0x0000
 
 main:
-	
+
+		
 	#jump and link to func
 	jal func
+
+	andi $9, $9, 1
+	
 
 	#jump to return 
 	j return
 
-	#place 5 in register 8 (should not get here)
-	ori $8, $0, 5
 
 func:
-
-	#place 10 in register 8 to know that jr worked correctly
-	ori $8, $0, 10
+	
+	ori $9, $0, 3
 
 	#jump to return address 
 	jr $31
 
-	# place 12 in register 8 (should not get here)
-	ori $8, $0, 12
+	ori $9, $0, 5
 
 return: 
 
-	#program done 
-	halt
+	halt 
+
+

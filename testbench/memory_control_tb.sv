@@ -22,6 +22,10 @@ module memory_control_tb;
 
   logic CLK = 0, nRST;
 
+  // variables for dump memory 
+  cpu_types_pkg::word_t mem_addr, mem_load; 
+  logic mem_REN;  
+
   // clock generation block 
   always #(PERIOD/2) CLK++;
 
@@ -35,20 +39,20 @@ module memory_control_tb;
 
   // DUT declarations 
   `ifndef MAPPED
-    memory_control DUT_MEMORY_CONTROL(CLK, nRST, ccif);
-    ram DUT_RAM(CLK, nRST, ramif); 
+    memory_control DUT_MEMORY_CONTROL(ccif);
+    ram RAM(CLK, nRST, ramif); 
   `else
     memory_control DUT_MEMORY_CONTROL(
-      .\ccif.iREN (ccif.iREN),
-      .\ccif.dREN (ccif.dREN), 
-      .\ccif.dWEN (ccif.dWEN),
-      .\ccif.dstore (ccif.dstore), 
-      .\ccif.iaddr (ccif.iaddr), 
-      .\ccif.daddr (ccif.daddr), 
+      .\ccif.iREN (cif0.iREN),
+      .\ccif.dREN (cif0.dREN), 
+      .\ccif.dWEN (cif0.dWEN),
+      .\ccif.dstore (cif0.dstore), 
+      .\ccif.iaddr (cif0.iaddr), 
+      .\ccif.daddr (cif0.daddr), 
       .\ccif.ramload (ccif.ramload), 
       .\ccif.ramstate (ccif.ramstate), 
-      .\ccif.ccwrite (ccif.ccwrite), 
-      .\ccif.cctrans (ccif.cctrans), 
+      .\ccif.ccwrite (cif0.ccwrite), 
+      .\ccif.cctrans (cif0.cctrans), 
       .\ccif.iwait (ccif.iwait), 
       .\ccif.dwait (ccif.dwait), 
       .\ccif.iload (ccif.iload), 
@@ -60,23 +64,18 @@ module memory_control_tb;
       .\ccif.ccwait (ccif.ccwait), 
       .\ccif.ccinv (ccif.ccinv), 
       .\ccif.ccsnoopaddr (ccif.ccsnoopaddr),
-      .\nRST (nRST),
-      .\CLK (CLK)
     );
-    ram DUT_RAM(
-      .\CLK (CLK),
-      .\nRST (nRST), 
-      .\ramaddr (ramif.ramaddr),
-      .\ramstore (ramif.ramstore), 
-      .\ramREN (ramif.ramREN), 
-      .\ramWEN (ramif.ramWEN), 
-      .\ramstate (ramif.ramstate), 
-      .\ramload (ramif.ramload)
+    ram RAM(
+    .\CLK (CLK),
+    .\nRST (nRST), 
+    .\ramif.ramaddr (ramif.ramaddr),
+    .\ramif.ramstore (ramif.ramstore), 
+    .\ramif.ramREN (ramif.ramREN), 
+    .\ramif.ramWEN (ramif.ramWEN), 
+    .\ramif.ramstate (ramif.ramstate), 
+    .\ramif.ramload (ramif.ramload)
     );
   `endif
-
-
-
 
   /***************Assign statements ********************/
 
@@ -96,21 +95,7 @@ module memory_control_tb;
   // test program
   test PROG ( 
     .CLK(CLK),
-    .nRST(nRST),
-    .iwait(ccif.iwait), 
-    .dwait(ccif.dwait),  
-    .iload(ccif.iload), 
-    .dload(ccif.dload),
-    .iREN(cif0.iREN), 
-    .dREN(cif0.dREN), 
-    .dWEN(cif0.dWEN),
-    .dstore(cif0.dstore),
-    .iaddr(cif0.iaddr), 
-    .daddr(cif0.daddr), 
-    .ramWEN(ramif.ramWEN), 
-    .ramREN(ramif.ramREN), 
-    .ramaddr(ramif.ramaddr), 
-    .ramload(ramif.ramload)
+    .ccif (ccif)
     ); 
 
 endmodule
@@ -120,10 +105,8 @@ program test
   import cpu_types_pkg::*; 
   // modports
   (
-  input logic CLK, iwait, dwait,  
-  input word_t iload, dload, ramload,
-  output logic nRST, iREN, dREN, dWEN, ramWEN, ramREN,
-  output word_t dstore, iaddr, daddr, ramaddr
+  input logic CLK,  
+  cache_control_if ccif
   ); 
 
   // variable definitions for test case description 
@@ -132,6 +115,9 @@ program test
 
   // parameter definitions  
   parameter PERIOD = 10;
+
+  // cif0.iREN = 0
+  // cif0.dREN = 1 ...
 
   // enumeration definitions 
   typedef enum logic [1:0] {
@@ -153,27 +139,6 @@ program test
   test_vector tb_test_cases []; 
 
   /*************** task definitions *************************************/
-  
-  // toggles the reset line 
-  task reset_dut; 
-    begin 
-
-      // get away from posedge of clock 
-      @(negedge CLK); 
-
-      // bring nRST low 
-      nRST = 1'b0; 
-
-      // wait for a period 
-      #(PERIOD)
-
-      // get away from posedge of clock 
-      @(negedge CLK); 
-
-      // bring nRST back high 
-      nRST = 1'b1; 
-    end 
-  endtask
 
   // assigns an element in array of test vectors its information 
   task add_test; 
@@ -200,11 +165,11 @@ program test
       @(negedge CLK); 
 
       // apply propper inputs to memory control for writing data  
-      dWEN = 1'b1; 
-      daddr = memory_address;
-      dstore = test_data; 
+      cif0.dWEN = 1'b1; 
+      cif0.daddr = memory_address;
+      cif0.dstore = test_data; 
 
-      @(negedge dwait); 
+      wait(!ccif.dwait); 
 
       // wait one clock cycle to allow memory to latch on to value 
       @(posedge CLK);
@@ -213,9 +178,9 @@ program test
       @(negedge CLK)
 
       // deasert the inputs 
-      dWEN = 1'b0; 
-      daddr = 32'd0; 
-      dstore = 32'd0;
+      cif0.dWEN = 1'b0; 
+      cif0.daddr = 32'd0; 
+      cif0.dstore = 32'd0;
 
     end 
   endtask
@@ -230,14 +195,11 @@ program test
       @(negedge CLK); 
 
       // apply propper inputs to memory control for a read instruciton
-      iREN = 1'b1; 
-      iaddr = memory_address; 
+      cif0.iREN = 1'b1; 
+      cif0.iaddr = memory_address; 
 
-      // wait a little to allow inputs to be applied before checking iwait 
       #(1)
-
-      // wait unitl iwait is brought low 
-      @(negedge iwait); 
+      wait(!ccif.iwait); 
 
       // wait a little bit to allow output to settle once access signal is shown 
       #(1)
@@ -247,8 +209,8 @@ program test
       @(negedge CLK); 
       
       // deassert the inputs 
-      iREN = 1'b0; 
-      iaddr = 32'd0; 
+      cif0.iREN = 1'b0; 
+      cif0.iaddr = 32'd0; 
     end 
   endtask
 
@@ -262,14 +224,11 @@ program test
       @(negedge CLK); 
 
       // apply propper inputs to memory control for a read instruciton
-      dREN = 1'b1; 
-      daddr = memory_address; 
+      cif0.dREN = 1'b1; 
+      cif0.daddr = memory_address; 
 
-      // wait a little to allow inputs to be applied before checking iwait 
       #(1)
-
-      // wait unitl iwait is brought low 
-      @(negedge dwait); 
+      wait(!ccif.dwait); 
 
       // wait a little bit to allow output to settle once access signal is shown 
       #(1)
@@ -279,8 +238,8 @@ program test
       @(negedge CLK); 
       
       // deassert the inputs 
-      dREN = 1'b0; 
-      daddr = 32'd0; 
+      cif0.dREN = 1'b0; 
+      cif0.daddr = 32'd0; 
     end 
   endtask
 
@@ -294,16 +253,13 @@ program test
       @(negedge CLK); 
 
       // apply propper inputs to memory control for a read instruciton and data instruction
-      dREN = 1'b1; 
-      daddr = memory_address; 
-      iREN = 1'b1; 
-      iaddr = memory_address; 
+      cif0.dREN = 1'b1; 
+      cif0.daddr = memory_address; 
+      cif0.iREN = 1'b1; 
+      cif0.iaddr = memory_address; 
 
-      // wait a little to allow inputs to be applied before checking iwait 
       #(1)
-
-      // wait unitl dwait is brought low (should retreive data first if memory control is written properly)
-      @(negedge dwait); 
+      wait(!ccif.dwait); 
 
       // wait a little bit to allow output to settle once access signal is shown 
       #(1)
@@ -313,14 +269,12 @@ program test
       @(negedge CLK); 
       
       // deassert the read data inputs
-      dREN = 1'b0; 
-      daddr = 32'd0; 
+      cif0.dREN = 1'b0; 
+      cif0.daddr = 32'd0; 
 
       // wait a little to allow new combnational inputs to settle 
       #(1)
-
-      // wait until the iwait is brought low 
-      @(negedge iwait);
+      wait(!ccif.iwait); 
 
         // wait a little bit to allow output to settle once access signal is shown 
       #(1)
@@ -328,8 +282,8 @@ program test
 
       // get away form rising edge before deasserting the read instruction inputs 
       @(negedge CLK)
-      iREN = 1'b0; 
-      iaddr = 32'd0;
+      cif0.iREN = 1'b0; 
+      cif0.iaddr = 32'd0;
     end 
   endtask
 
@@ -339,13 +293,13 @@ program test
     begin 
 
       // if expected data is not the same as ramload value
-      if (expected_data != iload) begin 
+      if (expected_data != ccif.iload) begin 
 
         // flag an error message to both the terminal and display window 
         //$monitor("Incorrect read from memroy location 0x%0h. Expected value = %0h Read value = %0h",
         //memory_location, expected_data, ramload); 
         $display("Time: %00gns Incorrect read instruction from memroy location 0x%0h. Expected value = %0h Read value = %0h",
-        $time, memory_location, expected_data, dload); 
+        $time, memory_location, expected_data, ccif.dload); 
       end 
     end 
   endtask
@@ -356,13 +310,13 @@ program test
     begin 
 
       // if expected data is not the same as ramload value
-      if (expected_data != dload) begin 
+      if (expected_data != ccif.dload) begin 
 
         // flag an error message to both the terminal and display window 
         //$monitor("Incorrect read from memroy location 0x%0h. Expected value = %0h Read value = %0h",
         //memory_location, expected_data, ramload); 
         $display("Time: %00gns Incorrect read data from memroy location 0x%0h. Expected value = %0h Read value = %0h",
-        $time, memory_location, expected_data, iload); 
+        $time, memory_location, expected_data, ccif.iload); 
       end 
     end 
   endtask
@@ -372,9 +326,8 @@ program test
     int memfd;
 
     //syif.tbCTRL = 1;
-    ramaddr = 0;
-    ramWEN = 0;
-    ramREN = 0;
+    ccif.ramaddr = 0;
+    ccif.ramREN = 0;
 
     memfd = $fopen(filename,"w");
     if (memfd)
@@ -388,22 +341,22 @@ program test
       bit [7:0][7:0] values;
       string ihex;
 
-      ramaddr = i << 2;
-      ramREN = 1;
+      ccif.ramaddr = i << 2;
+      ccif.ramREN = 1;
       repeat (4) @(posedge CLK);
-      if (ramload === 0)
+      if (ccif.ramload === 0)
         continue;
-      values = {8'h04,16'(i),8'h00,ramload};
+      values = {8'h04,16'(i),8'h00,ccif.ramload};
       foreach (values[j])
         chksum += values[j];
       chksum = 16'h100 - chksum;
-      ihex = $sformatf(":04%h00%h%h",16'(i),ramload,8'(chksum));
+      ihex = $sformatf(":04%h00%h%h",16'(i),ccif.ramload,8'(chksum));
       $fdisplay(memfd,"%s",ihex.toupper());
     end //for
     if (memfd)
     begin
       //syif.tbCTRL = 0;
-      ramREN = 0;
+      ccif.ramREN = 0;
       $fdisplay(memfd,":00000001FF");
       $fclose(memfd);
       $display("Finished memory dump.");
@@ -491,26 +444,16 @@ program test
     add_test(27, "Reading instruction from memory 0x6c.", 32'h6c, 32'hAEAC0024, READ_INSTR);
     add_test(28, "Reading instruction from memory 0x70.", 32'h70, 32'hFFFFFFFF, READ_INSTR);*/
 
-    // initialize all of the outputs to the memory controller (default values)
-    nRST = 1'b0; 
-    iREN = 1'b1; 
-    dREN = 1'b0; 
-    dWEN = 1'b0; 
-    dstore = 32'd0; 
-    iaddr = 32'd0; 
-    daddr = 32'd0; 
-
-    // reset the devices under test 
-    reset_dut(); 
+    // initialize all of the outputs to the memory controller (default values) 
+    cif0.iREN = 1'b1; 
+    cif0.dREN = 1'b0; 
+    cif0.dWEN = 1'b0; 
+    cif0.dstore = 32'd0; 
+    cif0.iaddr = 32'd0; 
+    cif0.daddr = 32'd0; 
 
     // bring instruction read enable back low after done testing reset dut 
-    iREN = 1'b0; 
-
-    // setting nRST high then low 
-    nRST = 1'b1; 
-
-    // call reset dut 
-    reset_dut(); 
+    cif0.iREN = 1'b0; 
 
     // loop through all of the test cases
     for (int i = 0; i < tb_test_cases.size(); i++) begin 
@@ -560,6 +503,6 @@ program test
       @(posedge CLK);
     end
 
-  dump_memory(); 
+    dump_memory(); 
   end 
 endprogram
