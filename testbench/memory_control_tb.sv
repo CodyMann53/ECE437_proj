@@ -493,7 +493,7 @@ program test
 
     // initialize all of the outputs to the memory controller (default values)
     nRST = 1'b0; 
-    iREN = 1'b0; 
+    iREN = 1'b1; 
     dREN = 1'b0; 
     dWEN = 1'b0; 
     dstore = 32'd0; 
@@ -501,6 +501,15 @@ program test
     daddr = 32'd0; 
 
     // reset the devices under test 
+    reset_dut(); 
+
+    // bring instruction read enable back low after done testing reset dut 
+    iREN = 1'b0; 
+
+    // setting nRST high then low 
+    nRST = 1'b1; 
+
+    // call reset dut 
     reset_dut(); 
 
     // loop through all of the test cases
