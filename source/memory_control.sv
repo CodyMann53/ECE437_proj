@@ -39,9 +39,42 @@ module memory_control (
     ccif.ramWEN = 1'b0; 
     ccif.ramREN = 1'b0; 
 
+        // if requesting a data read or write (should always have precedence)
+    if ((cif0.dREN == 1'b1) | (cif0.dWEN == 1'b1)) begin 
+
+        // route the data address requestion location regardless of a read or write to ram 
+        ccif.ramaddr = cif0.daddr; 
+
+        // if a data read 
+        if (cif0.dREN == 1'b1) begin 
+
+          // tell ram that a data read is occuring 
+          ccif.ramREN = 1'b1; 
+
+          // rout ramload to data path dload 
+          ccif.dload = ccif.ramload; 
+        end 
+        
+        // else a data write is occuring 
+        else begin 
+
+          // tell ram that a data write is occuring 
+          ccif.ramWEN = 1'b1; 
+
+          // rout dstore to ram store 
+          ccif.ramstore = cif0.dstore; 
+        end  
+
+        // if ram state is busy 
+        if ( ccif.ramstate != ACCESS) begin 
+
+          // keep dwaccit high 
+          ccif.dwait = 1'b1;
+        end 
+    end 
 
     // if only requesting only instruction read 
-    if ((cif0.iREN == 1'b1) & (cif0.dREN == 1'b0) & (cif0.dWEN == 1'b0)) begin 
+    else if ((cif0.iREN == 1'b1) & (cif0.dREN == 1'b0) & (cif0.dWEN == 1'b0)) begin 
 
       // tell ram that a instruction read is occuring 
       ccif.ramREN = 1'b1; 
@@ -58,56 +91,11 @@ module memory_control (
 
       // if ram state is ACCESS
       else if (ccif.ramstate == ACCESS) begin 
-
         // route ramload to iload
         ccif.iload = ccif.ramload; 
       end 
     end 
 
-    // if requesting only data operation 
-    else if ((cif0.dREN == 1'b1) | (cif0.dWEN == 1'b1)) begin 
 
-        // route the data address requestion location regardless of a read or write to ram 
-        ccif.ramaddr = cif0.daddr; 
-
-        // if a data read 
-        if (cif0.dREN == 1'b1) begin 
-
-          // tell ram that a data read is occuring 
-          ccif.ramWEN = 1'b1; 
-        end 
-
-        // else a data write is occuring 
-        else begin 
-
-          // tell ram that a data write is occuring 
-          ccif.ramWEN = 1'b1; 
-        end  
-
-        // if ram state is busy 
-        if (ccif.ramstate != ACCESS) begin 
-
-          // keep dwait high 
-          ccif.dwait = 1'b1;
-        end 
-
-        // if ram state is ACCES
-        else if (ccif.ramstate == ACCESS) begin 
-
-          // if a data read 
-          if (cif0.dREN == 1'b1) begin 
-
-            // rout ramload to data path dload 
-            ccif.dload = ccif.ramload; 
-          end 
-
-          // a data store 
-          else begin 
-
-            // rout dstore to ram store 
-            ccif.ramstore = cif0.dstore; 
-          end 
-        end 
-    end 
   end 
 endmodule

@@ -8,6 +8,7 @@
 // mapped needs this
 `include "cache_control_if.vh"
 `include "cpu_types_pkg.vh"
+`include "cpu_ram_if.vh"
 
 // mapped timing needs this. 1ns is too fast
 `timescale 1 ns / 1 ns
@@ -29,13 +30,14 @@ module memory_control_tb;
   // clock generation block 
   always #(PERIOD/2) CLK++;
 
+
   // interface
     // coherence interface
   caches_if                 cif0();
   // cif1 will not be used, but ccif expects it as an input
-  caches_if                 cif1();
+  caches_if                cif1();
   cache_control_if #(.CPUS(1))   ccif (cif0, cif1);
-  cpu_ram_if ramif (); 
+  cpu_ram_if ramif(); 
 
   // DUT declarations 
   `ifndef MAPPED
@@ -95,7 +97,9 @@ module memory_control_tb;
   // test program
   test PROG ( 
     .CLK(CLK),
-    .ccif (ccif)
+    .nRST(nRST),
+    .ccif (ccif),
+    .ramif(ramif)
     ); 
 
 endmodule
@@ -105,8 +109,10 @@ program test
   import cpu_types_pkg::*; 
   // modports
   (
+  cache_control_if.cc ccif,
+  cpu_ram_if.ram ramif,
   input logic CLK,  
-  cache_control_if ccif
+  output logic nRST
   ); 
 
   // variable definitions for test case description 
@@ -116,8 +122,6 @@ program test
   // parameter definitions  
   parameter PERIOD = 10;
 
-  // cif0.iREN = 0
-  // cif0.dREN = 1 ...
 
   // enumeration definitions 
   typedef enum logic [1:0] {
@@ -169,13 +173,12 @@ program test
       cif0.daddr = memory_address;
       cif0.dstore = test_data; 
 
+      #(1)
       wait(!ccif.dwait); 
 
-      // wait one clock cycle to allow memory to latch on to value 
-      @(posedge CLK);
-
-      // get away from negative edge of clock to deassert ram signals
+      // get away from negative edge to change inputs 
       @(negedge CLK)
+
 
       // deasert the inputs 
       cif0.dWEN = 1'b0; 
@@ -316,7 +319,7 @@ program test
         //$monitor("Incorrect read from memroy location 0x%0h. Expected value = %0h Read value = %0h",
         //memory_location, expected_data, ramload); 
         $display("Time: %00gns Incorrect read data from memroy location 0x%0h. Expected value = %0h Read value = %0h",
-        $time, memory_location, expected_data, ccif.iload); 
+        $time, memory_location, expected_data, ccif.dload); 
       end 
     end 
   endtask
@@ -325,9 +328,9 @@ program test
     string filename = "memcpu.hex";
     int memfd;
 
-    //syif.tbCTRL = 1;
     ccif.ramaddr = 0;
     ccif.ramREN = 0;
+    ccif.ramWEN = 0; 
 
     memfd = $fopen(filename,"w");
     if (memfd)
@@ -340,6 +343,8 @@ program test
       int chksum = 0;
       bit [7:0][7:0] values;
       string ihex;
+
+
 
       ccif.ramaddr = i << 2;
       ccif.ramREN = 1;
@@ -355,7 +360,7 @@ program test
     end //for
     if (memfd)
     begin
-      //syif.tbCTRL = 0;
+
       ccif.ramREN = 0;
       $fdisplay(memfd,":00000001FF");
       $fclose(memfd);
@@ -369,7 +374,7 @@ program test
     // allocating space for test cases 
 
     // for test.loadstore.asm
-    tb_test_cases = new[32]; 
+    tb_test_cases = new[17]; 
 
     // for test.rtype.asm
     //tb_test_cases = new[29]; 
@@ -410,7 +415,8 @@ program test
     add_test(28, "Writing instruction to memory0x2c.", 32'h2C, 32'h3FFFFFFF, WRITE_DATA); 
     add_test(29, "Writing instruction to memory0xF0.", 32'hF0, 32'h30007337, WRITE_DATA); 
     add_test(30, "Writing instruction to memory0xF4.", 32'hF4, 32'h30002701, WRITE_DATA);
-    add_test(31, "Writing instruction to memory0xF8.", 32'hF8, 32'h30001337, WRITE_DATA);
+    add_test(31, "Writing instruction to memory0xF8.", 32'hF8, 32'h44444444, WRITE_DATA);
+    add_test(32, "Reading data from memory0xF8.", 32'hF8, 32'h44444444, READ_DATA);
 
     // assigning test cases to array (for test.rtype.asm)
     // array_element, test_name, memory_address, test_data, test_type 
@@ -451,6 +457,7 @@ program test
     cif0.dstore = 32'd0; 
     cif0.iaddr = 32'd0; 
     cif0.daddr = 32'd0; 
+    nRST = 1'b1; 
 
     // bring instruction read enable back low after done testing reset dut 
     cif0.iREN = 1'b0; 
