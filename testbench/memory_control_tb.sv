@@ -45,16 +45,16 @@ module memory_control_tb;
     ram RAM(CLK, nRST, ramif);
   `else
     memory_control DUT_MEMORY_CONTROL(
-      .\ccif.iREN (cif0.iREN),
-      .\ccif.dREN (cif0.dREN),
-      .\ccif.dWEN (cif0.dWEN),
-      .\ccif.dstore (cif0.dstore),
-      .\ccif.iaddr (cif0.iaddr),
-      .\ccif.daddr (cif0.daddr),
+      .\ccif.iREN (ccif.iREN),
+      .\ccif.dREN (ccif.dREN),
+      .\ccif.dWEN (ccif.dWEN),
+      .\ccif.dstore (ccif.dstore),
+      .\ccif.iaddr (ccif.iaddr),
+      .\ccif.daddr (ccif.daddr),
       .\ccif.ramload (ccif.ramload),
       .\ccif.ramstate (ccif.ramstate),
-      .\ccif.ccwrite (cif0.ccwrite),
-      .\ccif.cctrans (cif0.cctrans),
+      .\ccif.ccwrite (ccif.ccwrite),
+      .\ccif.cctrans (ccif.cctrans),
       .\ccif.iwait (ccif.iwait),
       .\ccif.dwait (ccif.dwait),
       .\ccif.iload (ccif.iload),
@@ -65,7 +65,7 @@ module memory_control_tb;
       .\ccif.ramREN (ccif.ramREN),
       .\ccif.ccwait (ccif.ccwait),
       .\ccif.ccinv (ccif.ccinv),
-      .\ccif.ccsnoopaddr (ccif.ccsnoopaddr),
+      .\ccif.ccsnoopaddr (ccif.ccsnoopaddr)
     );
     ram RAM(
     .\CLK (CLK),
