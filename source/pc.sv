@@ -28,7 +28,7 @@ logic program_wait;
 assign pcif.imemaddr = program_counter; 
 
 // internal wait signal based on various inputs 
-assign program_wait = (pcif.ihit | pcif.halt); 
+assign program_wait = (pcif.pc_wait | pcif.halt); 
 
 /********** Combinational Logic ***************************/
 
