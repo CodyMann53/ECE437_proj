@@ -6,16 +6,17 @@
 */
 
 `include "cpu_types_pkg.vh"
+`include "data_path_muxs_pkg"
 `include "pc_if.vh"
 
-module register_file 
+module pc 
 	import cpu_types_pkg::*;
+	import data_path_muxs_pkg::*; 
 	(
 	input logic CLK,
  	nRST,
- 	pc_if.pc pcif); 
-
-
+ 	pc_if.pc pcif
+ 	); 
 
 /********** Local variable definitions ***************************/
 word_t next_program_counter, program_counter, pc_incr_4, pc_incr4_plus_imm16; 
@@ -35,24 +36,20 @@ assign program_wait = (pcif.ihit | pcif.halt);
 
 always_comb begin: PC_NEXT_LOGIC
 
-	// set default values to prevent latches 
+	// set default values to prevent latches (just stay at same value)
 	next_program_counter = program_counter; 
 
 	// If not requested to wait 
 	if (program_wait != 1'b1) begin
 
 		// Choose next program counter based off of program source
-		casez (pc.PCSrc) 
-
-			BRANCH:
-
-
+		casez (pcif.PCSrc) 
+			SEL_LOAD_ADDR:next_program_counter = pcif.load_addr; 
+			SEL_LOAD_IMM16:next_program_counter = pc_incr4_plus_imm16; 
+			SEL_LOAD_JR_ADR:next_program_counter = pcif.jr_addr; 
+			SEL_LOAD_NXT_INSTR:next_program_counter = pc_incr_4; 
 		endcase 
-
-
 end 
-
-
 
 /********** Sequential Logic ***************************/
 always_ff @(posedge CLK, negedge nRST) begin: PC_REGISTER

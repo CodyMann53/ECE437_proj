@@ -9,15 +9,15 @@
 `define DATA_PATH_MUXS_PKG_VH
 package data_path_muxs_pkg;
 
-  // word width and size
-  
-// opcodes
-  // opcode type
-  typedef enum logic [OP_W-1:0] {
-    // rtype - use funct
-    RTYPE   = 6'b000000,
+/********************************** Mux select line types *******************************/
+  typedef enum logic [2:0] {
 
-  } opcode_t;
+    SEL_LOAD_ADDR = 3'd0, 
+    SEL_LOAD_JR_ADR = 3'd1, 
+    SEL_LOAD_IMM16 = 3'd2, 
+    SEL_LOAD_NXT_INSTR = 3'd3
+
+  } pc_mux_input_selection;
 
 endpackage
 `endif //DATA_PATH_MUXS_PKG_VH
