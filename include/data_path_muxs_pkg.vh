@@ -10,14 +10,38 @@
 package data_path_muxs_pkg;
 
 /********************************** Mux select line types *******************************/
-  typedef enum logic [2:0] {
+  
+  // mux select signal that decides which signal gets stored as next program counter
+  typedef enum logic [1:0] {
 
-    SEL_LOAD_ADDR = 3'd0, 
-    SEL_LOAD_JR_ADR = 3'd1, 
-    SEL_LOAD_IMM16 = 3'd2, 
-    SEL_LOAD_NXT_INSTR = 3'd3
+    SEL_LOAD_ADDR = 2'd0, 
+    SEL_LOAD_JR_ADDR = 2'd1, 
+    SEL_LOAD_NXT_INSTR = 2'd2
 
   } pc_mux_input_selection;
+
+  // mux select signals that directs which signals gets stored to register
+  typedef enum logic [1:0] {
+
+    SEL_RESULT = 2'd0, 
+    SEL_NPC = 2'd1, 
+    SEL_DLOAD = 2'd2, 
+    SEL_IMM16_TO_UPPER_32 = 2'd3
+  } mem_to_reg_mux_selection; 
+
+  // mux select signal that decides which signal gets directed to the ALU port b
+  typedef enum logic {
+
+    SEL_REG_DATA = 1'b0, 
+    SEL_IMM16 = 1'b1
+  } alu_source_mux_selection; 
+
+  // mux that selects which register value from instruction is set as
+  // the destination source when writing result back to register 
+  typedef enum logic {
+    SEL_RD = 1'b0, 
+    SEL_RT = 1'b1
+  }
 
 endpackage
 `endif //DATA_PATH_MUXS_PKG_VH

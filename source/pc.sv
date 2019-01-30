@@ -18,16 +18,14 @@ module pc
  	pc_if.pc pcif
  	); 
 
+ parameter PC_INIT = 32'd0; 
+
 /********** Local variable definitions ***************************/
 word_t next_program_counter, program_counter, pc_incr_4, pc_incr4_plus_imm16; 
 logic program_wait; 
 
 /********** Assign statements ***************************/
 assign pcif.imemaddr = program_counter; 
-
-// adders to provide to sources of next program counter values 
-assign pc_incr_4 = program_counter + 4; 
-assign pc_incr4_plus_imm16 = pc_incr_4 + (pcif.imm16 << 2); 
 
 // internal wait signal based on various inputs 
 assign program_wait = (pcif.ihit | pcif.halt); 
@@ -44,10 +42,9 @@ always_comb begin: PC_NEXT_LOGIC
 
 		// Choose next program counter based off of program source
 		casez (pcif.PCSrc) 
-			SEL_LOAD_ADDR:next_program_counter = pcif.load_addr; 
-			SEL_LOAD_IMM16:next_program_counter = pc_incr4_plus_imm16; 
-			SEL_LOAD_JR_ADR:next_program_counter = pcif.jr_addr; 
-			SEL_LOAD_NXT_INSTR:next_program_counter = pc_incr_4; 
+			SEL_LOAD_ADDR:next_program_counter = program_counter + 4 + (pcif.load_addr << 2); 
+			SEL_LOAD_JR_ADDR:next_program_counter = program_counter + 4 + (pcif.jr_addr << 2); 
+			SEL_LOAD_NXT_INSTR:next_program_counter = program_counter + 4; 
 		endcase 
 end 
 
@@ -58,7 +55,7 @@ always_ff @(posedge CLK, negedge nRST) begin: PC_REGISTER
 	if (nRST == 1'b0) begin 
 
 		// reset the program counter back to zero 
-		program_counter <= 32'd0; 
+		program_counter <= PC_INIT; 
 	end 
 	// no reset was applied 
 	else begin 
