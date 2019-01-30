@@ -29,4 +29,4 @@ interface request_unit_if;
   );
 endinterface
 
-`endif //PC_IF_VH
+`endif //REQUEST_UNIT_IF_VH
