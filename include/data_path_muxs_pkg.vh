@@ -41,7 +41,7 @@ package data_path_muxs_pkg;
   typedef enum logic {
     SEL_RD = 1'b0, 
     SEL_RT = 1'b1
-  }
+  }reg_dest_mux_selection; 
 
 endpackage
 `endif //DATA_PATH_MUXS_PKG_VH
