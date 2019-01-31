@@ -23,12 +23,16 @@ module pc
 /********** Local variable definitions ***************************/
 word_t next_program_counter, program_counter, pc_incr_4, pc_incr4_plus_imm16; 
 logic program_wait; 
+word_t load_addr_padded; 
 
 /********** Assign statements ***************************/
 assign pcif.imemaddr = program_counter; 
 
 // internal wait signal based on various inputs 
 assign program_wait = (pcif.pc_wait | pcif.halt); 
+
+// load address value that is padded with zeros and shifted left 2 places
+assign load_addr_shift = pcif.load_addr << 2; 
 
 /********** Combinational Logic ***************************/
 
@@ -42,7 +46,7 @@ always_comb begin: PC_NEXT_LOGIC
 
 		// Choose next program counter based off of program source
 		casez (pcif.PCSrc) 
-			SEL_LOAD_ADDR:next_program_counter = program_counter + 4 + (pcif.load_addr << 2); 
+			SEL_LOAD_ADDR:next_program_counter = program_counter + 4 + {program_counter[32:29],pcif.load_addr}; 
 			SEL_LOAD_JR_ADDR:next_program_counter = program_counter + 4 + (pcif.jr_addr << 2); 
 			SEL_LOAD_NXT_INSTR:next_program_counter = program_counter + 4; 
 		endcase 
