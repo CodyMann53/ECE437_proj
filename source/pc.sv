@@ -6,12 +6,13 @@
 */
 
 `include "cpu_types_pkg.vh"
-`include "data_path_muxs_pkg"
+`include "data_path_muxs_pkg.vh"
 `include "pc_if.vh"
 
+import cpu_types_pkg::*; 
+import data_path_muxs_pkg::*; 
+
 module pc 
-	import cpu_types_pkg::*;
-	import data_path_muxs_pkg::*; 
 	(
 	input logic CLK,
  	nRST,
@@ -23,7 +24,7 @@ module pc
 /********** Local variable definitions ***************************/
 word_t next_program_counter, program_counter, pc_incr_4, pc_incr4_plus_imm16; 
 logic program_wait; 
-word_t load_addr_padded; 
+word_t load_addr_shift; 
 
 /********** Assign statements ***************************/
 assign pcif.imemaddr = program_counter; 
@@ -50,6 +51,7 @@ always_comb begin: PC_NEXT_LOGIC
 			SEL_LOAD_JR_ADDR:next_program_counter = program_counter + 4 + (pcif.jr_addr << 2); 
 			SEL_LOAD_NXT_INSTR:next_program_counter = program_counter + 4; 
 		endcase 
+	end 
 end 
 
 /********** Sequential Logic ***************************/
