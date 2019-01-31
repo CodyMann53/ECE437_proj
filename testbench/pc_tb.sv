@@ -215,7 +215,7 @@ program test
     check_pc(expected_program_counter, test_description); 
 
 /******************* Test Case #3 *************************************************/
-    test_description = "checking for correct operation of program counter branching"
+    test_description = "checking for correct operation of program counter branching";
 
         // apply propper inputs 
     pcif.PCSrc = SEL_LOAD_NXT_INSTR; 
@@ -234,7 +234,25 @@ program test
     // move two instruction addresses
     increment_instruction(2);
 
-    
+    // switch to branch address instruction 
+    @(negedge CLK); 
+    pcif.load_imm = 16'h190;
+
+    // updated the expected_program counter 
+    expected_program_counter = expected_program_counter + 4 + {16'hFFFF, pcif.load_imm, 2'b00}; 
+
+    // switch the pc source selection 
+    pcif.PCSrc = SEL_LOAD_IMM16; 
+
+    // let outputs change
+      @(posedge CLK); 
+
+      // check the program counter 
+      check_pc(expected_program_counter, test_description); 
+
+
+
+
 
 
 
