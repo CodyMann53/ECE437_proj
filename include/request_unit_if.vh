@@ -14,19 +14,20 @@ interface request_unit_if;
   // import types
   import cpu_types_pkg::*;
 
-  logic iREN, dREN, dWEN, pc_wait, ihit, dhit, imemREN, dmemWEN, dmemREN
+  logic iREN, dREN, dWEN, pc_wait, ihit, dhit, imemREN, dmemWEN, dmemREN, halt
 
-  // program counter ports 
+  // request unit interface ports 
   modport ru (
-    input   iREN, dREN, dWEN, ihit, dhit,
+    input   iREN, dREN, dWEN, ihit, dhit, halt
     output  imemREN, dmemWEN, dmemREN, pc_wait
   );
 
-  // program counter tb
+    // request unit interface ports 
   modport tb (
-    input   imemaddr,
-    output  load_addr, PCSrc, halt, pc_wait, jr_addr
+    input  imemREN, dmemWEN, dmemREN, pc_wait
+    output   iREN, dREN, dWEN, ihit, dhit, halt
   );
-endinterface
 
+
+endinterface
 `endif //REQUEST_UNIT_IF_VH

@@ -38,7 +38,7 @@ logic [25:0] address;
 /********** Assign statements ***************************/
 
 // break up the instruction into its respective data sections
-assign op_code = cuif.instruction[32:27];
+assign op_code = cuif.instruction[31:26];
 assign funct = cuif.instruction[5:0]; 
 assign rd = cuif.instruction[16:12]; 
 assign rt = cuif.instruction[21:17];
@@ -71,13 +71,13 @@ always_comb begin: INSTRUCTION_TYPE_LOGIC
 	op_code_type = I_TYPE; 
 
 	// if op code is all zeros 
-	if ( (cuif.instruction[32:27] & 6'b111111) == 6'd000000) begin 
+	if ( (cuif.instruction[31:26] & 6'b111111) == 6'd000000) begin 
 
 		// instruction is R_type 
 		op_code_type = R_type; 
 	end 
 	// if the top 4 bits are zero
-	else if ( (cuif.instruction[32:29] & 4'b1111) == 4'b0000) begin 
+	else if ( (cuif.instruction[31:28] & 4'b1111) == 4'b0000) begin 
 
 		// instruction is J_type 
 		op_code_type = J_type; 
@@ -144,12 +144,12 @@ always_comb begin: MUX_PC_SRC
 	// opcode is bequal and equal is one  
 	if ((op_code == BEQ) & (cuif.equal == 1'b1)) begin 
 
-		cuif.PCSrc = SEL_LOAD_ADDR; 
+		cuif.PCSrc = SEL_LOAD_IMM16; 
 	end 
 	// if opcode is bneq and equal is zero 
 	else if ( (op_code == BNE) & (cuif.equal == 1'b0)) begin 
 
-		cuif.PCSrc = SEL_LOAD_ADDR; 
+		cuif.PCSrc = SEL_LOAD_IMM16; 
 	end
 	else if ((op_code == J) | (op_code == JAL)) begin 
 

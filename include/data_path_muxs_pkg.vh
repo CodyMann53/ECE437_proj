@@ -16,7 +16,8 @@ package data_path_muxs_pkg;
 
     SEL_LOAD_ADDR = 2'd0, 
     SEL_LOAD_JR_ADDR = 2'd1, 
-    SEL_LOAD_NXT_INSTR = 2'd2
+    SEL_LOAD_NXT_INSTR = 2'd2, 
+    SEL_LOAD_IMM16 = 2'd3
 
   } pc_mux_input_selection;
 

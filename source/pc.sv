@@ -22,18 +22,15 @@ module pc
  parameter PC_INIT = 32'd0; 
 
 /********** Local variable definitions ***************************/
-word_t next_program_counter, program_counter, pc_incr_4, pc_incr4_plus_imm16; 
-logic program_wait; 
-word_t load_addr_shift; 
+word_t next_program_counter, program_counter, pc_incr_4; 
 
 /********** Assign statements ***************************/
+
+// assigning the instructin address output to the program counter
 assign pcif.imemaddr = program_counter; 
 
-// internal wait signal based on various inputs 
-assign program_wait = (pcif.pc_wait | pcif.halt); 
-
-// load address value that is padded with zeros and shifted left 2 places
-assign load_addr_shift = pcif.load_addr << 2; 
+// program counter + 4
+assign pc_incr_4 = program_counter + 4; 
 
 /********** Combinational Logic ***************************/
 
@@ -43,13 +40,14 @@ always_comb begin: PC_NEXT_LOGIC
 	next_program_counter = program_counter; 
 
 	// If not requested to wait 
-	if (program_wait != 1'b1) begin
+	if (pcif.pc_wait != 1'b1) begin
 
 		// Choose next program counter based off of program source
 		casez (pcif.PCSrc) 
-			SEL_LOAD_ADDR:next_program_counter = program_counter + 4 + {program_counter[32:29],pcif.load_addr}; 
-			SEL_LOAD_JR_ADDR:next_program_counter = program_counter + 4 + (pcif.jr_addr << 2); 
+			SEL_LOAD_ADDR:next_program_counter = {pc_incr_4[31:28],pcif.load_addr, 2'b00}; 
+			SEL_LOAD_JR_ADDR:next_program_counter = pcif.jr_addr; 
 			SEL_LOAD_NXT_INSTR:next_program_counter = program_counter + 4; 
+			SEL_LOAD_IMM16: next_program_counter = program_counter + 4 + {16'hFFFF, pcif.load_imm, 2'b00};  
 		endcase 
 	end 
 end 

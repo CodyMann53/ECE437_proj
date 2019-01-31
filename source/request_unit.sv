@@ -18,12 +18,12 @@ module request_unit
  	); 
 
 /********** Local variable definitions ***************************/
-logic dWEN_reg, iREN_reg, dREN_reg; 
+logic dWEN_reg, iREN_reg, dREN_reg, halt_reg; 
 
 /********** Assign statements ***************************/
 
 // If either ihit or dit is low, then tell the program counter to wait 
-assign ru.pc_wait = (ru.ihit | ru.dhit) ? 1 : 0; 
+assign ru.pc_wait = (ru.ihit | ru.dhit | halt_reg) ? 1 : 0; 
 
 // assign the registered values to memory request control signals 
 assign ru.imemREN = iREN_reg; 
@@ -42,6 +42,7 @@ always_ff @(posedge CLK, negedge nRST) begin: ENABLE_SIGNALS_REG_LOGIC
 		dWEN_reg <= 1'b0; 
 		dREN_reg <= 1'b0; 
 		iREN_reg <= 1'b0;
+		halt_reg <= 1'b0; 
 	end 
 	// no reset was applied 
 	else begin 
@@ -49,7 +50,8 @@ always_ff @(posedge CLK, negedge nRST) begin: ENABLE_SIGNALS_REG_LOGIC
 		// save input enable signals into flip flops 
 		dWEN_reg <= ruif.dWEN; 
 		dREN_reg <= ruif.dREN; 
-		iREN_reg <= ruif.iREN; 
+		iREN_reg <= ruif.iREN;
+		halt_reg <= ru.halt;  
 	end 
 end
 endmodule
