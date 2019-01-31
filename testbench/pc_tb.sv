@@ -121,8 +121,8 @@ program test
         // throw an error flag to the display 
         $display("Time: %00g ns Incorrect program counter for test case: %s", $time, test_description); 
         $display("Expected imemaddr: %0h Actual imemaddr: %0h", expected_pc, pcif.imemaddr); 
-        $monitor("Time: %00g ns Incorrect program counter for test case: %s", $time, test_description); 
-        $monitor("Expected imemaddr: %0h Actual imemaddr: %0h", expected_pc, pcif.imemaddr); 
+        //$monitor("Time: %00g ns Incorrect program counter for test case: %s", $time, test_description); 
+        //$monitor("Expected imemaddr: %0h Actual imemaddr: %0h", expected_pc, pcif.imemaddr); 
       end 
     end 
   endtask 
@@ -130,6 +130,12 @@ program test
   task increment_instruction; 
     input int instr_number; 
     begin 
+
+      // get away from rising edge 
+      @(negedge CLK); 
+
+      // set the pc source to increment serially 
+      pcif.PCSrc = SEL_LOAD_NXT_INSTR; 
 
       // go given number of instructions serially
       repeat (instr_number) begin 
@@ -139,38 +145,119 @@ program test
     end 
   endtask
 
+  task jr_instruction; 
+    input [31:0] address; 
+    begin 
+
+    // switch to jump instruction address input 
+    @(negedge CLK); 
+    pcif.jr_addr = 32'heeffff00;
+
+    // update the expected program counter
+    expected_program_counter = address; 
+
+    // switch the mux input 
+    pcif.PCSrc = SEL_LOAD_JR_ADDR; 
+
+    // let outputs changed based on new inputs 
+    @(posedge CLK); 
+    end
+  endtask
+
+  task jump_instruction; 
+    input logic [25:0] address; 
+    begin 
+
+      // switch to branch address instruction 
+      @(negedge CLK); 
+      pcif.load_addr = address;
+
+      // add four to the expected program counter 
+      expected_program_counter = expected_program_counter + 4; 
+
+      // updated the expected_program counter 
+      expected_program_counter = {expected_program_counter[31:28], pcif.load_addr, 2'b00}; 
+
+      // switch the pc source selection to address from jump instruction 
+      pcif.PCSrc = SEL_LOAD_ADDR; 
+
+      // let outputs change
+      @(posedge CLK); 
+    end 
+  endtask
+
+  task branch_instruction; 
+    input [15:0] address; 
+    begin 
+
+      // switch to branch address instruction 
+      @(negedge CLK); 
+      pcif.load_imm = address;
+
+      // updated the expected_program counter 
+      expected_program_counter = expected_program_counter + 4 + {16'hFFFF, pcif.load_imm, 2'b00}; 
+
+      // switch the pc source selection 
+      pcif.PCSrc = SEL_LOAD_IMM16; 
+
+      // let outputs change
+      @(posedge CLK);
+    end 
+  endtask
+
+  // tells the program counter to stop running
+  task pc_wait; 
+    begin 
+
+      // get away from neg edge to apply inputs 
+      @(negedge CLK); 
+
+      // set pcwait to high 
+      pcif.pc_wait = 1'b1; 
+
+      // allow inputs to be executed 
+      @(posedge CLK); 
+    end
+  endtask
+
+  // tells the program counter to start operating again 
+  task pc_run; 
+    begin 
+
+      // get away from neg edge to apply inputs 
+      @(negedge CLK); 
+
+      // set pcwait to high 
+      pcif.pc_wait = 1'b0; 
+
+      // allow inputs to be executed 
+      @(posedge CLK); 
+    end
+  endtask
+
   /***************Initial Block ********************/
   initial begin
 
     // initialize all of the outputs to the memory controller (default values)
     nRST = 1'b1; 
-    pcif.halt = 1'b0; 
     pcif.PCSrc = SEL_LOAD_NXT_INSTR; 
     pcif.load_addr = 26'd0; 
     pcif.pc_wait = 1'b0; 
     pcif.jr_addr = 32'd0; 
     pcif.load_imm = 16'd0; 
+    expected_program_counter = 32'h0; 
 
 
 /******************* Test Case #1 *************************************************/
     test_description = "Have program counter increment to address 0x10"; 
-
-    // apply propper inputs 
-    pcif.PCSrc = SEL_LOAD_NXT_INSTR; 
-    nRST = 1'b1; 
-    pcif.halt = 1'b0; 
-    pcif.PCSrc = SEL_LOAD_NXT_INSTR; 
-    pcif.load_addr = 26'd0; 
-    pcif.pc_wait = 1'b0; 
-    pcif.jr_addr = 32'd0; 
-    pcif.load_imm = 16'd0; 
-
+    test_case_num = 0; 
 
     // reset the program counter back to address 0x0
     reset_dut; 
 
-    // set up internal signals for checking 
-    expected_program_counter = 32'h0; 
+    // a clock cycle is not accounted for going between reset dut and increment. 
+    @(posedge CLK); 
+    expected_program_counter = expected_program_counter + 4;
 
     // Wait 5 clock cycles to allow the program counter to increment
     increment_instruction(5); 
@@ -180,75 +267,58 @@ program test
 
 /******************* Test Case #2 *************************************************/
     test_description = "Checking for correct load of jr address value";
+    test_case_num = test_case_num + 1; 
 
-    // apply propper inputs 
-    pcif.PCSrc = SEL_LOAD_NXT_INSTR; 
-    nRST = 1'b1; 
-    pcif.halt = 1'b0; 
-    pcif.PCSrc = SEL_LOAD_NXT_INSTR; 
-    pcif.load_addr = 26'd0; 
-    pcif.pc_wait = 1'b0; 
-    pcif.jr_addr = 32'd0;
-    pcif.load_imm = 16'd0; 
-    expected_program_counter = 32'd0; 
-
-    // reset the device 
-    reset_dut; 
-
-    // move two instruction addresses
-    increment_instruction(2); 
-
-    // switch to jump instruction address input 
-    @(negedge CLK); 
-    pcif.jr_addr = 32'heeffff00;
-
-    // update the expected program counter
-    expected_program_counter = 32'heeffff00; 
-
-    // switch the mux input 
-    pcif.PCSrc = SEL_LOAD_JR_ADDR; 
-
-    // let outputs changed based on new inputs 
-    @(posedge CLK); 
+    // jump to address
+    jr_instruction(32'heeffff00); 
 
     //check the program counter 
     check_pc(expected_program_counter, test_description); 
 
 /******************* Test Case #3 *************************************************/
     test_description = "checking for correct operation of program counter branching";
+    test_case_num = test_case_num + 1; 
 
-        // apply propper inputs 
-    pcif.PCSrc = SEL_LOAD_NXT_INSTR; 
-    nRST = 1'b1; 
-    pcif.halt = 1'b0; 
-    pcif.PCSrc = SEL_LOAD_NXT_INSTR; 
-    pcif.load_addr = 26'd0; 
-    pcif.pc_wait = 1'b0; 
-    pcif.jr_addr = 32'd0;
-    pcif.load_imm = 16'd0; 
-    expected_program_counter = 32'd0; 
+    // branch to specified memory
+    branch_instruction(16'h190); 
 
-    // reset the device 
-    reset_dut; 
+    // check the program counter 
+    check_pc(expected_program_counter, test_description); 
 
-    // move two instruction addresses
-    increment_instruction(2);
+/******************* Test Case #4 *************************************************/
+    test_description = "checking for correct operation of jumping to memory address and then single increment";
+    test_case_num = test_case_num + 1; 
 
-    // switch to branch address instruction 
-    @(negedge CLK); 
-    pcif.load_imm = 16'h190;
+    jump_instruction(26'h52ff61);
 
-    // updated the expected_program counter 
-    expected_program_counter = expected_program_counter + 4 + {16'hFFFF, pcif.load_imm, 2'b00}; 
+    // check the program counter 
+    check_pc(expected_program_counter, test_description);
 
-    // switch the pc source selection 
-    pcif.PCSrc = SEL_LOAD_IMM16; 
+/******************* Test Case #5 *************************************************/
+    test_description = "checking another jump operation";
+    test_case_num = test_case_num + 1; 
 
-    // let outputs change
-      @(posedge CLK); 
+    jump_instruction(26'h45F33);
 
-      // check the program counter 
-      check_pc(expected_program_counter, test_description); 
+    // check the program counter 
+    check_pc(expected_program_counter, test_description);
+
+
+/******************* Test Case #6 *************************************************/
+    test_description = "Increment for two instructions and then make sure the pc halts when it requested.";
+    test_case_num = test_case_num + 1; 
+
+    increment_instruction(2); 
+
+    // check the program counter 
+    check_pc(expected_program_counter, test_description);
+
+    // halt the program counter 
+    pc_wait; 
+
+    // check program counter again 
+    check_pc(expected_program_counter, test_description); 
+
 
 
 
