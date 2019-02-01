@@ -180,6 +180,37 @@ program test
     end 
   endtask    
 
+  // rtype structs 
+  type struct {
+    string tes_name; 
+    r_t instruction; 
+    logic equal; 
+  }test_vector_rtype;
+
+  test_vector_rtype tb_test_cases_rtype[]
+
+  task add_case_rtype;
+    input int test_num;
+    input string test_name;  
+    input opcode_t op; 
+    input regbits_t rs; 
+    input regbits_t rt; 
+    input regbits_t rd; 
+    input logic [SHAM_W-1:0] shamt; 
+    input funct_t funct;
+    input logic equal; 
+    begin 
+      tb_test_cases_itype[test_num].test_name = test_name;
+      tb_test_cases_itype[test_num].instruction.rs = rs; 
+      tb_test_cases_itype[test_num].instruction.rt = rt; 
+      tb_test_cases_itype[test_num].instruction.rd = rd; 
+      tb_test_cases_itype[test_num].instruction.shamt = shamt; 
+      tb_test_cases_itype[test_num].equal = equal;
+      tb_test_cases_itype[test_num].instruction.funct = funct; 
+      tb_test_cases_itype[test_num].instruction.opcode = op;       
+    end 
+  endtask
+
   task check_outputs; 
     input string test_name;
     input logic [15:0] imm16; 
@@ -310,6 +341,9 @@ program test
 
     // allocate test case number for i type 
     tb_test_cases_itype = new[15]; 
+
+    // allocate test case number for r type
+    tb_test_cases_rtype = new[]
 
     // allocate test case number for total test cases  
     tb_exp_values = new[17];
@@ -763,7 +797,6 @@ program test
 /******************* Running through test cases*************************************************/
     test_description = "Not running "; 
     test_case_num = 0; 
-
 
     // loop through all of j type instruction test cases
     for (int i = 0; i < tb_test_cases_jtype.size(); i++) begin 
