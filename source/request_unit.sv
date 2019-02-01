@@ -23,7 +23,7 @@ logic dWEN_reg, iREN_reg, dREN_reg, halt_reg;
 /********** Assign statements ***************************/
 
 // If either ihit or dit is low, then tell the program counter to wait 
-assign ruif.pc_wait = (ruif.ihit | ruif.dhit | halt_reg) ? 1 : 0; 
+assign ruif.pc_wait = (ruif.ihit | ruif.dhit | halt_reg) ? 1'b1 : 1'b0; 
 
 // assign the registered values to memory request control signals 
 assign ruif.imemREN = iREN_reg; 
