@@ -181,13 +181,13 @@ program test
   endtask    
 
   // rtype structs 
-  type struct {
-    string tes_name; 
+  typedef struct {
+    string test_name; 
     r_t instruction; 
     logic equal; 
   }test_vector_rtype;
 
-  test_vector_rtype tb_test_cases_rtype[]
+  test_vector_rtype tb_test_cases_rtype[];
 
   task add_case_rtype;
     input int test_num;
@@ -200,14 +200,14 @@ program test
     input funct_t funct;
     input logic equal; 
     begin 
-      tb_test_cases_itype[test_num].test_name = test_name;
-      tb_test_cases_itype[test_num].instruction.rs = rs; 
-      tb_test_cases_itype[test_num].instruction.rt = rt; 
-      tb_test_cases_itype[test_num].instruction.rd = rd; 
-      tb_test_cases_itype[test_num].instruction.shamt = shamt; 
-      tb_test_cases_itype[test_num].equal = equal;
-      tb_test_cases_itype[test_num].instruction.funct = funct; 
-      tb_test_cases_itype[test_num].instruction.opcode = op;       
+      tb_test_cases_rtype[test_num].test_name = test_name;
+      tb_test_cases_rtype[test_num].instruction.rs = rs; 
+      tb_test_cases_rtype[test_num].instruction.rt = rt; 
+      tb_test_cases_rtype[test_num].instruction.rd = rd; 
+      tb_test_cases_rtype[test_num].instruction.shamt = shamt; 
+      tb_test_cases_rtype[test_num].equal = equal;
+      tb_test_cases_rtype[test_num].instruction.funct = funct; 
+      tb_test_cases_rtype[test_num].instruction.opcode = op;       
     end 
   endtask
 
@@ -343,10 +343,11 @@ program test
     tb_test_cases_itype = new[15]; 
 
     // allocate test case number for r type
-    tb_test_cases_rtype = new[]
+    tb_test_cases_rtype = new[13];
 
     // allocate test case number for total test cases  
-    tb_exp_values = new[17];
+    tb_exp_values = new[tb_test_cases_jtype.size() + tb_test_cases_itype.size() +
+                      tb_test_cases_rtype.size()];
 
     // adding test cases for J-types
     add_case_jtype(0, J, "J command", 26'hFFFF, 1'b0); 
@@ -425,15 +426,15 @@ program test
                    1'b1 // equal
                    );  
     add_expected_values(3, // test number
-                        tb_test_cases_itype[0].instruction[15:0], // imm16
+                        tb_test_cases_itype[1].instruction[15:0], // imm16
                         1'b0, //Regwr
                         1'b1, //iREN
                         1'b0, //dWEN
                         1'b0, //dREN
                         SEL_RD, //reg_dest
-                        tb_test_cases_itype[0].instruction[15:11], //Rd
-                        tb_test_cases_itype[0].instruction[25:21], // Rs
-                        tb_test_cases_itype[0].instruction[20:16], //Rt
+                        tb_test_cases_itype[1].instruction[15:11], //Rd
+                        tb_test_cases_itype[1].instruction[25:21], // Rs
+                        tb_test_cases_itype[1].instruction[20:16], //Rt
                         ALU_SUB, //alu_op
                         SEL_REG_DATA, //ALUSrc
                         SEL_RESULT, //mem_to_reg
@@ -452,15 +453,15 @@ program test
                    1'b0 // equal
                    );  
     add_expected_values(4, // test number
-                        tb_test_cases_itype[0].instruction[15:0], // imm16
+                        tb_test_cases_itype[2].instruction[15:0], // imm16
                         1'b0, //Regwr
                         1'b1, //iREN
                         1'b0, //dWEN
                         1'b0, //dREN
                         SEL_RD, //reg_dest
-                        tb_test_cases_itype[0].instruction[15:11], //Rd
-                        tb_test_cases_itype[0].instruction[25:21], // Rs
-                        tb_test_cases_itype[0].instruction[20:16], //Rt
+                        tb_test_cases_itype[2].instruction[15:11], //Rd
+                        tb_test_cases_itype[2].instruction[25:21], // Rs
+                        tb_test_cases_itype[2].instruction[20:16], //Rt
                         ALU_SUB, //alu_op
                         SEL_REG_DATA, //ALUSrc
                         SEL_RESULT, //mem_to_reg
@@ -479,15 +480,15 @@ program test
                    1'b1 // equal
                    ); 
     add_expected_values(5, // test number
-                        tb_test_cases_itype[0].instruction[15:0], // imm16
+                        tb_test_cases_itype[3].instruction[15:0], // imm16
                         1'b0, //Regwr
                         1'b1, //iREN
                         1'b0, //dWEN
                         1'b0, //dREN
                         SEL_RD, //reg_dest
-                        tb_test_cases_itype[0].instruction[15:11], //Rd
-                        tb_test_cases_itype[0].instruction[25:21], // Rs
-                        tb_test_cases_itype[0].instruction[20:16], //Rt
+                        tb_test_cases_itype[3].instruction[15:11], //Rd
+                        tb_test_cases_itype[3].instruction[25:21], // Rs
+                        tb_test_cases_itype[3].instruction[20:16], //Rt
                         ALU_SUB, //alu_op
                         SEL_REG_DATA, //ALUSrc
                         SEL_RESULT, //mem_to_reg
@@ -506,15 +507,15 @@ program test
                    1'b0 // equal
                    );  
     add_expected_values(6, // test number
-                        tb_test_cases_itype[0].instruction[15:0], // imm16
+                        tb_test_cases_itype[4].instruction[15:0], // imm16
                         1'b1, //Regwr
                         1'b1, //iREN
                         1'b0, //dWEN
                         1'b0, //dREN
                         SEL_RD, //reg_dest
-                        tb_test_cases_itype[0].instruction[15:11], //Rd
-                        tb_test_cases_itype[0].instruction[25:21], // Rs
-                        tb_test_cases_itype[0].instruction[20:16], //Rt
+                        tb_test_cases_itype[4].instruction[15:11], //Rd
+                        tb_test_cases_itype[4].instruction[25:21], // Rs
+                        tb_test_cases_itype[4].instruction[20:16], //Rt
                         ALU_ADD, //alu_op
                         SEL_IMM16, //ALUSrc
                         SEL_RESULT, //mem_to_reg
@@ -533,15 +534,15 @@ program test
                    1'b1 // equal
                    );  
     add_expected_values(7, // test number
-                        tb_test_cases_itype[0].instruction[15:0], // imm16
+                        tb_test_cases_itype[5].instruction[15:0], // imm16
                         1'b1, //Regwr
                         1'b1, //iREN
                         1'b0, //dWEN
                         1'b0, //dREN
                         SEL_RD, //reg_dest
-                        tb_test_cases_itype[0].instruction[15:11], //Rd
-                        tb_test_cases_itype[0].instruction[25:21], // Rs
-                        tb_test_cases_itype[0].instruction[20:16], //Rt
+                        tb_test_cases_itype[5].instruction[15:11], //Rd
+                        tb_test_cases_itype[5].instruction[25:21], // Rs
+                        tb_test_cases_itype[5].instruction[20:16], //Rt
                         ALU_ADD, //alu_op
                         SEL_IMM16, //ALUSrc
                         SEL_RESULT, //mem_to_reg
@@ -560,15 +561,15 @@ program test
                    1'b0 // equal
                    );  
     add_expected_values(8, // test number
-                        tb_test_cases_itype[0].instruction[15:0], // imm16
+                        tb_test_cases_itype[6].instruction[15:0], // imm16
                         1'b1, //Regwr
                         1'b1, //iREN
                         1'b0, //dWEN
                         1'b0, //dREN
                         SEL_RD, //reg_dest
-                        tb_test_cases_itype[0].instruction[15:11], //Rd
-                        tb_test_cases_itype[0].instruction[25:21], // Rs
-                        tb_test_cases_itype[0].instruction[20:16], //Rt
+                        tb_test_cases_itype[6].instruction[15:11], //Rd
+                        tb_test_cases_itype[6].instruction[25:21], // Rs
+                        tb_test_cases_itype[6].instruction[20:16], //Rt
                         ALU_SLT, //alu_op
                         SEL_REG_DATA, //ALUSrc
                         SEL_RESULT, //mem_to_reg
@@ -587,15 +588,15 @@ program test
                    1'b0 // equal
                    );  
     add_expected_values(9, // test number
-                        tb_test_cases_itype[0].instruction[15:0], // imm16
+                        tb_test_cases_itype[7].instruction[15:0], // imm16
                         1'b1, //Regwr
                         1'b1, //iREN
                         1'b0, //dWEN
                         1'b0, //dREN
                         SEL_RD, //reg_dest
-                        tb_test_cases_itype[0].instruction[15:11], //Rd
-                        tb_test_cases_itype[0].instruction[25:21], // Rs
-                        tb_test_cases_itype[0].instruction[20:16], //Rt
+                        tb_test_cases_itype[7].instruction[15:11], //Rd
+                        tb_test_cases_itype[7].instruction[25:21], // Rs
+                        tb_test_cases_itype[7].instruction[20:16], //Rt
                         ALU_SLTU, //alu_op
                         SEL_REG_DATA, //ALUSrc
                         SEL_RESULT, //mem_to_reg
@@ -614,15 +615,15 @@ program test
                    1'b0 // equal
                    );  
     add_expected_values(10, // test number
-                        tb_test_cases_itype[0].instruction[15:0], // imm16
+                        tb_test_cases_itype[8].instruction[15:0], // imm16
                         1'b1, //Regwr
                         1'b1, //iREN
                         1'b0, //dWEN
                         1'b0, //dREN
                         SEL_RD, //reg_dest
-                        tb_test_cases_itype[0].instruction[15:11], //Rd
-                        tb_test_cases_itype[0].instruction[25:21], // Rs
-                        tb_test_cases_itype[0].instruction[20:16], //Rt
+                        tb_test_cases_itype[8].instruction[15:11], //Rd
+                        tb_test_cases_itype[8].instruction[25:21], // Rs
+                        tb_test_cases_itype[8].instruction[20:16], //Rt
                         ALU_AND, //alu_op
                         SEL_IMM16, //ALUSrc
                         SEL_RESULT, //mem_to_reg
@@ -641,15 +642,15 @@ program test
                    1'b0 // equal
                    );  
     add_expected_values(11, // test number
-                        tb_test_cases_itype[0].instruction[15:0], // imm16
+                        tb_test_cases_itype[9].instruction[15:0], // imm16
                         1'b1, //Regwr
                         1'b1, //iREN
                         1'b0, //dWEN
                         1'b0, //dREN
                         SEL_RD, //reg_dest
-                        tb_test_cases_itype[0].instruction[15:11], //Rd
-                        tb_test_cases_itype[0].instruction[25:21], // Rs
-                        tb_test_cases_itype[0].instruction[20:16], //Rt
+                        tb_test_cases_itype[9].instruction[15:11], //Rd
+                        tb_test_cases_itype[9].instruction[25:21], // Rs
+                        tb_test_cases_itype[9].instruction[20:16], //Rt
                         ALU_OR, //alu_op
                         SEL_IMM16, //ALUSrc
                         SEL_RESULT, //mem_to_reg
@@ -668,15 +669,15 @@ program test
                    1'b0 // equal
                    );  
     add_expected_values(12, // test number
-                        tb_test_cases_itype[0].instruction[15:0], // imm16
+                        tb_test_cases_itype[10].instruction[15:0], // imm16
                         1'b1, //Regwr
                         1'b1, //iREN
                         1'b0, //dWEN
                         1'b0, //dREN
                         SEL_RD, //reg_dest
-                        tb_test_cases_itype[0].instruction[15:11], //Rd
-                        tb_test_cases_itype[0].instruction[25:21], // Rs
-                        tb_test_cases_itype[0].instruction[20:16], //Rt
+                        tb_test_cases_itype[10].instruction[15:11], //Rd
+                        tb_test_cases_itype[10].instruction[25:21], // Rs
+                        tb_test_cases_itype[10].instruction[20:16], //Rt
                         ALU_XOR, //alu_op
                         SEL_IMM16, //ALUSrc
                         SEL_RESULT, //mem_to_reg
@@ -695,15 +696,15 @@ program test
                    1'b1 // equal
                    );  
     add_expected_values(13, // test number
-                        tb_test_cases_itype[0].instruction[15:0], // imm16
+                        tb_test_cases_itype[11].instruction[15:0], // imm16
                         1'b1, //Regwr
                         1'b1, //iREN
                         1'b0, //dWEN
                         1'b1, //dREN
                         SEL_RT, //reg_dest
-                        tb_test_cases_itype[0].instruction[15:11], //Rd
-                        tb_test_cases_itype[0].instruction[25:21], // Rs
-                        tb_test_cases_itype[0].instruction[20:16], //Rt
+                        tb_test_cases_itype[11].instruction[15:11], //Rd
+                        tb_test_cases_itype[11].instruction[25:21], // Rs
+                        tb_test_cases_itype[11].instruction[20:16], //Rt
                         ALU_ADD, //alu_op
                         SEL_REG_DATA, //ALUSrc
                         SEL_IMM16_TO_UPPER_32, //mem_to_reg
@@ -722,15 +723,15 @@ program test
                    1'b1 // equal
                    );  
     add_expected_values(14, // test number
-                        tb_test_cases_itype[0].instruction[15:0], // imm16
+                        tb_test_cases_itype[12].instruction[15:0], // imm16
                         1'b1, //Regwr
                         1'b1, //iREN
                         1'b0, //dWEN
                         1'b1, //dREN
                         SEL_RT, //reg_dest
-                        tb_test_cases_itype[0].instruction[15:11], //Rd
-                        tb_test_cases_itype[0].instruction[25:21], // Rs
-                        tb_test_cases_itype[0].instruction[20:16], //Rt
+                        tb_test_cases_itype[12].instruction[15:11], //Rd
+                        tb_test_cases_itype[12].instruction[25:21], // Rs
+                        tb_test_cases_itype[12].instruction[20:16], //Rt
                         ALU_ADD, //alu_op
                         SEL_IMM16, //ALUSrc
                         SEL_DLOAD, //mem_to_reg
@@ -749,15 +750,15 @@ program test
                    1'b1 // equal
                    );  
     add_expected_values(15, // test number
-                        tb_test_cases_itype[0].instruction[15:0], // imm16
+                        tb_test_cases_itype[13].instruction[15:0], // imm16
                         1'b0, //Regwr
                         1'b1, //iREN
                         1'b1, //dWEN
                         1'b0, //dREN
                         SEL_RD, //reg_dest
-                        tb_test_cases_itype[0].instruction[15:11], //Rd
-                        tb_test_cases_itype[0].instruction[25:21], // Rs
-                        tb_test_cases_itype[0].instruction[20:16], //Rt
+                        tb_test_cases_itype[13].instruction[15:11], //Rd
+                        tb_test_cases_itype[13].instruction[25:21], // Rs
+                        tb_test_cases_itype[13].instruction[20:16], //Rt
                         ALU_ADD, //alu_op
                         SEL_IMM16, //ALUSrc
                         SEL_RESULT, //mem_to_reg
@@ -776,15 +777,15 @@ program test
                    1'b0 // equal
                    );  
     add_expected_values(16, // test number
-                        tb_test_cases_itype[0].instruction[15:0], // imm16
+                        tb_test_cases_itype[14].instruction[15:0], // imm16
                         1'b0, //Regwr
                         1'b0, //iREN
                         1'b0, //dWEN
                         1'b0, //dREN
                         SEL_RD, //reg_dest
-                        tb_test_cases_itype[0].instruction[15:11], //Rd
-                        tb_test_cases_itype[0].instruction[25:21], // Rs
-                        tb_test_cases_itype[0].instruction[20:16], //Rt
+                        tb_test_cases_itype[14].instruction[15:11], //Rd
+                        tb_test_cases_itype[14].instruction[25:21], // Rs
+                        tb_test_cases_itype[14].instruction[20:16], //Rt
                         ALU_ADD, //alu_op
                         SEL_REG_DATA, //ALUSrc
                         SEL_RESULT, //mem_to_reg
@@ -793,6 +794,371 @@ program test
                         1'b1 // halt 
                         ); 
 
+    // r_type test cases
+    // JR
+    add_case_rtype(0, // test num
+                   "Testing JR funct", // test description)
+                   RTYPE, // opcode
+                   5'd4, // rs
+                   5'd3, // rt
+                   5'd8, // rd
+                   5'd0, //shamt
+                   JR, // funct
+                   1'b0);  // equal
+    add_expected_values(17, // test number
+                        tb_test_cases_rtype[0].instruction[15:0], // imm16
+                        1'b0, //Regwr
+                        1'b1, //iREN
+                        1'b0, //dWEN
+                        1'b0, //dREN
+                        SEL_RD, //reg_dest
+                        tb_test_cases_rtype[0].instruction[15:11], //Rd
+                        tb_test_cases_rtype[0].instruction[25:21], // Rs
+                        tb_test_cases_rtype[0].instruction[20:16], //Rt
+                        ALU_ADD, //alu_op
+                        SEL_REG_DATA, //ALUSrc
+                        SEL_RESULT, //mem_to_reg
+                        SEL_LOAD_JR_ADDR, // PCSrc
+                        1'b0, // extend
+                        1'b0 // halt 
+                        ); 
+
+    // SLLV
+    add_case_rtype(1, // test num
+                   "Testing SLLV funct", // test description)
+                   RTYPE, // opcode
+                   5'd4, // rs
+                   5'd3, // rt
+                   5'd8, // rd
+                   5'd0, //shamt
+                   SLLV, // funct
+                   1'b0);  // equal
+    add_expected_values(18, // test number
+                        tb_test_cases_rtype[1].instruction[15:0], // imm16
+                        1'b1, //Regwr
+                        1'b1, //iREN
+                        1'b0, //dWEN
+                        1'b0, //dREN
+                        SEL_RD, //reg_dest
+                        tb_test_cases_rtype[1].instruction[15:11], //Rd
+                        tb_test_cases_rtype[1].instruction[25:21], // Rs
+                        tb_test_cases_rtype[1].instruction[20:16], //Rt
+                        ALU_SRL, //alu_op
+                        SEL_REG_DATA, //ALUSrc
+                        SEL_RESULT, //mem_to_reg
+                        SEL_LOAD_NXT_INSTR, // PCSrc
+                        1'b0, // extend
+                        1'b0 // halt 
+                        ); 
+
+    // SRLV
+    add_case_rtype(2, // test num
+                   "Testing SRLV funct", // test description)
+                   RTYPE, // opcode
+                   5'd4, // rs
+                   5'd3, // rt
+                   5'd8, // rd
+                   5'd0, //shamt
+                   SRLV, // funct
+                   1'b0);  // equal
+    add_expected_values(19, // test number
+                        tb_test_cases_rtype[2].instruction[15:0], // imm16
+                        1'b1, //Regwr
+                        1'b1, //iREN
+                        1'b0, //dWEN
+                        1'b0, //dREN
+                        SEL_RD, //reg_dest
+                        tb_test_cases_rtype[2].instruction[15:11], //Rd
+                        tb_test_cases_rtype[2].instruction[25:21], // Rs
+                        tb_test_cases_rtype[2].instruction[20:16], //Rt
+                        ALU_SRL, //alu_op
+                        SEL_REG_DATA, //ALUSrc
+                        SEL_RESULT, //mem_to_reg
+                        SEL_LOAD_NXT_INSTR, // PCSrc
+                        1'b0, // extend
+                        1'b0 // halt 
+                        ); 
+
+    // ADD
+    add_case_rtype(3, // test num
+                   "Testing ADD funct", // test description)
+                   RTYPE, // opcode
+                   5'd4, // rs
+                   5'd3, // rt
+                   5'd8, // rd
+                   5'd0, //shamt
+                   ADD, // funct
+                   1'b0);  // equal
+    add_expected_values(20, // test number
+                        tb_test_cases_rtype[3].instruction[15:0], // imm16
+                        1'b1, //Regwr
+                        1'b1, //iREN
+                        1'b0, //dWEN
+                        1'b0, //dREN
+                        SEL_RD, //reg_dest
+                        tb_test_cases_rtype[3].instruction[15:11], //Rd
+                        tb_test_cases_rtype[3].instruction[25:21], // Rs
+                        tb_test_cases_rtype[3].instruction[20:16], //Rt
+                        ALU_ADD, //alu_op
+                        SEL_REG_DATA, //ALUSrc
+                        SEL_RESULT, //mem_to_reg
+                        SEL_LOAD_NXT_INSTR, // PCSrc
+                        1'b0, // extend
+                        1'b0 // halt 
+                        ); 
+
+    // ADDU
+    add_case_rtype(4, // test num
+                   "Testing ADDU funct", // test description)
+                   RTYPE, // opcode
+                   5'd4, // rs
+                   5'd3, // rt
+                   5'd8, // rd
+                   5'd0, //shamt
+                   ADDU, // funct
+                   1'b0);  // equal
+    add_expected_values(21, // test number
+                        tb_test_cases_rtype[4].instruction[15:0], // imm16
+                        1'b1, //Regwr
+                        1'b1, //iREN
+                        1'b0, //dWEN
+                        1'b0, //dREN
+                        SEL_RD, //reg_dest
+                        tb_test_cases_rtype[4].instruction[15:11], //Rd
+                        tb_test_cases_rtype[4].instruction[25:21], // Rs
+                        tb_test_cases_rtype[4].instruction[20:16], //Rt
+                        ALU_ADD, //alu_op
+                        SEL_REG_DATA, //ALUSrc
+                        SEL_RESULT, //mem_to_reg
+                        SEL_LOAD_NXT_INSTR, // PCSrc
+                        1'b0, // extend
+                        1'b0 // halt 
+                        ); 
+
+    // SUB
+    add_case_rtype(5, // test num
+                   "Testing SUB funct", // test description)
+                   RTYPE, // opcode
+                   5'd4, // rs
+                   5'd3, // rt
+                   5'd8, // rd
+                   5'd0, //shamt
+                   SUB, // funct
+                   1'b0);  // equal
+    add_expected_values(22, // test number
+                        tb_test_cases_rtype[5].instruction[15:0], // imm16
+                        1'b1, //Regwr
+                        1'b1, //iREN
+                        1'b0, //dWEN
+                        1'b0, //dREN
+                        SEL_RD, //reg_dest
+                        tb_test_cases_rtype[5].instruction[15:11], //Rd
+                        tb_test_cases_rtype[5].instruction[25:21], // Rs
+                        tb_test_cases_rtype[5].instruction[20:16], //Rt
+                        ALU_SUB, //alu_op
+                        SEL_REG_DATA, //ALUSrc
+                        SEL_RESULT, //mem_to_reg
+                        SEL_LOAD_NXT_INSTR, // PCSrc
+                        1'b0, // extend
+                        1'b0 // halt 
+                        ); 
+
+    // SUBU
+    add_case_rtype(6, // test num
+                   "Testing SUBU funct", // test description)
+                   RTYPE, // opcode
+                   5'd4, // rs
+                   5'd3, // rt
+                   5'd8, // rd
+                   5'd0, //shamt
+                   SUBU, // funct
+                   1'b0);  // equal
+    add_expected_values(23, // test number
+                        tb_test_cases_rtype[6].instruction[15:0], // imm16
+                        1'b1, //Regwr
+                        1'b1, //iREN
+                        1'b0, //dWEN
+                        1'b0, //dREN
+                        SEL_RD, //reg_dest
+                        tb_test_cases_rtype[6].instruction[15:11], //Rd
+                        tb_test_cases_rtype[6].instruction[25:21], // Rs
+                        tb_test_cases_rtype[6].instruction[20:16], //Rt
+                        ALU_SUB, //alu_op
+                        SEL_REG_DATA, //ALUSrc
+                        SEL_RESULT, //mem_to_reg
+                        SEL_LOAD_NXT_INSTR, // PCSrc
+                        1'b0, // extend
+                        1'b0 // halt 
+                        ); 
+
+    // AND
+    add_case_rtype(7, // test num
+                   "Testing AND funct", // test description)
+                   RTYPE, // opcode
+                   5'd4, // rs
+                   5'd3, // rt
+                   5'd8, // rd
+                   5'd0, //shamt
+                   AND, // funct
+                   1'b0);  // equal
+    add_expected_values(24, // test number
+                        tb_test_cases_rtype[7].instruction[15:0], // imm16
+                        1'b1, //Regwr
+                        1'b1, //iREN
+                        1'b0, //dWEN
+                        1'b0, //dREN
+                        SEL_RD, //reg_dest
+                        tb_test_cases_rtype[7].instruction[15:11], //Rd
+                        tb_test_cases_rtype[7].instruction[25:21], // Rs
+                        tb_test_cases_rtype[7].instruction[20:16], //Rt
+                        ALU_AND, //alu_op
+                        SEL_REG_DATA, //ALUSrc
+                        SEL_RESULT, //mem_to_reg
+                        SEL_LOAD_NXT_INSTR, // PCSrc
+                        1'b0, // extend
+                        1'b0 // halt 
+                        ); 
+
+    // OR
+    add_case_rtype(8, // test num
+                   "Testing OR funct", // test description)
+                   RTYPE, // opcode
+                   5'd4, // rs
+                   5'd3, // rt
+                   5'd8, // rd
+                   5'd0, //shamt
+                   OR, // funct
+                   1'b0);  // equal
+    add_expected_values(25, // test number
+                        tb_test_cases_rtype[8].instruction[15:0], // imm16
+                        1'b1, //Regwr
+                        1'b1, //iREN
+                        1'b0, //dWEN
+                        1'b0, //dREN
+                        SEL_RD, //reg_dest
+                        tb_test_cases_rtype[8].instruction[15:11], //Rd
+                        tb_test_cases_rtype[8].instruction[25:21], // Rs
+                        tb_test_cases_rtype[8].instruction[20:16], //Rt
+                        ALU_OR, //alu_op
+                        SEL_REG_DATA, //ALUSrc
+                        SEL_RESULT, //mem_to_reg
+                        SEL_LOAD_NXT_INSTR, // PCSrc
+                        1'b0, // extend
+                        1'b0 // halt 
+                        ); 
+
+    // XOR
+    add_case_rtype(9, // test num
+                   "Testing XOR funct", // test description)
+                   RTYPE, // opcode
+                   5'd4, // rs
+                   5'd3, // rt
+                   5'd8, // rd
+                   5'd0, //shamt
+                   XOR, // funct
+                   1'b0);  // equal
+    add_expected_values(26, // test number
+                        tb_test_cases_rtype[9].instruction[15:0], // imm16
+                        1'b1, //Regwr
+                        1'b1, //iREN
+                        1'b0, //dWEN
+                        1'b0, //dREN
+                        SEL_RD, //reg_dest
+                        tb_test_cases_rtype[9].instruction[15:11], //Rd
+                        tb_test_cases_rtype[9].instruction[25:21], // Rs
+                        tb_test_cases_rtype[9].instruction[20:16], //Rt
+                        ALU_XOR, //alu_op
+                        SEL_REG_DATA, //ALUSrc
+                        SEL_RESULT, //mem_to_reg
+                        SEL_LOAD_NXT_INSTR, // PCSrc
+                        1'b0, // extend
+                        1'b0 // halt 
+                        ); 
+
+    // NOR
+    add_case_rtype(10, // test num
+                   "Testing NOR funct", // test description)
+                   RTYPE, // opcode
+                   5'd4, // rs
+                   5'd3, // rt
+                   5'd8, // rd
+                   5'd0, //shamt
+                   NOR, // funct
+                   1'b0);  // equal
+    add_expected_values(27, // test number
+                        tb_test_cases_rtype[10].instruction[15:0], // imm16
+                        1'b1, //Regwr
+                        1'b1, //iREN
+                        1'b0, //dWEN
+                        1'b0, //dREN
+                        SEL_RD, //reg_dest
+                        tb_test_cases_rtype[10].instruction[15:11], //Rd
+                        tb_test_cases_rtype[10].instruction[25:21], // Rs
+                        tb_test_cases_rtype[10].instruction[20:16], //Rt
+                        ALU_NOR, //alu_op
+                        SEL_REG_DATA, //ALUSrc
+                        SEL_RESULT, //mem_to_reg
+                        SEL_LOAD_NXT_INSTR, // PCSrc
+                        1'b0, // extend
+                        1'b0 // halt 
+                        ); 
+
+    // SLT
+    add_case_rtype(11, // test num
+                   "Testing SLT funct", // test description)
+                   RTYPE, // opcode
+                   5'd4, // rs
+                   5'd3, // rt
+                   5'd8, // rd
+                   5'd0, //shamt
+                   SLT, // funct
+                   1'b0);  // equal
+    add_expected_values(28, // test number
+                        tb_test_cases_rtype[11].instruction[15:0], // imm16
+                        1'b1, //Regwr
+                        1'b1, //iREN
+                        1'b0, //dWEN
+                        1'b0, //dREN
+                        SEL_RD, //reg_dest
+                        tb_test_cases_rtype[11].instruction[15:11], //Rd
+                        tb_test_cases_rtype[11].instruction[25:21], // Rs
+                        tb_test_cases_rtype[11].instruction[20:16], //Rt
+                        ALU_SLT, //alu_op
+                        SEL_REG_DATA, //ALUSrc
+                        SEL_RESULT, //mem_to_reg
+                        SEL_LOAD_NXT_INSTR, // PCSrc
+                        1'b0, // extend
+                        1'b0 // halt 
+                        ); 
+
+    // SLTU
+    add_case_rtype(12, // test num
+                   "Testing SLTU funct", // test description)
+                   RTYPE, // opcode
+                   5'd4, // rs
+                   5'd3, // rt
+                   5'd8, // rd
+                   5'd0, //shamt
+                   SLTU, // funct
+                   1'b0);  // equal
+    add_expected_values(29, // test number
+                        tb_test_cases_rtype[12].instruction[15:0], // imm16
+                        1'b1, //Regwr
+                        1'b1, //iREN
+                        1'b0, //dWEN
+                        1'b0, //dREN
+                        SEL_RD, //reg_dest
+                        tb_test_cases_rtype[12].instruction[15:11], //Rd
+                        tb_test_cases_rtype[12].instruction[25:21], // Rs
+                        tb_test_cases_rtype[12].instruction[20:16], //Rt
+                        ALU_SLTU, //alu_op
+                        SEL_REG_DATA, //ALUSrc
+                        SEL_RESULT, //mem_to_reg
+                        SEL_LOAD_NXT_INSTR, // PCSrc
+                        1'b0, // extend
+                        1'b0 // halt 
+                        ); 
+    
 
 /******************* Running through test cases*************************************************/
     test_description = "Not running "; 
@@ -859,7 +1225,37 @@ program test
                   tb_exp_values[i + tb_test_cases_jtype.size()].extend, 
                   tb_exp_values[i + tb_test_cases_jtype.size() ].halt
                   );
+    end 
 
+    // loop through all of r type instruction test cases
+    for (int i = 0; i < tb_test_cases_rtype.size(); i++) begin 
+
+      test_case_num = test_case_num + 1; 
+      test_description = tb_test_cases_rtype[i].test_name; 
+
+      // apply the signals 
+      cuif.instruction = tb_test_cases_rtype[i].instruction; 
+      cuif.equal = tb_test_cases_rtype[i].equal; 
+
+      // wait a little before checking outputs 
+      #(1)
+      check_outputs(test_description,
+                  tb_exp_values[i + tb_test_cases_itype.size() + tb_test_cases_jtype.size() ].imm16,
+                  tb_exp_values[i + tb_test_cases_itype.size() + tb_test_cases_jtype.size()].RegWr,
+                  tb_exp_values[i + tb_test_cases_itype.size() + tb_test_cases_jtype.size()].iREN, 
+                  tb_exp_values[i + tb_test_cases_itype.size() + tb_test_cases_jtype.size()].dWEN, 
+                  tb_exp_values[i + tb_test_cases_itype.size() + tb_test_cases_jtype.size()].dREN,
+                  tb_exp_values[i + tb_test_cases_itype.size() + tb_test_cases_jtype.size()].reg_dest,
+                  tb_exp_values[i + tb_test_cases_itype.size() + tb_test_cases_jtype.size()].Rd, 
+                  tb_exp_values[i + tb_test_cases_itype.size() + tb_test_cases_jtype.size()].Rs,
+                  tb_exp_values[i + tb_test_cases_itype.size() + tb_test_cases_jtype.size()].Rt, 
+                  tb_exp_values[i + tb_test_cases_itype.size() + tb_test_cases_jtype.size()].alu_op, 
+                  tb_exp_values[i + tb_test_cases_itype.size() + tb_test_cases_jtype.size()].ALUSrc,
+                  tb_exp_values[i + tb_test_cases_itype.size() + tb_test_cases_jtype.size()].mem_to_reg, 
+                  tb_exp_values[i + tb_test_cases_itype.size() + tb_test_cases_jtype.size()].PCSrc,
+                  tb_exp_values[i + tb_test_cases_itype.size() + tb_test_cases_jtype.size()].extend, 
+                  tb_exp_values[i + tb_test_cases_itype.size() + tb_test_cases_jtype.size() ].halt
+                  );
     end 
   end
 endprogram
