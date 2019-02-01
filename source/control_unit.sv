@@ -9,11 +9,12 @@
 `include "control_unit_if.vh"
 `include "data_path_muxs_pkg.vh"
 
-module control_unit
 	import cpu_types_pkg::*;
 	import data_path_muxs_pkg::*; 
+
+module control_unit
 	(
- 	control_unit_if.cu cuif, 
+ 	control_unit_if.cu cuif
  	); 
 
 /********** Local type definitions ***************************/
@@ -28,7 +29,7 @@ module control_unit
 instr_type op_code_type; 
 
 // variables for breaking instruction apart
-opcode_t op_code; // 6 bits wide
+logic [5:0] op_code_internal; // 6 bits wide
 logic [REG_W -1: 0] rs, rt, rd; // 5 bits wide
 logic [FUNC_W -1: 0] funct; // 6 bits wide
 logic [IMM_W -1: 0] imm_16; // 16 bits wide
@@ -38,7 +39,7 @@ logic [25:0] address;
 /********** Assign statements ***************************/
 
 // break up the instruction into its respective data sections
-assign op_code = cuif.instruction[31:26];
+assign op_code_internal = cuif.instruction[31:26];
 assign funct = cuif.instruction[5:0]; 
 assign rd = cuif.instruction[16:12]; 
 assign rt = cuif.instruction[21:17];
@@ -47,20 +48,13 @@ assign imm_16 = cuif.instruction[15:0];
 assign address = cuif.instruction[25:0]; 
 
 // control signal logic equations 
-assign cuif.iREN = (op_code != HALT) ? 1 : 0; 
-assign cuif.dWEN = (op_code == SW) ? 1 : 0; 
-assign cuif.dREN = ((op_code == LUI) | (op_code == LW)) ? 1 : 0; 
-assign cuif.RegWr = ((op_code == JR) | (op_code == J) | (op_code == SW) | (op_code == BNE)
-						| (op_code == BEQ) | (op_code == JR)) ? 0 : 1; 
-assign cuif.halt = (op_code == HALT) ? 1 : 0; 
-assign cuif.extend = ((op_code == ADDIU) | (op_code == ADDI) 
-						| (op_code == ANDI) 
-						| (op_code == LW)
-						| (op_code == SLTI)
-						| (op_code == SLTIU) 
-						| (op_code == SW)
-						| (op_code == XORI)
-						| (op_code == )) ? 1 : 0; 
+assign cuif.iREN = (op_code_internal != HALT) ? 1 : 0; 
+assign cuif.dWEN = (op_code_internal == SW) ? 1 : 0; 
+assign cuif.dREN = ((op_code_internal == LUI) | (op_code_internal == LW)) ? 1 : 0; 
+assign cuif.RegWr = ((op_code_internal == JR) | (op_code_internal == J) | (op_code_internal == SW) | (op_code_internal == BNE) | (op_code_internal == BEQ) | (op_code_internal == JR)) ? 0 : 1; 
+assign cuif.halt = (op_code_internal == HALT) ? 1 : 0; 
+assign cuif.extend = ((op_code_internal == ADDIU) | (op_code_internal == ADDI) | (op_code_internal == ANDI) | (op_code_internal == LW) 
+	| (op_code_internal == SLTI) | (op_code_internal == SLTIU) | (op_code_internal == SW) | (op_code_internal == XORI) ) ? 1 : 0; 
 
 /********** Combination Logic Blocks ***************************/
 
@@ -71,16 +65,16 @@ always_comb begin: INSTRUCTION_TYPE_LOGIC
 	op_code_type = I_TYPE; 
 
 	// if op code is all zeros 
-	if ( (cuif.instruction[31:26] & 6'b111111) == 6'd000000) begin 
+	if ( (cuif.instruction[31:26] & 6'b111111) == 6'd0) begin 
 
 		// instruction is R_type 
-		op_code_type = R_type; 
+		op_code_type = R_TYPE; 
 	end 
 	// if the top 4 bits are zero
-	else if ( (cuif.instruction[31:28] & 4'b1111) == 4'b0000) begin 
+	else if ( (cuif.instruction[31:28] & 4'b1111) == 4'b0) begin 
 
 		// instruction is J_type 
-		op_code_type = J_type; 
+		op_code_type = J_TYPE; 
 	end 
 	// else the instruction is a I_TYPE 
 	else begin 
@@ -96,17 +90,17 @@ always_comb begin: MUX_MEM_TO_REG
 	cuif.mem_to_reg = SEL_RESULT;
 
 	// if opcode is instruction that requires New program counter 
-	if (op_code == JAL) begin 
+	if (op_code_internal == JAL) begin 
 
 		cuif.mem_to_reg = SEL_NPC; 
 	end 
 	// if opcode is instruction that requires data from memroy to load 
-	else if (op_code == LW) begin 
+	else if (op_code_internal == LW) begin 
 
 		cuif.mem_to_reg = SEL_DLOAD; 
 	end 
 	// if opcode that requires imm 16 to be loaded to upper 32 bits 
-	else if (op_code == LULI) begin 
+	else if (op_code_internal == LUI) begin 
 
 		cuif.mem_to_reg = SEL_IMM16_TO_UPPER_32; 
 	end 
@@ -124,9 +118,9 @@ always_comb begin: MUX_ALU_SRC
 	cuif.ALUSrc = SEL_REG_DATA; 
 
 	// if certain cases where immediate value should be selected 
-	if ((op_code == ADDIU) | (op_code == ADDI) | (op_code == ANDI)
-		| (op_code == LW) | (op_code == ORI) | (op_code == SW) 
-		| (op_code == XORI) ) begin 
+	if ((op_code_internal == ADDIU) | (op_code_internal == ADDI) | (op_code_internal == ANDI)
+		| (op_code_internal == LW) | (op_code_internal == ORI) | (op_code_internal == SW) 
+		| (op_code_internal == XORI) ) begin 
 		cuif.ALUSrc = SEL_IMM16; 
 	end 
 	else begin 
@@ -142,21 +136,21 @@ always_comb begin: MUX_PC_SRC
 	cuif.PCSrc = SEL_LOAD_ADDR; 
 
 	// opcode is bequal and equal is one  
-	if ((op_code == BEQ) & (cuif.equal == 1'b1)) begin 
+	if ((op_code_internal == BEQ) & (cuif.equal == 1'b1)) begin 
 
 		cuif.PCSrc = SEL_LOAD_IMM16; 
 	end 
 	// if opcode is bneq and equal is zero 
-	else if ( (op_code == BNE) & (cuif.equal == 1'b0)) begin 
+	else if ( (op_code_internal == BNE) & (cuif.equal == 1'b0)) begin 
 
 		cuif.PCSrc = SEL_LOAD_IMM16; 
 	end
-	else if ((op_code == J) | (op_code == JAL)) begin 
+	else if ((op_code_internal == J) | (op_code_internal == JAL)) begin 
 
 		cuif.PCSrc = SEL_LOAD_ADDR; 
 	end
 	// opcode that required pc source to be jump address
-	else if (op_code == JR) begin 
+	else if (op_code_internal == JR) begin 
 
 		cuif.PCSrc = SEL_LOAD_JR_ADDR; 
 	end 
@@ -174,7 +168,7 @@ always_comb begin: MUX_REG_DEST
 	cuif.reg_dest = SEL_RD; 
 
 	// If loading values from memory
-	if ((op_code == LUI) | (op_code == LW)) begin 
+	if ((op_code_internal == LUI) | (op_code_internal == LW)) begin 
 
 		// destination should be RT
 		cuif.reg_dest = SEL_RT; 
@@ -210,9 +204,10 @@ always_comb begin: ALU_OPERATION_SIGNAL_LOGIC
 			SLTU:	cuif.alu_op = ALU_SLTU; 
 		endcase
 	// else will look at the opcode 
+	end 
 	else begin 
 
-		casez (op_code)
+		casez (op_code_internal)
 
 			BEQ:	cuif.alu_op = ALU_SUB; 
 			BNE:	cuif.alu_op = ALU_SUB; 
@@ -225,5 +220,6 @@ always_comb begin: ALU_OPERATION_SIGNAL_LOGIC
 			XORI:	cuif.alu_op = ALU_XOR; 
 			SW:		cuif.alu_op = ALU_ADD; 
 		endcase
+	end 
 end 
 endmodule
