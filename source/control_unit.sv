@@ -14,7 +14,7 @@
 
 module control_unit
 	(
- 	control_unit_if.cu cuif
+ 	control_unit_if cuif
  	); 
 
 /********** Local type definitions ***************************/
@@ -29,9 +29,9 @@ module control_unit
 instr_type op_code_type; 
 
 // variables for breaking instruction apart
-logic [5:0] op_code_internal; // 6 bits wide
+opcode_t op_code_internal; // 6 bits wide
 logic [REG_W -1: 0] rs, rt, rd; // 5 bits wide
-logic [FUNC_W -1: 0] funct; // 6 bits wide
+funct_t funct; // 6 bits wide
 logic [IMM_W -1: 0] imm_16; // 16 bits wide
 logic [25:0] address; 
 
@@ -39,22 +39,29 @@ logic [25:0] address;
 /********** Assign statements ***************************/
 
 // break up the instruction into its respective data sections
-assign op_code_internal = cuif.instruction[31:26];
-assign funct = cuif.instruction[5:0]; 
-assign rd = cuif.instruction[16:12]; 
-assign rt = cuif.instruction[21:17];
-assign rs = cuif.instruction[26:22]; 
+assign op_code_internal = opcode_t'(cuif.instruction[31:26]);
+assign funct = funct_t'(cuif.instruction[5:0]); 
+assign rd = cuif.instruction[15:11]; 
+assign rt = cuif.instruction[20:16];
+assign rs = cuif.instruction[25:21]; 
 assign imm_16 = cuif.instruction[15:0]; 
 assign address = cuif.instruction[25:0]; 
 
 // control signal logic equations 
-assign cuif.iREN = (op_code_internal != HALT) ? 1 : 0; 
-assign cuif.dWEN = (op_code_internal == SW) ? 1 : 0; 
-assign cuif.dREN = ((op_code_internal == LUI) | (op_code_internal == LW)) ? 1 : 0; 
-assign cuif.RegWr = ((op_code_internal == JR) | (op_code_internal == J) | (op_code_internal == SW) | (op_code_internal == BNE) | (op_code_internal == BEQ) | (op_code_internal == JR)) ? 0 : 1; 
-assign cuif.halt = (op_code_internal == HALT) ? 1 : 0; 
+assign cuif.iREN = (op_code_internal != HALT) ? 1'b1 : 1'b0; 
+assign cuif.dWEN = (opcode_t'(op_code_internal) == SW) ? 1'b1 : 1'b0; 
+assign cuif.dREN = ((op_code_internal == LUI) | (op_code_internal == LW)) ? 1'b1 : 1'b0; 
+assign cuif.RegWr = ((op_code_internal == J) | (op_code_internal == SW) | (op_code_internal == BNE) | (op_code_internal == BEQ) | (op_code_internal == RTYPE) & (funct == JR)) ? 1'b0 : 1'b1; 
+assign cuif.halt = (op_code_internal == HALT) ? 1'b1 : 1'b0; 
 assign cuif.extend = ((op_code_internal == ADDIU) | (op_code_internal == ADDI) | (op_code_internal == ANDI) | (op_code_internal == LW) 
-	| (op_code_internal == SLTI) | (op_code_internal == SLTIU) | (op_code_internal == SW) | (op_code_internal == XORI) ) ? 1 : 0; 
+	| (op_code_internal == SLTI) | (op_code_internal == SLTIU) | (op_code_internal == SW) | (op_code_internal == XORI) ) ? 1'b1 : 1'b0; 
+
+// directing parts of instruction to output ports 
+assign cuif.load_addr = address; 
+assign cuif.imm16 = imm_16; 
+assign cuif.Rd = rd; 
+assign cuif.Rt = rt; 
+assign cuif.Rs = rs; 
 
 /********** Combination Logic Blocks ***************************/
 
@@ -136,7 +143,7 @@ always_comb begin: MUX_PC_SRC
 	cuif.PCSrc = SEL_LOAD_ADDR; 
 
 	// opcode is bequal and equal is one  
-	if ((op_code_internal == BEQ) & (cuif.equal == 1'b1)) begin 
+	if ( (op_code_internal == BEQ) & (cuif.equal == 1'b1) ) begin 
 
 		cuif.PCSrc = SEL_LOAD_IMM16; 
 	end 
@@ -145,12 +152,12 @@ always_comb begin: MUX_PC_SRC
 
 		cuif.PCSrc = SEL_LOAD_IMM16; 
 	end
-	else if ((op_code_internal == J) | (op_code_internal == JAL)) begin 
+	else if ( (op_code_internal == J) | (op_code_internal == JAL)) begin 
 
 		cuif.PCSrc = SEL_LOAD_ADDR; 
 	end
 	// opcode that required pc source to be jump address
-	else if (op_code_internal == JR) begin 
+	else if ((op_code_internal == RTYPE) & (funct == JR)) begin 
 
 		cuif.PCSrc = SEL_LOAD_JR_ADDR; 
 	end 
