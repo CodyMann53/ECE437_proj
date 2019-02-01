@@ -51,7 +51,7 @@ assign address = cuif.instruction[25:0];
 assign cuif.iREN = (op_code_internal != HALT) ? 1'b1 : 1'b0; 
 assign cuif.dWEN = (opcode_t'(op_code_internal) == SW) ? 1'b1 : 1'b0; 
 assign cuif.dREN = ((op_code_internal == LUI) | (op_code_internal == LW)) ? 1'b1 : 1'b0; 
-assign cuif.RegWr = ((op_code_internal == J) | (op_code_internal == SW) | (op_code_internal == BNE) | (op_code_internal == BEQ) | (op_code_internal == RTYPE) & (funct == JR)) ? 1'b0 : 1'b1; 
+assign cuif.RegWr = ((op_code_internal == J) | (op_code_internal == SW) | (op_code_internal == BNE) | (op_code_internal == BEQ) | ( (op_code_internal == RTYPE) & (funct == JR) ) | (op_code_internal == HALT)) ? 1'b0 : 1'b1; 
 assign cuif.halt = (op_code_internal == HALT) ? 1'b1 : 1'b0; 
 assign cuif.extend = ((op_code_internal == ADDIU) | (op_code_internal == ADDI) | (op_code_internal == ANDI) | (op_code_internal == LW) 
 	| (op_code_internal == SLTI) | (op_code_internal == SLTIU) | (op_code_internal == SW) | (op_code_internal == XORI) ) ? 1'b1 : 1'b0; 
