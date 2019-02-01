@@ -25,12 +25,86 @@ logic dWEN_reg, iREN_reg, dREN_reg, halt_reg;
 // If either ihit or dit is low, then tell the program counter to wait 
 assign ruif.pc_wait = (ruif.ihit | ruif.dhit | halt_reg) ? 1'b1 : 1'b0; 
 
-// assign the registered values to memory request control signals 
-assign ruif.imemREN = iREN_reg; 
-assign ruif.dmemWEN = dWEN_reg; 
-assign ruif.dmemREN = dREN_reg; 
-
 /********** Combinational Logic ***************************/
+
+// comb block for controll memory data write request 
+always_comb begin: ENABLE_LOGIC_DWEN
+	
+	// assign default values to the enable signals 
+ 
+	ruif.dmemWEN = 1'b0; 
+
+	// if not requesting a data write 
+	if (dWEN_reg == 1'b0) begin 
+
+		// just keep the memory data write request low 
+		ruif.dmemWEN = 1'b0; 
+	end
+	// If requesting a data write and dhit is high 
+	else if ((dWEN_reg == 1'b1) & (ruif.dhit == 1'b1)) begin 
+
+		// dkeep memroy write request high 
+		ruif.dmemWEN = 1'b1; 
+	end 
+	// if dhit goes low 
+	else if ((dWEN_reg == 1'b1) & (ruif.dhit == 1'b0)) begin 
+
+		// deasert the memory request data write 
+		ruif.dmemWEN = 1'b0; 
+	end 
+end 
+
+// comb block for crequesting memory data read request 
+always_comb begin: ENABLE_LOGIC_DREN
+	
+	// assign default values to the enable signals
+	ruif.dmemREN = 1'b0; 
+
+	// if not requesting a data read
+	if (dREN_reg == 1'b0) begin 
+
+		// just keep the memory data read request low 
+		ruif.dmemREN = 1'b0; 
+	end
+	// If requesting a data read and dhit is high 
+	else if ((dREN_reg == 1'b1) & (ruif.dhit == 1'b1)) begin 
+
+		// dkeep memroy read request high 
+		ruif.dmemREN = 1'b1; 
+	end 
+	// if dhit goes low 
+	else if ((dREN_reg == 1'b1) & (ruif.dhit == 1'b0)) begin 
+
+		// deasert the memory request data read 
+		ruif.dmemREN = 1'b0; 
+	end 
+end 
+
+// comb block for crequesting memory instruction read request 
+always_comb begin: ENABLE_LOGIC_IREN
+	
+	// assign default values to the enable signals
+	ruif.imemREN = 1'b0; 
+
+	// if not requesting an instruction read
+	if (iREN_reg == 1'b0) begin 
+
+		// just keep the memory instruciton read request low 
+		ruif.imemREN = 1'b0; 
+	end
+	// If requesting instruction read and ihit is high 
+	else if ((iREN_reg == 1'b1) & (ruif.ihit == 1'b1)) begin 
+
+		// dkeep memroy read request high 
+		ruif.imemREN = 1'b1; 
+	end 
+	// if ihit goes low 
+	else if ((iREN_reg == 1'b1) & (ruif.ihit == 1'b0)) begin 
+
+		// deasert the memory request instruction  read 
+		ruif.imemREN = 1'b0; 
+	end 
+end 
 
 /********** Sequential Logic ***************************/
 always_ff @(posedge CLK, negedge nRST) begin: ENABLE_SIGNALS_REG_LOGIC

@@ -88,22 +88,6 @@ program test
   parameter PERIOD = 10;
 
   /***************Test Vector Definitions ********************/
-  typedef struct {
-    string test_name; 
-    logic iREN; 
-    logic dREN; 
-    logic dWEN; 
-    logic ihit; 
-    logic dhit; 
-    logic halt;
-    logic expected_imemREN;
-    logic expected_dmemWEN; 
-    logic expected_dmemREN; 
-    logic expected_pc_wait; 
-    int latency; 
-  } test_vector; 
-
-  test_vector tb_test_cases []; 
 
   /*************** task definitions *************************************/
   // task definitions 
@@ -124,36 +108,6 @@ program test
 
       // bring nRST back high 
       nRST = 1'b1; 
-    end 
-  endtask
-
-  task add_case;
-    input int test_num; 
-    input string test_name; 
-    input logic iREN; 
-    input logic dREN; 
-    input logic dWEN; 
-    input logic ihit; 
-    input logic dhit; 
-    input logic halt;
-    input logic expected_imemREN;
-    input logic expected_dmemWEN; 
-    input logic expected_dmemREN; 
-    input logic expected_pc_wait; 
-    input int latency;
-    begin 
-      tb_test_cases[test_num].test_name = test_name;
-      tb_test_cases[test_num].iREN = iREN; 
-      tb_test_cases[test_num].dREN = dREN; 
-      tb_test_cases[test_num].dWEN = dWEN; 
-      tb_test_cases[test_num].ihit = ihit; 
-      tb_test_cases[test_num].dhit = dhit; 
-      tb_test_cases[test_num].halt = halt; 
-      tb_test_cases[test_num].expected_imemREN = expected_imemREN; 
-      tb_test_cases[test_num].expected_dmemWEN = expected_dmemWEN; 
-      tb_test_cases[test_num].expected_dmemREN = expected_dmemREN; 
-      tb_test_cases[test_num].expected_pc_wait = expected_pc_wait;
-      tb_test_cases[test_num].latency = latency;
     end 
   endtask
 
@@ -199,6 +153,41 @@ program test
     end 
   endtask 
 
+  task request_instruction;
+    begin 
+
+      // get away from rising edge 
+      @(negedge CLK); 
+
+      // apply proper signals for requesting a read instruction
+      ruif.iREN = 1'b1; 
+      ruif.ihit = 1'b1; 
+
+      // wait a clock cycle
+      @(posedge CLK); 
+    end 
+  endtask
+
+  task latency; 
+    input int cycles; 
+    begin 
+      repeat (cycles) begin 
+        @(posedge CLK); 
+      end 
+    end 
+  endtask
+
+  task give_instruction; 
+    begin 
+
+      // get away from rising edged to bring ihit low 
+      @(negedge CLK); 
+      ruif.ihit = 1'b0;
+    end 
+  endtask
+
+
+    
   /***************Initial Block ********************/
   initial begin
 
@@ -210,132 +199,98 @@ program test
     ruif.ihit = 1'b0; 
     ruif.dhit = 1'b0; 
     ruif.halt = 1'b0; 
-
-    // allocate test case number
-    tb_test_cases = new[6]; 
-
-    // adding test cases 
-    add_case(0, // test number 
-      "Requesting only a read instruction", // test description 
-      1'b1, // iREN
-      1'b0, // dREN
-      1'b0, // dWEN
-      1'b1, // ihit
-      1'b0, // dhit
-      1'b0, // halt
-      1'b1, // expected_imemREN
-      1'b0, //expected_dmemWEN
-      1'b0,  // expected_dmemREN
-      1'b1, // expected_pc_wait
-      1);  // latency (number of clock cycles to hold inputs )
-
-    add_case(1, // test number 
-      "Requesting an instruction read and data write", // test description 
-      1'b1, // iREN
-      1'b0, // dREN
-      1'b1, // dWEN
-      1'b1, // ihit
-      1'b1, // dhit
-      1'b0, // halt
-      1'b1, // expected_imemREN
-      1'b1, //expected_dmemWEN
-      1'b0,  // expected_dmemREN
-      1'b1, // expected_pc_wait
-      1);  // latency (number of clock cycles to hold inputs )
-
-    add_case(2, // test number 
-      "Requesting nothing", // test description 
-      1'b0, // iREN
-      1'b0, // dREN
-      1'b0, // dWEN
-      1'b0, // ihit
-      1'b0, // dhit
-      1'b0, // halt
-      1'b0, // expected_imemREN
-      1'b0, //expected_dmemWEN
-      1'b0,  // expected_dmemREN
-      1'b0, // expected_pc_wait
-      1);  // latency (number of clock cycles to hold inputs )
-
-    add_case(3, // test number 
-      "Requesting an instruction read and data read", // test description 
-      1'b1, // iREN
-      1'b1, // dREN
-      1'b0, // dWEN
-      1'b1, // ihit
-      1'b1, // dhit
-      1'b0, // halt
-      1'b1, // expected_imemREN
-      1'b0, //expected_dmemWEN
-      1'b1,  // expected_dmemREN
-      1'b1, // expected_pc_wait
-      1);  // latency (number of clock cycles to hold inputs )
-
-    add_case(4, // test number 
-      "Requesting nothing and sending a halt", // test description 
-      1'b0, // iREN
-      1'b0, // dREN
-      1'b0, // dWEN
-      1'b0, // ihit
-      1'b0, // dhit
-      1'b1, // halt
-      1'b0, // expected_imemREN
-      1'b0, //expected_dmemWEN
-      1'b0,  // expected_dmemREN
-      1'b1, // expected_pc_wait
-      1);  // latency (number of clock cycles to hold inputs )
-
-    add_case(5, // test number 
-      "Requesting an instruction read and data read", // test description 
-      1'b1, // iREN
-      1'b1, // dREN
-      1'b0, // dWEN
-      1'b1, // ihit
-      1'b1, // dhit
-      1'b0, // halt
-      1'b1, // expected_imemREN
-      1'b0, //expected_dmemWEN
-      1'b1,  // expected_dmemREN
-      1'b1, // expected_pc_wait
-      1);  // latency (number of clock cycles to hold inputs )
      
 
 /******************* Test Case #1 *************************************************/
-    test_description = "Not running "; 
+    test_description = "Apply an instruction read with no data request. "; 
     test_case_num = 0; 
 
     // reset the program counter back to address 0x0
-    reset_dut; 
+    reset_dut;
 
-    // loop through all of the testcases
-    for (int i = 0; i < tb_test_cases.size(); i++) begin 
+    request_instruction; 
 
-      test_case_num = test_case_num + 1; 
-      test_description = tb_test_cases[i].test_name; 
+    // check the outputs to make sure the imemREN and pc_wait is high 
+    check_outputs(1'b1, // imemREN
+                  1'b0, // dmemWEN
+                  1'b0, // dmemREN
+                  1'b1, //pc_wait
+                  test_description
+                  ); 
 
-      // get away from rising edge before applying inputs 
-      @(negedge CLK); 
+    // provide some latency
+    latency(1); 
 
-      // apply the signals 
-      ruif.iREN = tb_test_cases[i].iREN; 
-      ruif.dREN = tb_test_cases[i].dREN; 
-      ruif.dWEN = tb_test_cases[i].dWEN; 
-      ruif.ihit = tb_test_cases[i].ihit; 
-      ruif.dhit = tb_test_cases[i].dhit; 
-      ruif.halt = tb_test_cases[i].halt; 
+    give_instruction; 
 
-      // wait some number of clock cycles 
-      repeat (tb_test_cases[i].latency) begin 
-        @(posedge CLK);
-      end 
+    // wait some time to allow outputs settle 
+    #(1)
+    // check to make sure that imemREN went low 
+    check_outputs(1'b0, // imemREN
+                  1'b0, // dmemWEN
+                  1'b0, // dmemREN
+                  1'b0, //pc_wait
+                  test_description
+                  ); 
 
-      // check the outputs 
-      check_outputs(tb_test_cases[i].expected_imemREN, tb_test_cases[i].expected_dmemWEN,
-                    tb_test_cases[i].expected_dmemREN, 
-                    tb_test_cases[i].expected_pc_wait, 
-                    tb_test_cases[i].test_name); 
 
-    end 
+/******************* Test Case #1 *************************************************/
+    test_description = "Apply an instruction read and data read at same time "; 
+    test_case_num = test_case_num + 1; 
 
-  end
+    // reset the program counter back to address 0x0
+    reset_dut;
+
+    // On the negative edge of the clock, 
+    @(negedge CLK); 
+
+    // apply the iREN and dREN signal 
+    ruif.iREN = 1'b1; 
+    ruif.ihit = 1'b1; 
+    ruif.dREN = 1'b1; 
+    ruif.dhit = 1'b1; 
+
+    // wait a clock cycle
+    @(posedge CLK); 
+    @(posedge CLK)
+
+    // check the outputs 
+    check_outputs(1'b1, // imemREN
+                  1'b0, // dmemWEN
+                  1'b1, // dmemREN
+                  1'b1, //pc_wait
+                  test_description
+                  ); 
+
+    // get away from rising edged to bring dhit low 
+    @(negedge CLK); 
+    ruif.dhit = 1'b0; 
+
+    // wait some time to allow outputs settle 
+    #(1)
+
+    // check to make that dREN got brought low 
+    check_outputs(1'b1, // imemREN
+                  1'b0, // dmemWEN
+                  1'b0, // dmemREN
+                  1'b1, //pc_wait
+                  test_description
+                  ); 
+
+    // get away from rising edge to bring ihit low 
+    @(negedge CLK); 
+    ruif.ihit = 1'b0; 
+
+    // wait a little before checking outpus 
+    #(1)
+
+    // check to make that dREN got brought low 
+    check_outputs(1'b0, // imemREN
+                  1'b0, // dmemWEN
+                  1'b0, // dmemREN
+                  1'b0, //pc_wait
+                  test_description
+                  ); 
+
+ end
 endprogram
