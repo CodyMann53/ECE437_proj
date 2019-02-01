@@ -303,7 +303,6 @@ program test
     // check the program counter 
     check_pc(expected_program_counter, test_description);
 
-
 /******************* Test Case #6 *************************************************/
     test_description = "Increment for two instructions and then make sure the pc halts when it requested.";
     test_case_num = test_case_num + 1; 
@@ -318,13 +317,5 @@ program test
 
     // check program counter again 
     check_pc(expected_program_counter, test_description); 
-
-
-
-
-
-
-
-
   end
 endprogram

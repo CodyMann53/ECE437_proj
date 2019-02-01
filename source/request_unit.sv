@@ -14,7 +14,7 @@ module request_unit
 	(
 	input logic CLK,
  	nRST,
- 	request_unit_if.ru ruif, 
+ 	request_unit_if ruif
  	); 
 
 /********** Local variable definitions ***************************/
@@ -23,12 +23,12 @@ logic dWEN_reg, iREN_reg, dREN_reg, halt_reg;
 /********** Assign statements ***************************/
 
 // If either ihit or dit is low, then tell the program counter to wait 
-assign ru.pc_wait = (ru.ihit | ru.dhit | halt_reg) ? 1 : 0; 
+assign ruif.pc_wait = (ruif.ihit | ruif.dhit | halt_reg) ? 1 : 0; 
 
 // assign the registered values to memory request control signals 
-assign ru.imemREN = iREN_reg; 
-assign ru.dmemWEN = dWEN_reg; 
-assign ru.dmemREN = dREN_reg; 
+assign ruif.imemREN = iREN_reg; 
+assign ruif.dmemWEN = dWEN_reg; 
+assign ruif.dmemREN = dREN_reg; 
 
 /********** Combinational Logic ***************************/
 
@@ -51,7 +51,7 @@ always_ff @(posedge CLK, negedge nRST) begin: ENABLE_SIGNALS_REG_LOGIC
 		dWEN_reg <= ruif.dWEN; 
 		dREN_reg <= ruif.dREN; 
 		iREN_reg <= ruif.iREN;
-		halt_reg <= ru.halt;  
+		halt_reg <= ruif.halt;  
 	end 
 end
 endmodule
