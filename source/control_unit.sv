@@ -59,11 +59,32 @@ assign cuif.extend = ((op_code_internal == ADDIU) | (op_code_internal == ADDI) |
 // directing parts of instruction to output ports 
 assign cuif.load_addr = address; 
 assign cuif.imm16 = imm_16; 
-assign cuif.Rd = rd; 
 assign cuif.Rt = rt; 
-assign cuif.Rs = rs; 
+ 
 
 /********** Combination Logic Blocks ***************************/
+
+// combinational block to make rd $31 in JAL, otherwise just route the value from instr
+always_comb begin: RD_LOGIC
+	// assign default value 
+	cuif.Rd = rd; 
+
+	if (op_code_internal == JAL) begin 
+		// send next program counter to the program counter register. 
+		cuif.Rd = 5'd31; 
+	end 
+end 
+
+// combination locig for rs output 
+always_comb begin: RS_LOGIC
+	// assign default value 
+	cuif.Rs = rs; 
+
+	if ((op_code_internal == RTYPE) & (funct == JR) ) begin 
+		// send program counter saved return address
+		cuif.Rs = 5'd31; 
+	end 
+end 
 
 // combination logic for determinining type of instruction
 always_comb begin: INSTRUCTION_TYPE_LOGIC

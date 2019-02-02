@@ -377,7 +377,7 @@ program test
                         1'b0, //dWEN
                         1'b0, //dREN
                         SEL_RD, //reg_dest
-                        tb_test_cases_jtype[1].instruction[15:11], //Rd
+                        5'd31, //Rd
                         tb_test_cases_jtype[1].instruction[25:21], // Rs
                         tb_test_cases_jtype[1].instruction[20:16], //Rt
                         ALU_ADD, //alu_op
@@ -799,7 +799,7 @@ program test
     add_case_rtype(0, // test num
                    "Testing JR funct", // test description)
                    RTYPE, // opcode
-                   5'd4, // rs
+                   5'd3, // rs
                    5'd3, // rt
                    5'd8, // rd
                    5'd0, //shamt
@@ -813,7 +813,7 @@ program test
                         1'b0, //dREN
                         SEL_RD, //reg_dest
                         tb_test_cases_rtype[0].instruction[15:11], //Rd
-                        tb_test_cases_rtype[0].instruction[25:21], // Rs
+                        5'd31, // Rs
                         tb_test_cases_rtype[0].instruction[20:16], //Rt
                         ALU_ADD, //alu_op
                         SEL_REG_DATA, //ALUSrc

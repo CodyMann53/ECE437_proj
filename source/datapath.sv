@@ -80,7 +80,9 @@ assign dpif.imemaddr = pcif.imemaddr;
 assign dpif.imemREN = ruif.imemREN; 
 assign dpif.dmemWEN = ruif.dmemWEN; 
 assign dpif.dmemREN = ruif.dmemREN; 
-assign dpif.halt = ruif.halt; 
+assign dpif.halt = ruif.halt_out; 
+assign dpif.dmemaddr = aluif.result; 
+assign dpif.dmemstore = rfif.rdat2; 
 
 /************************** Mux logic ***************************/
 
