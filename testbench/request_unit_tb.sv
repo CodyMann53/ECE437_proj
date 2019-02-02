@@ -97,6 +97,13 @@ program test
       // get away from posedge of clock 
       @(negedge CLK); 
 
+      ruif.iREN = 1'b0; 
+      ruif.dREN = 1'b0; 
+      ruif.dWEN = 1'b0; 
+      ruif.ihit = 1'b0; 
+      ruif.dhit = 1'b0; 
+      ruif.halt = 1'b0; 
+
       // bring nRST low 
       nRST = 1'b0; 
 
@@ -153,15 +160,19 @@ program test
     end 
   endtask 
 
-  task request_instruction;
+  task request_memory;
+    input logic iREN, dREN, dWEN; 
     begin 
 
       // get away from rising edge 
       @(negedge CLK); 
 
-      // apply proper signals for requesting a read instruction
-      ruif.iREN = 1'b1; 
-      ruif.ihit = 1'b1; 
+      // apply proper request signals 
+      ruif.iREN = iREN; 
+      ruif.ihit = iREN;
+      ruif.dREN = dREN; 
+      ruif.dWEN = dWEN;  
+      ruif.dhit = (dREN | dWEN); 
 
       // wait a clock cycle
       @(posedge CLK); 
@@ -177,17 +188,17 @@ program test
     end 
   endtask
 
-  task give_instruction; 
+  task memory_response;
+    input logic ihit, dhit;  
     begin 
 
       // get away from rising edged to bring ihit low 
       @(negedge CLK); 
-      ruif.ihit = 1'b0;
+      ruif.ihit = ihit;
+      ruif.dhit = dhit; 
     end 
   endtask
 
-
-    
   /***************Initial Block ********************/
   initial begin
 
@@ -201,14 +212,16 @@ program test
     ruif.halt = 1'b0; 
      
 
-/******************* Test Case #1 *************************************************/
+/******************* Test Case #0 *************************************************/
     test_description = "Apply an instruction read with no data request. "; 
     test_case_num = 0; 
 
-    // reset the program counter back to address 0x0
+    // reset
     reset_dut;
 
-    request_instruction; 
+    // ask memory for instruction
+                  //iREN, dREN, dWEN
+    request_memory(1'b1, 1'b0, 1'b0); 
 
     // check the outputs to make sure the imemREN and pc_wait is high 
     check_outputs(1'b1, // imemREN
@@ -221,7 +234,9 @@ program test
     // provide some latency
     latency(1); 
 
-    give_instruction; 
+    // memory signals data is ready  
+                  // ihit, dhit
+    memory_response(1'b0, 1'b0); 
 
     // wait some time to allow outputs settle 
     #(1)
@@ -238,23 +253,14 @@ program test
     test_description = "Apply an instruction read and data read at same time "; 
     test_case_num = test_case_num + 1; 
 
-    // reset the program counter back to address 0x0
-    reset_dut;
+    // reset the reques unit 
+    reset_dut; 
 
-    // On the negative edge of the clock, 
-    @(negedge CLK); 
+    // ask memory for a data and instruction value 
+                  //iREN, dREN, dWEN
+    request_memory(1'b1, 1'b1, 1'b0);
 
-    // apply the iREN and dREN signal 
-    ruif.iREN = 1'b1; 
-    ruif.ihit = 1'b1; 
-    ruif.dREN = 1'b1; 
-    ruif.dhit = 1'b1; 
-
-    // wait a clock cycle
-    @(posedge CLK); 
-    @(posedge CLK)
-
-    // check the outputs 
+    #(1)
     check_outputs(1'b1, // imemREN
                   1'b0, // dmemWEN
                   1'b1, // dmemREN
@@ -262,14 +268,13 @@ program test
                   test_description
                   ); 
 
-    // get away from rising edged to bring dhit low 
-    @(negedge CLK); 
-    ruif.dhit = 1'b0; 
+    latency(1); 
 
-    // wait some time to allow outputs settle 
+        // memory signals data is ready  
+                  // ihit, dhit
+    memory_response(1'b1, 1'b0); 
+
     #(1)
-
-    // check to make that dREN got brought low 
     check_outputs(1'b1, // imemREN
                   1'b0, // dmemWEN
                   1'b0, // dmemREN
@@ -277,20 +282,160 @@ program test
                   test_description
                   ); 
 
-    // get away from rising edge to bring ihit low 
-    @(negedge CLK); 
-    ruif.ihit = 1'b0; 
+    latency(1);
 
-    // wait a little before checking outpus 
+    // memory signals instruction is ready  
+                  // ihit, dhit
+    memory_response(1'b0, 1'b0); 
+
     #(1)
-
-    // check to make that dREN got brought low 
     check_outputs(1'b0, // imemREN
                   1'b0, // dmemWEN
                   1'b0, // dmemREN
                   1'b0, //pc_wait
                   test_description
                   ); 
+
+    /******************* Test Case #2 *************************************************/
+    test_description = "Apply an instruction read and data write at same time "; 
+    test_case_num = test_case_num + 1; 
+
+    // reset the reques unit 
+    reset_dut; 
+
+    // ask memory for a data write and instruction value 
+                  //iREN, dREN, dWEN
+    request_memory(1'b1, 1'b0, 1'b1);
+
+    #(1)
+    check_outputs(1'b1, // imemREN
+                  1'b1, // dmemWEN
+                  1'b0, // dmemREN
+                  1'b1, //pc_wait
+                  test_description
+                  ); 
+
+    latency(1); 
+
+        // memory signals data is ready  
+                  // ihit, dhit
+    memory_response(1'b1, 1'b0); 
+
+    #(1)
+    check_outputs(1'b1, // imemREN
+                  1'b0, // dmemWEN
+                  1'b0, // dmemREN
+                  1'b1, //pc_wait
+                  test_description
+                  ); 
+
+    latency(1);
+
+    // memory signals instruction is ready  
+                  // ihit, dhit
+    memory_response(1'b0, 1'b0); 
+
+    #(1)
+    check_outputs(1'b0, // imemREN
+                  1'b0, // dmemWEN
+                  1'b0, // dmemREN
+                  1'b0, //pc_wait
+                  test_description
+                  ); 
+
+/******************* Test Case #3 *************************************************/
+    test_description = "Apply a data read request only . "; 
+    test_case_num = test_case_num + 1; 
+
+    // reset
+    reset_dut;
+
+    // ask memory for data
+                  //iREN, dREN, dWEN
+    request_memory(1'b0, 1'b1, 1'b0); 
+
+    check_outputs(1'b0, // imemREN
+                  1'b0, // dmemWEN
+                  1'b1, // dmemREN
+                  1'b1, //pc_wait
+                  test_description
+                  ); 
+
+    // provide some latency
+    latency(1); 
+
+    // memory signals data is ready  
+                  // ihit, dhit
+    memory_response(1'b0, 1'b0); 
+
+    // wait some time to allow outputs settle 
+    #(1)
+    check_outputs(1'b0, // imemREN
+                  1'b0, // dmemWEN
+                  1'b0, // dmemREN
+                  1'b0, //pc_wait
+                  test_description
+                  ); 
+
+    /******************* Test Case #4 *************************************************/
+    test_description = "Apply a data write request only . "; 
+    test_case_num = test_case_num + 1; 
+
+    // reset
+    reset_dut;
+
+    // ask memory for data
+                  //iREN, dREN, dWEN
+    request_memory(1'b0, 1'b0, 1'b1); 
+ 
+    check_outputs(1'b0, // imemREN
+                  1'b1, // dmemWEN
+                  1'b0, // dmemREN
+                  1'b1, //pc_wait
+                  test_description
+                  ); 
+
+    // provide some latency
+    latency(4); 
+
+    // memory signals data is ready  
+                  // ihit, dhit
+    memory_response(1'b0, 1'b0); 
+
+    // wait some time to allow outputs settle 
+    #(1)
+    check_outputs(1'b0, // imemREN
+                  1'b0, // dmemWEN
+                  1'b0, // dmemREN
+                  1'b0, //pc_wait
+                  test_description
+                  ); 
+
+  /******************* Test Case #5 *************************************************/
+    test_description = "Making sure that the request unit halts when told to"; 
+    test_case_num = test_case_num + 1; 
+
+    // reset
+    reset_dut;
+
+    // ask memory for data
+                  //iREN, dREN, dWEN
+
+    request_memory(1'b1, 1'b1, 1'b0); 
+
+    @(negedge CLK); 
+    ruif.halt = 1'b1; 
+
+    #(1)
+    check_outputs(1'b0, // imemREN
+                  1'b0, // dmemWEN
+                  1'b0, // dmemREN
+                  1'b1, //pc_wait
+                  test_description
+                  ); 
+
+ 
+
 
  end
 endprogram

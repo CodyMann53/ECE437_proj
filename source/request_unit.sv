@@ -34,8 +34,12 @@ always_comb begin: ENABLE_LOGIC_DWEN
  
 	ruif.dmemWEN = 1'b0; 
 
+	if (ruif.halt == 1'b1) begin 
+
+		ruif.dmemWEN = 1'b0; 
+	end 
 	// if not requesting a data write 
-	if (dWEN_reg == 1'b0) begin 
+	else if (dWEN_reg == 1'b0) begin 
 
 		// just keep the memory data write request low 
 		ruif.dmemWEN = 1'b0; 
@@ -60,8 +64,12 @@ always_comb begin: ENABLE_LOGIC_DREN
 	// assign default values to the enable signals
 	ruif.dmemREN = 1'b0; 
 
+	if (ruif.halt == 1'b1) begin 
+
+		ruif.dmemREN = 1'b0; 
+	end 
 	// if not requesting a data read
-	if (dREN_reg == 1'b0) begin 
+	else if (dREN_reg == 1'b0) begin 
 
 		// just keep the memory data read request low 
 		ruif.dmemREN = 1'b0; 
@@ -86,8 +94,13 @@ always_comb begin: ENABLE_LOGIC_IREN
 	// assign default values to the enable signals
 	ruif.imemREN = 1'b0; 
 
+
+	if (ruif.halt == 1'b1) begin 
+
+		ruif.imemREN = 1'b0; 
+	end 
 	// if not requesting an instruction read
-	if (iREN_reg == 1'b0) begin 
+	else if (iREN_reg == 1'b0) begin 
 
 		// just keep the memory instruciton read request low 
 		ruif.imemREN = 1'b0; 
