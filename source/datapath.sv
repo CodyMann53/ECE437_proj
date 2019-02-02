@@ -11,15 +11,18 @@
 
 // inner component interfaces
 `include "control_unit_if.vh"
-`include "alu_if"
+`include "alu_if.vh"
 `include "request_unit_if.vh"
 `include "register_file_if.vh"
 
 // control signals for mux's 
-`include "data_path_muxs_pkg.hv"
+`include "data_path_muxs_pkg.vh"
 
 // alu op, mips op, and instruction type
 `include "cpu_types_pkg.vh"
+
+import cpu_types_pkg::*; 
+import data_path_muxs_pkg::*; 
 
 module datapath (
   input logic CLK, nRST,
@@ -94,7 +97,7 @@ always_comb begin: MUX_1
 
   // case statement for control signals 
   casez (cuif.ALUSrc)
-    SEL_REG_DATA: = port_b = rfif.rdat2; 
+    SEL_REG_DATA: port_b = rfif.rdat2; 
     SEL_IMM16: port_b = imm16_ext; 
   endcase
 end
@@ -108,7 +111,7 @@ always_comb begin: MUX_2
   // case statement for control signal 
   casez (cuif.reg_dest)
     SEL_RD: wsel = cuif.Rd;  
-    SEL_RT  wsel = cuif.Rt;  
+    SEL_RT:  wsel = cuif.Rt;  
   endcase
 end 
 
@@ -119,12 +122,12 @@ always_comb begin: MUX_3
   wdat = 32'd0; 
 
   // control signal selection 
-  casez (cuif.mem_to_reg) begin 
+  casez (cuif.mem_to_reg)
     SEL_RESULT: wdat = aluif.result; 
     SEL_NPC: wdat = pcif.imemaddr; 
     SEL_DLOAD: wdat = dpif.dmemload;  
     SEL_IMM16_TO_UPPER_32: wdat = {cuif.imm16,16'b0}; 
-  end
+  endcase
 end 
 /************************** Extender logic ***************************/
 
@@ -136,7 +139,7 @@ always_comb begin: EXTENDER_TO_ALU
   // case statement for control signal 
   casez (cuif.extend) 
     1'b0: imm16_ext = {16'h0, cuif.imm16};  
-    1'b1: imm16_ext - {16'hffff, cuif.imm16}; 
+    1'b1: imm16_ext = {16'hffff, cuif.imm16}; 
   endcase
 end 
 endmodule

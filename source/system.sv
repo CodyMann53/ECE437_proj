@@ -8,6 +8,7 @@
 
 // system interface
 `include "system_if.vh"
+`include "cpu_ram_if.vh"
 
 // types
 `include "cpu_types_pkg.vh"

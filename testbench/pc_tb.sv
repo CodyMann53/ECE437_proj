@@ -46,6 +46,7 @@ module pc_tb;
     .\pcif.halt (pcif.halt), 
     .\pcif.pc_wait (pcif.pc_wait),
     .\pcif.imemaddr (pcif.imemaddr), 
+    .\pcif.next_imemaddr (pcif.next_imemaddr),
     .\pcif.jr_addr (pcif.jr_addr), 
     .\pcif.load_addr (pcif.load_addr),
     .\pcif.PCSrc (pcif.PCSrc)

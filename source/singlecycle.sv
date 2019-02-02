@@ -6,6 +6,7 @@
   holds data path components
   and cache level
 */
+`include "cache_control_if.vh"
 
 module singlecycle (
   input logic CLK, nRST,
@@ -28,7 +29,7 @@ parameter PC0 = 0;
   // map caches
   caches #(.CPUID(0))       CM (CLK, nRST, dcif, cif0);
   // map coherence
-  memory_control            CC (CLK, nRST, ccif);
+  memory_control            CC ( ccif);
 
   // interface connections
   assign scif.memaddr = ccif.ramaddr;

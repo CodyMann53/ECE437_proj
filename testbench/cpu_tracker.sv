@@ -77,8 +77,8 @@ module cpu_tracker(
           SLT, SLTU, SUBU,
           XOR:  $sformat(operands, "%s, %s, %s", dest_str, rs_str, rt_str);
           JR:   $sformat(operands, "%s", rs_str);
-          SLL,
-          SRL:  $sformat(operands,"%s, %s, %d", dest_str,rs_str, signed'(shamt));
+          SLLV,
+          SRLV:  $sformat(operands,"%s, %s, %d", dest_str,rs_str, signed'(shamt));
         endcase
       end
       ADDIU, ADDI,
@@ -121,8 +121,8 @@ module cpu_tracker(
       HALT:     instr_mnemonic = "HALT";
       RTYPE: begin
         case(funct)
-          SLL:  instr_mnemonic = "SLL";
-          SRL:  instr_mnemonic = "SRL";
+          SLLV:  instr_mnemonic = "SLL";
+          SRLV:  instr_mnemonic = "SRL";
           JR:   instr_mnemonic = "JR";
           ADD:  instr_mnemonic = "ADD";
           ADDU: instr_mnemonic = "ADDU";
@@ -206,7 +206,7 @@ module cpu_tracker(
         RTYPE: case(funct)
           ADDU, ADD, AND,
           NOR, OR, SLT, SLTU,
-          SLL, SRL, SUB, SUBU,
+          SLLV, SRLV, SUB, SUBU,
           XOR:  $sformat(temp_str, "%s    %s <-- %x\n", temp_str, dest_str, reg_dat);
         endcase
         ADDIU, ADDI, ANDI,

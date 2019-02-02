@@ -32,6 +32,8 @@ assign pcif.imemaddr = program_counter;
 // program counter + 4
 assign pc_incr_4 = program_counter + 4; 
 
+assign pcif.next_imemaddr = next_program_counter; 
+
 /********** Combinational Logic ***************************/
 
 always_comb begin: PC_NEXT_LOGIC
@@ -47,7 +49,7 @@ always_comb begin: PC_NEXT_LOGIC
 			SEL_LOAD_ADDR:next_program_counter = {pc_incr_4[31:28],pcif.load_addr, 2'b00}; 
 			SEL_LOAD_JR_ADDR:next_program_counter = pcif.jr_addr; 
 			SEL_LOAD_NXT_INSTR:next_program_counter = program_counter + 4; 
-			SEL_LOAD_IMM16: next_program_counter = program_counter + 4 + {16'hFFFF, pcif.load_imm, 2'b00};  
+			SEL_LOAD_IMM16: next_program_counter = program_counter + 4 + {2'b11, 12'hFFF, pcif.load_imm, 2'b00};  
 		endcase 
 	end 
 end 

@@ -15,6 +15,7 @@
 
 // mapped timing needs this. 1ns is too fast
 `timescale 1 ns / 1 ns
+import cpu_types_pkg::*;
 
 module system_tb;
   // clock period
@@ -37,47 +38,46 @@ module system_tb;
   system                              DUT (CLK,nRST,syif);
 
   // CPU Tracker. Uncomment and change signal names to enable.
-  /*
+
   cpu_tracker                         cpu_track0 (
     // No need to change this
     .CLK(DUT.CPU.DP.CLK),
     // Since single cycle, this is just PC enable
-    .wb_stall(~DUT.CPU.DP.pc0_en),
+    .wb_stall(~DUT.CPU.DP.pcif.pc_wait),
     // The 'funct' portion of an instruction. Must be of funct_t type
-    .funct(DUT.CPU.DP.funct),
-    // The 'opcode' portion of an instruction. Must be of opcode_t type
-    .opcode(DUT.CPU.DP.op_code),
+    .funct(funct_t'(DUT.CPU.DP.cuif.instruction[5:0]) ),
+    // The opcode portion of an instruction. Must be of opcode_t type
+    .opcode(opcode_t'(DUT.CPU.DP.cuif.instruction[31:26]) ),
     // The 'rs' portion of an instruction
-    .rs(DUT.CPU.DP.rs),
+    .rs(DUT.CPU.DP.cuif.instruction[25:21]),
     // The 'rt' portion of an instruction
-    .rt(DUT.CPU.DP.rt),
+    .rt(DUT.CPU.DP.cuif.instruction[20:16]),
     // The final selected wsel
     .wsel(DUT.CPU.DP.rfif.wsel),
     // Make sure the interface (dpif) matches your name
     .instr(DUT.CPU.DP.dpif.imemload),
     // Connect the PC to this
-    .pc(DUT.CPU.DP.PC0),
+    .pc(DUT.CPU.DP.pcif.imemaddr),
     // Connect the next PC value (the next registered value) here
-    .npc(DUT.CPU.DP.pc_selected),
+    .npc(DUT.CPU.DP.pcif.next_imemaddr),
     // The final imm/shamt signals
     // This means it should already be shifted/extended/whatever
-    .imm(DUT.CPU.DP.imm_shamt_out),
-    .shamt(DUT.CPU.DP.imm_shamt_out),
-     .lui(DUT.CPU.DP.imm),
+    .imm({2'b11, 12'hFFF,DUT.CPU.DP.cuif.instruction[15:0], 2'b00}),
+    .shamt(DUT.CPU.DP.cuif.instruction[10:6]),
+     .lui(DUT.CPU.DP.cuif.instruction[15:0]),
     // The branch target (aka offset added to npc)
-    .branch_addr(DUT.CPU.DP.pc_branch),
+    .branch_addr({2'b11, 12'hFFF, DUT.CPU.DP.pcif.load_imm, 2'b0}),
     // Make sure the interface (dpif) matches your name
     .dat_addr(DUT.CPU.DP.dpif.dmemaddr),
     // Make sure the interface (dpif) matches your name
     .store_dat(DUT.CPU.DP.dpif.dmemstore),
-    // Make sure the interface (dpif) matches your name
+    // Make sure the interface (rfif) matches your name
     .reg_dat(DUT.CPU.DP.rfif.wdat),
     // Make sure the interface (dpif) matches your name
     .load_dat(DUT.CPU.DP.dpif.dmemload),
     // Make sure the interface (dpif) matches your name
     .dhit(DUT.CPU.DP.dpif.dhit)
   );
-  */
 
 `else
   system                              DUT (,,,,//for altera debug ports
