@@ -50,7 +50,8 @@ module request_unit_tb;
     .\ruif.imemREN  (ruif.imemREN), 
     .\ruif.dmemREN (ruif.dmemREN), 
     .\ruif.dmemWEN (ruif.dmemWEN), 
-    .\ruif.halt (ruif.halt)  
+    .\ruif.halt (ruif.halt), 
+    .\ruif.halt_out (ruif.halt_out)
     );
   `endif
 
@@ -121,6 +122,7 @@ program test
   task check_outputs; 
     input logic imemREN, dmemWEN, dmemREN, pc_wait; 
     input string test_name; 
+    input logic halt_out; 
     begin 
       if (imemREN != ruif.imemREN) begin 
 
@@ -156,6 +158,15 @@ program test
         $display("Expected pc_wait: %0d Actual pc_wait: %0d", pc_wait, ruif.pc_wait); 
         $monitor("Time: %00g ns Incorrect pc_wait for test case: %s", $time, test_name); 
         $monitor("Expected pc_wait: %0d Actual pc_wait: %0d", pc_wait, ruif.pc_wait); 
+      end
+
+      if (halt_out != ruif.halt_out) begin 
+
+        // throw an error flag to the display 
+        $display("Time: %00g ns Incorrect halt_out for test case: %s", $time, test_name); 
+        $display("Expected halt_out: %0d Actual halt_out: %0d", halt_out, ruif.halt_out); 
+        $monitor("Time: %00g ns Incorrect halt_out for test case: %s", $time, test_name); 
+        $monitor("Expected halt_out: %0d Actual halt_out: %0d", halt_out, ruif.halt_out); 
       end
     end 
   endtask 
@@ -228,8 +239,9 @@ program test
                   1'b0, // dmemWEN
                   1'b0, // dmemREN
                   1'b1, //pc_wait
-                  test_description
-                  ); 
+                  test_description, 
+                  1'b0);  // halt_out
+                  
 
     // provide some latency
     latency(1); 
@@ -245,7 +257,8 @@ program test
                   1'b0, // dmemWEN
                   1'b0, // dmemREN
                   1'b0, //pc_wait
-                  test_description
+                  test_description, 
+                  1'b0 // halt_out 
                   ); 
 
 
@@ -265,7 +278,8 @@ program test
                   1'b0, // dmemWEN
                   1'b1, // dmemREN
                   1'b1, //pc_wait
-                  test_description
+                  test_description, 
+                  1'b0 // halt_out
                   ); 
 
     latency(1); 
@@ -279,7 +293,8 @@ program test
                   1'b0, // dmemWEN
                   1'b0, // dmemREN
                   1'b1, //pc_wait
-                  test_description
+                  test_description, 
+                  1'b0 // halt_out
                   ); 
 
     latency(1);
@@ -293,7 +308,8 @@ program test
                   1'b0, // dmemWEN
                   1'b0, // dmemREN
                   1'b0, //pc_wait
-                  test_description
+                  test_description, 
+                  1'b0 // halt_out
                   ); 
 
     /******************* Test Case #2 *************************************************/
@@ -312,7 +328,8 @@ program test
                   1'b1, // dmemWEN
                   1'b0, // dmemREN
                   1'b1, //pc_wait
-                  test_description
+                  test_description, 
+                  1'b0 // halt_out
                   ); 
 
     latency(1); 
@@ -326,7 +343,8 @@ program test
                   1'b0, // dmemWEN
                   1'b0, // dmemREN
                   1'b1, //pc_wait
-                  test_description
+                  test_description, 
+                  1'b0 // halt_out
                   ); 
 
     latency(1);
@@ -340,7 +358,8 @@ program test
                   1'b0, // dmemWEN
                   1'b0, // dmemREN
                   1'b0, //pc_wait
-                  test_description
+                  test_description, 
+                  1'b0 // halt_out
                   ); 
 
 /******************* Test Case #3 *************************************************/
@@ -358,7 +377,8 @@ program test
                   1'b0, // dmemWEN
                   1'b1, // dmemREN
                   1'b1, //pc_wait
-                  test_description
+                  test_description, 
+                  1'b0 // halt_out
                   ); 
 
     // provide some latency
@@ -374,7 +394,8 @@ program test
                   1'b0, // dmemWEN
                   1'b0, // dmemREN
                   1'b0, //pc_wait
-                  test_description
+                  test_description,
+                  1'b0 // halt_out
                   ); 
 
     /******************* Test Case #4 *************************************************/
@@ -392,7 +413,8 @@ program test
                   1'b1, // dmemWEN
                   1'b0, // dmemREN
                   1'b1, //pc_wait
-                  test_description
+                  test_description, 
+                  1'b0 // halt_out
                   ); 
 
     // provide some latency
@@ -408,7 +430,8 @@ program test
                   1'b0, // dmemWEN
                   1'b0, // dmemREN
                   1'b0, //pc_wait
-                  test_description
+                  test_description, 
+                  1'b0 // halt_out
                   ); 
 
   /******************* Test Case #5 *************************************************/
@@ -426,12 +449,15 @@ program test
     @(negedge CLK); 
     ruif.halt = 1'b1; 
 
+    latency(1); 
+
     #(1)
     check_outputs(1'b0, // imemREN
                   1'b0, // dmemWEN
                   1'b0, // dmemREN
                   1'b1, //pc_wait
-                  test_description
+                  test_description, 
+                  1'b1 // halt_out
                   ); 
 
  

@@ -25,6 +25,9 @@ logic dWEN_reg, iREN_reg, dREN_reg, halt_reg;
 // If either ihit or dit is low, then tell the program counter to wait 
 assign ruif.pc_wait = (ruif.ihit | ruif.dhit | halt_reg) ? 1'b1 : 1'b0; 
 
+// route halt to cache interface 
+assign ruif.halt_out = halt_reg; 
+
 /********** Combinational Logic ***************************/
 
 // comb block for controll memory data write request 
@@ -34,7 +37,7 @@ always_comb begin: ENABLE_LOGIC_DWEN
  
 	ruif.dmemWEN = 1'b0; 
 
-	if (ruif.halt == 1'b1) begin 
+	if (halt_reg == 1'b1) begin 
 
 		ruif.dmemWEN = 1'b0; 
 	end 
@@ -64,7 +67,7 @@ always_comb begin: ENABLE_LOGIC_DREN
 	// assign default values to the enable signals
 	ruif.dmemREN = 1'b0; 
 
-	if (ruif.halt == 1'b1) begin 
+	if (halt_reg == 1'b1) begin 
 
 		ruif.dmemREN = 1'b0; 
 	end 
@@ -95,7 +98,7 @@ always_comb begin: ENABLE_LOGIC_IREN
 	ruif.imemREN = 1'b0; 
 
 
-	if (ruif.halt == 1'b1) begin 
+	if (halt_reg == 1'b1) begin 
 
 		ruif.imemREN = 1'b0; 
 	end 
