@@ -57,12 +57,12 @@ module system_tb;
     // Make sure the interface (dpif) matches your name
     .instr(DUT.CPU.DP.dpif.imemload),
     // Connect the PC to this
-    .pc(DUT.CPU.DP.pcif.imemaddr),
+    .pc(DUT.CPU.DP.PC.program_counter),
     // Connect the next PC value (the next registered value) here
-    .npc(DUT.CPU.DP.pcif.next_imemaddr),
+    .npc(DUT.CPU.DP.PC.next_program_counter),
     // The final imm/shamt signals
     // This means it should already be shifted/extended/whatever
-    .imm({2'b11, 12'hFFF,DUT.CPU.DP.cuif.instruction[15:0], 2'b00}),
+    .imm(DUT.CPU.DP.port_b),
     .shamt(DUT.CPU.DP.cuif.instruction[10:6]),
      .lui(DUT.CPU.DP.cuif.instruction[15:0]),
     // The branch target (aka offset added to npc)
@@ -138,7 +138,6 @@ program test(input logic CLK, output logic nRST, system_if.tb syif);
       $display("Starting memory dump.");
     else
       begin $display("Failed to open %s.",filename); $finish; end
-
     for (int unsigned i = 0; memfd && i < 16384; i++)
     begin
       int chksum = 0;
@@ -148,6 +147,8 @@ program test(input logic CLK, output logic nRST, system_if.tb syif);
       syif.addr = i << 2;
       syif.REN = 1;
       repeat (4) @(posedge CLK);
+                              $display("Made it here.");
+
       if (syif.load === 0)
         continue;
       values = {8'h04,16'(i),8'h00,syif.load};

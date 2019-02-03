@@ -48,11 +48,9 @@ assign imm_16 = cuif.instruction[15:0];
 assign address = cuif.instruction[25:0]; 
 
 // control signal logic equations 
-assign cuif.iREN = (op_code_internal != HALT) ? 1'b1 : 1'b0; 
 assign cuif.dWEN = (opcode_t'(op_code_internal) == SW) ? 1'b1 : 1'b0; 
 assign cuif.dREN = ((op_code_internal == LUI) | (op_code_internal == LW)) ? 1'b1 : 1'b0; 
 assign cuif.RegWr = ((op_code_internal == J) | (op_code_internal == SW) | (op_code_internal == BNE) | (op_code_internal == BEQ) | ( (op_code_internal == RTYPE) & (funct == JR) ) | (op_code_internal == HALT)) ? 1'b0 : 1'b1; 
-assign cuif.halt = (op_code_internal == HALT) ? 1'b1 : 1'b0; 
 assign cuif.extend = ((op_code_internal == ADDIU) | (op_code_internal == ADDI) | (op_code_internal == ANDI) | (op_code_internal == LW) 
 	| (op_code_internal == SLTI) | (op_code_internal == SLTIU) | (op_code_internal == SW) | (op_code_internal == XORI) ) ? 1'b1 : 1'b0; 
 
@@ -196,7 +194,11 @@ always_comb begin: MUX_REG_DEST
 	cuif.reg_dest = SEL_RD; 
 
 	// If loading values from memory
-	if ((op_code_internal == LUI) | (op_code_internal == LW)) begin 
+	if ((op_code_internal == LUI) | (op_code_internal == LW) | (op_code_internal == ORI) |
+		(op_code_internal == SLTI) |
+		(op_code_internal == SLTI) | 
+		(op_code_internal == SLTIU) | 
+		(op_code_internal == XORI) ) begin 
 
 		// destination should be RT
 		cuif.reg_dest = SEL_RT; 
@@ -249,5 +251,26 @@ always_comb begin: ALU_OPERATION_SIGNAL_LOGIC
 			SW:		cuif.alu_op = ALU_ADD; 
 		endcase
 	end 
+end 
+
+always_comb begin: HALT_LOGIC
+	
+	// default value will be zero 
+	cuif.halt = 1'b0; 
+
+	if (op_code_internal == HALT) begin 
+
+		cuif.halt = 1'b1; 
+	end 
+end 
+
+always_comb begin: IREN_LOGIC  
+	
+	cuif.iREN = 1'b1; 
+
+	if (op_code_internal == HALT) begin 
+
+		cuif.iREN = 1'b0; 
+	end
 end 
 endmodule

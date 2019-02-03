@@ -14,6 +14,7 @@
 `include "alu_if.vh"
 `include "request_unit_if.vh"
 `include "register_file_if.vh"
+`include "pc_if.vh"
 
 // control signals for mux's 
 `include "data_path_muxs_pkg.vh"
@@ -21,8 +22,7 @@
 // alu op, mips op, and instruction type
 `include "cpu_types_pkg.vh"
 
-import cpu_types_pkg::*; 
-import data_path_muxs_pkg::*; 
+ 
 
 module datapath (
   input logic CLK, nRST,
@@ -30,16 +30,26 @@ module datapath (
 );
   // import types
   import cpu_types_pkg::*;
+  import data_path_muxs_pkg::*;
 
   // pc init
   parameter PC_INIT = 0;
 
 /************************** interface definitions ***************************/
 alu_if aluif(); 
+alu ALU (aluif); 
+
 control_unit_if cuif(); 
+control_unit CONTROL (cuif); 
+
 request_unit_if ruif(); 
+request_unit REQUEST (CLK, nRST, ruif);
+
 register_file_if rfif(); 
+register_file REGISTER (CLK, nRST, rfif); 
+
 pc_if pcif(); 
+pc PC (CLK, nRST, pcif); 
 
 /************************** Locac Variable definitions ***************************/
 word_t imm16_ext, port_b, wdat; 

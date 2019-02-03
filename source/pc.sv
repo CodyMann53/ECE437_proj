@@ -32,8 +32,6 @@ assign pcif.imemaddr = program_counter;
 // program counter + 4
 assign pc_incr_4 = program_counter + 4; 
 
-assign pcif.next_imemaddr = next_program_counter; 
-
 /********** Combinational Logic ***************************/
 
 always_comb begin: PC_NEXT_LOGIC

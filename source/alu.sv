@@ -10,7 +10,7 @@
 
 module alu 
 	import cpu_types_pkg::*;
-	(alu_if.alu aluif); 
+	(alu_if aluif); 
 
 /********** variable declarations **************/
 // assign negative flag to second to last bit of result overflow 
