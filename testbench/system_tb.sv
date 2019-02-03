@@ -146,8 +146,7 @@ program test(input logic CLK, output logic nRST, system_if.tb syif);
 
       syif.addr = i << 2;
       syif.REN = 1;
-      repeat (4) @(posedge CLK);
-                              $display("Made it here.");
+      repeat (0) @(posedge CLK);
 
       if (syif.load === 0)
         continue;
