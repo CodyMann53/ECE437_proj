@@ -43,7 +43,7 @@ module system_tb;
     // No need to change this
     .CLK(DUT.CPU.DP.CLK),
     // Since single cycle, this is just PC enable
-    .wb_stall(~DUT.CPU.DP.pcif.pc_wait),
+    .wb_stall(DUT.CPU.DP.pcif.pc_wait),
     // The 'funct' portion of an instruction. Must be of funct_t type
     .funct(funct_t'(DUT.CPU.DP.cuif.instruction[5:0]) ),
     // The opcode portion of an instruction. Must be of opcode_t type
