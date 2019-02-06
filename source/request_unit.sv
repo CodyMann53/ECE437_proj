@@ -18,7 +18,7 @@ module request_unit
  	); 
 
 /********** Local variable definitions ***************************/
-logic dWEN_reg, iREN_reg, dREN_reg, halt_reg; 
+logic dWEN_reg, iREN_reg, dREN_reg, halt_reg, dWEN_reg_nxt, iREN_reg_nxt, dREN_reg_nxt; 
 
 /********** Assign statements ***************************/
 
@@ -27,56 +27,41 @@ assign ruif.halt_out = (halt_reg | ruif.halt);
 
 assign ruif.imemREN = ( iREN_reg | ruif.iREN); 
 
+// output assign statements 
+assign ruif.dmemWEN = dWEN_reg; 
+assign ruif.dmemREN = dREN_reg; 
+
 /********** Combinational Logic ***************************/
 
-// comb block for pc wait 
-always_comb begin: PC_WAIT
-	
-	// default value to prevent latches 
-	ruif.pc_wait = 1'b0; 
-
-	if (halt_reg == 1'b1) begin 
-		ruif.pc_wait = 1'b1; 
-	end 
-	else if ( ( (dREN_reg == 1'b1) | (dWEN_reg == 1'b1) ) & (ruif.dhit == 1'b0) ) begin 
-
-		ruif.pc_wait = 1'b1; 
-
-	end 
-	else if ( ( (iREN_reg == 1'b1) | (ruif.iREN == 1'b1) ) & (ruif.ihit == 1'b0) ) begin 
-
-		ruif.pc_wait = 1'b1; 
-	end  
-end 
 
 // comb block for controll memory data write request 
 always_comb begin: ENABLE_LOGIC_DWEN
 	
 	// assign default values to the enable signals 
  
-	ruif.dmemWEN = 1'b0; 
+	dWEN_reg_nxt = 1'b0; 
 
-	if (halt_reg == 1'b1) begin 
+	if ( (ruif.halt == 1'b1) | (halt_reg == 1'b1)) begin 
 
-		ruif.dmemWEN = 1'b0; 
+		dWEN_reg_nxt = 1'b0; 
 	end 
 	// if not requesting a data write 
-	else if (dWEN_reg == 1'b0) begin 
+	else if (ruif.dWEN == 1'b0) begin 
 
 		// just keep the memory data write request low 
-		ruif.dmemWEN = 1'b0; 
+		dWEN_reg_nxt = 1'b0; 
 	end
 	// If requesting a data write and dhit is high 
-	else if ((dWEN_reg == 1'b1) & (ruif.dhit == 1'b1)) begin 
+	else if ((ruif.dWEN == 1'b1) & (ruif.ihit == 1'b1)) begin 
 
 		// dkeep memroy write request high 
-		ruif.dmemWEN = 1'b1; 
+		dWEN_reg_nxt = 1'b1; 
 	end 
 	// if dhit goes low 
-	else if ((dWEN_reg == 1'b1) & (ruif.dhit == 1'b0)) begin 
+	else if ((ruif.dWEN == 1'b1) & (ruif.dhit == 1'b1)) begin 
 
 		// deasert the memory request data write 
-		ruif.dmemWEN = 1'b0; 
+		dWEN_reg_nxt = 1'b0; 
 	end 
 end 
 
@@ -84,29 +69,29 @@ end
 always_comb begin: ENABLE_LOGIC_DREN
 	
 	// assign default values to the enable signals
-	ruif.dmemREN = 1'b0; 
+	dREN_reg_nxt = 1'b0; 
 
-	if (halt_reg == 1'b1) begin 
+	if ((ruif.halt == 1'b1) | (halt_reg == 1'b1)) begin 
 
-		ruif.dmemREN = 1'b0; 
+		dREN_reg_nxt = 1'b0; 
 	end 
 	// if not requesting a data read
-	else if (dREN_reg == 1'b0) begin 
+	else if (ruif.dREN == 1'b0) begin 
 
 		// just keep the memory data read request low 
-		ruif.dmemREN = 1'b0; 
+		dREN_reg_nxt = 1'b0; 
 	end
 	// If requesting a data read and dhit is high 
-	else if ((dREN_reg == 1'b1) & (ruif.dhit == 1'b1)) begin 
+	else if ((ruif.dREN == 1'b1) & (ruif.ihit == 1'b1)) begin 
 
 		// dkeep memroy read request high 
-		ruif.dmemREN = 1'b1; 
+		dREN_reg_nxt = 1'b1; 
 	end 
 	// if dhit goes low 
-	else if ((dREN_reg == 1'b1) & (ruif.dhit == 1'b0)) begin 
+	else if ((ruif.dREN == 1'b1) & (ruif.dhit == 1'b1)) begin 
 
 		// deasert the memory request data read 
-		ruif.dmemREN = 1'b0; 
+		dREN_reg_nxt = 1'b0; 
 	end 
 end 
 
@@ -126,8 +111,8 @@ always_ff @(posedge CLK, negedge nRST) begin: ENABLE_SIGNALS_REG_LOGIC
 	else begin 
 
 		// save input enable signals into flip flops 
-		dWEN_reg <= ruif.dWEN; 
-		dREN_reg <= ruif.dREN; 
+		dWEN_reg <= dWEN_reg_nxt; 
+		dREN_reg <= dREN_reg_nxt; 
 		iREN_reg <= ruif.iREN;
 		halt_reg <= ruif.halt;  
 	end 

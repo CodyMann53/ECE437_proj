@@ -40,7 +40,7 @@ always_comb begin: PC_NEXT_LOGIC
 	next_program_counter = program_counter; 
 
 	// If not requested to wait 
-	if (pcif.pc_wait != 1'b1) begin
+	if (pcif.ihit == 1'b1) begin
 
 		// Choose next program counter based off of program source
 		casez (pcif.PCSrc) 

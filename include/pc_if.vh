@@ -16,7 +16,7 @@ interface pc_if;
   import cpu_types_pkg::*;
   import data_path_muxs_pkg::*; 
 
-  logic     pc_wait; 
+  logic     ihit; 
   word_t    imemaddr, jr_addr;
   logic [25:0] jmp_addr; 
   logic [15:0] br_addr; 
@@ -24,14 +24,14 @@ interface pc_if;
 
   // program counter ports 
   modport pc (
-    input   PCSrc, pc_wait, jr_addr, br_addr, jmp_addr,  
+    input   PCSrc, ihit, jr_addr, br_addr, jmp_addr,  
     output  imemaddr
   );
 
   // program counter tb
   modport tb (
     input   imemaddr,
-    output  PCSrc, pc_wait, jr_addr, br_addr, jmp_addr 
+    output  PCSrc, ihit, jr_addr, br_addr, jmp_addr 
   );
 endinterface
 

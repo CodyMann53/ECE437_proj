@@ -63,7 +63,7 @@ assign pcif.PCSrc = cuif.PCSrc;
 assign pcif.br_addr =  br_addr;
 assign pcif.jmp_addr = jmp_addr; 
 assign pcif.jr_addr = rfif.rdat1; 
-assign pcif.pc_wait = ruif.pc_wait; 
+assign pcif.ihit = dpif.ihit; 
 
 // control unit inputs 
 assign cuif.instruction = dpif.imemload; 

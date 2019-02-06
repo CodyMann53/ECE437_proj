@@ -39,7 +39,7 @@ module system_tb;
 
   // CPU Tracker. Uncomment and change signal names to enable.
 
-  cpu_tracker                         cpu_track0 (
+ /* cpu_tracker                         cpu_track0 (
     // No need to change this
     .CLK(DUT.CPU.DP.CLK),
     // Since single cycle, this is just PC enable
@@ -62,11 +62,11 @@ module system_tb;
     .npc(DUT.CPU.DP.PC.next_program_counter),
     // The final imm/shamt signals
     // This means it should already be shifted/extended/whatever
-    .imm(DUT.CPU.DP.imm16_ext),
+    .imm({16'h0, DUT.CPU.DP.cuif.imm16}),
     .shamt(DUT.CPU.DP.cuif.instruction[10:6]),
-     .lui({DUT.CPU.DP.cuif.instruction[15:0], 16'h0}),
+    .lui({DUT.CPU.DP.cuif.instruction[15:0], 16'h0}),
     // The branch target (aka offset added to npc)
-    .branch_addr(DUT.CPU.DP.br_addr),
+    .branch_addr(DUT.CPU.DP.br_addr + DUT.CPU.DP.PC.program_counter + 32'd4),
     // Make sure the interface (dpif) matches your name
     .dat_addr(DUT.CPU.DP.dpif.dmemaddr),
     // Make sure the interface (dpif) matches your name
@@ -77,7 +77,7 @@ module system_tb;
     .load_dat(DUT.CPU.DP.dpif.dmemload),
     // Make sure the interface (dpif) matches your name
     .dhit(DUT.CPU.DP.dpif.dhit)
-  );
+  );*/
 
 `else
   system                              DUT (,,,,//for altera debug ports

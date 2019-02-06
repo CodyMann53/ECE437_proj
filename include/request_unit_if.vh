@@ -19,12 +19,12 @@ interface request_unit_if;
   // request unit interface ports 
   modport ru (
     input   iREN, dREN, dWEN, ihit, dhit, halt,
-    output  imemREN, dmemWEN, dmemREN, pc_wait, halt_out
+    output  imemREN, dmemWEN, dmemREN, halt_out
   );
 
     // request unit interface ports 
   modport tb (
-    input  imemREN, dmemWEN, dmemREN, pc_wait, halt_out,
+    input  imemREN, dmemWEN, dmemREN, halt_out,
     output   iREN, dREN, dWEN, ihit, dhit, halt
   );
 
