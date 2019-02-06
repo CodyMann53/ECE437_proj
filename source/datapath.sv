@@ -134,7 +134,7 @@ always_comb begin: MUX_3
   // control signal selection 
   casez (cuif.mem_to_reg)
     SEL_RESULT: wdat = aluif.result; 
-    SEL_NPC: wdat = pcif.imemaddr; 
+    SEL_NPC: wdat = pcif.imemaddr + 32'd4; 
     SEL_DLOAD: wdat = dpif.dmemload;  
     SEL_IMM16_TO_UPPER_32: wdat = {cuif.imm16,16'b0}; 
   endcase

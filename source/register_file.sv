@@ -36,23 +36,18 @@ always_comb begin: DECODER
 	// memory location 0 is always zero  
 	registers_next[0] = 'b0; 
 
-	// assign the rdata lines to zero as default
-	rdata_out1 = 'b0; 
-	rdata_out2 = 'b0; 
-
 	// if writing and not to the zero memory location 
 	if ( (rfif.WEN == 1'b1) & (rfif.wsel != 5'd0) ) begin 
 
 		// update the register that wsel is pointing to and set its value to write data
 		registers_next[rfif.wsel] = rfif.wdat;
 	end 
-	// reading
-	else begin
 
-		// set rdata lines to what rsel are requesting 
-		rdata_out1 = registers[rfif.rsel1]; 
-		rdata_out2 = registers[rfif.rsel2]; 
-	end 
+	// always keep the thre register read lines to what the read select address are. This should 
+	// not interfere with writing at all
+	rdata_out1 = registers[rfif.rsel1]; 
+	rdata_out2 = registers[rfif.rsel2]; 
+
 end 
 
 always_ff @(posedge CLK, negedge nRST) begin: REGISTER_MEMORY_LOGIC
