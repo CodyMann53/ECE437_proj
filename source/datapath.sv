@@ -52,15 +52,16 @@ pc_if pcif();
 pc PC (CLK, nRST, pcif); 
 
 /************************** Locac Variable definitions ***************************/
-word_t imm16_ext, port_b, wdat; 
+word_t imm16_ext, port_b, wdat, br_addr; 
 regbits_t wsel; 
+logic [27:0] jmp_addr;
 
 /************************** glue logic ***************************/
 
 // program counter inputs
 assign pcif.PCSrc = cuif.PCSrc; 
-assign pcif.load_imm = cuif.imm16; 
-assign pcif.load_addr = cuif.load_addr; 
+assign pcif.br_addr =  br_addr;
+assign pcif.jmp_addr = jmp_addr; 
 assign pcif.jr_addr = rfif.rdat1; 
 assign pcif.pc_wait = ruif.pc_wait; 
 
@@ -96,6 +97,11 @@ assign dpif.dmemREN = ruif.dmemREN;
 assign dpif.halt = ruif.halt_out; 
 assign dpif.dmemaddr = aluif.result; 
 assign dpif.dmemstore = rfif.rdat2; 
+
+/************************** shift left logic ***************************/
+assign br_addr = imm16_ext << 2; 
+assign jmp_addr = {cuif.addr, 2'b00}; 
+
 
 /************************** Mux logic ***************************/
 
@@ -141,7 +147,7 @@ always_comb begin: MUX_3
 end 
 /************************** Extender logic ***************************/
 
-always_comb begin: EXTENDER_TO_ALU
+always_comb begin: EXTENDER
   
   // set default value to prevent latches
   imm16_ext = 32'd0; 

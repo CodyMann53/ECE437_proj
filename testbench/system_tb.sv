@@ -62,11 +62,11 @@ module system_tb;
     .npc(DUT.CPU.DP.PC.next_program_counter),
     // The final imm/shamt signals
     // This means it should already be shifted/extended/whatever
-    .imm(DUT.CPU.DP.port_b),
+    .imm(DUT.CPU.DP.imm16_ext),
     .shamt(DUT.CPU.DP.cuif.instruction[10:6]),
-     .lui(DUT.CPU.DP.cuif.instruction[15:0]),
+     .lui({DUT.CPU.DP.cuif.instruction[15:0], 16'h0}),
     // The branch target (aka offset added to npc)
-    .branch_addr({2'b11, 12'hFFF, DUT.CPU.DP.pcif.load_imm, 2'b0}),
+    .branch_addr(DUT.CPU.DP.br_addr),
     // Make sure the interface (dpif) matches your name
     .dat_addr(DUT.CPU.DP.dpif.dmemaddr),
     // Make sure the interface (dpif) matches your name

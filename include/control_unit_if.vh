@@ -23,7 +23,7 @@ interface control_unit_if;
   aluop_t alu_op; 
   alu_source_mux_selection ALUSrc; 
   word_t instruction;
-  logic [25:0] load_addr; 
+  logic [25:0] addr; 
   pc_mux_input_selection PCSrc; 
   logic [IMM_W - 1:0] imm16; 
 
@@ -31,14 +31,14 @@ interface control_unit_if;
   modport cu (
     input instruction, equal,
     output imm16, RegWr, reg_dest, Rd, Rs, Rt, alu_op, ALUSrc, mem_to_reg, iREN, dWEN, dREN, 
-    PCSrc, load_addr, halt, extend
+    PCSrc, addr, halt, extend
   );
 
   // testbench ports
   modport tb (
     output instruction, equal,
     input imm16, RegWr, reg_dest, Rd, Rs, Rt, alu_op, ALUSrc, mem_to_reg, iREN, dWEN, dREN, 
-    PCSrc, load_addr, halt, extend
+    PCSrc, addr, halt, extend
   );
 
 endinterface

@@ -18,20 +18,20 @@ interface pc_if;
 
   logic     pc_wait; 
   word_t    imemaddr, jr_addr;
-  logic [25:0] load_addr; 
-  logic [15:0] load_imm; 
+  logic [25:0] jmp_addr; 
+  logic [15:0] br_addr; 
   pc_mux_input_selection PCSrc; 
 
   // program counter ports 
   modport pc (
-    input   load_addr, PCSrc, pc_wait, jr_addr, load_imm,
+    input   PCSrc, pc_wait, jr_addr, br_addr, jmp_addr,  
     output  imemaddr
   );
 
   // program counter tb
   modport tb (
     input   imemaddr,
-    output  load_addr, PCSrc, pc_wait, jr_addr, load_imm
+    output  PCSrc, pc_wait, jr_addr, br_addr, jmp_addr 
   );
 endinterface
 

@@ -51,11 +51,11 @@ assign address = cuif.instruction[25:0];
 assign cuif.dWEN = (opcode_t'(op_code_internal) == SW) ? 1'b1 : 1'b0; 
 assign cuif.dREN = ((op_code_internal == LUI) | (op_code_internal == LW)) ? 1'b1 : 1'b0; 
 assign cuif.RegWr = ((op_code_internal == J) | (op_code_internal == SW) | (op_code_internal == BNE) | (op_code_internal == BEQ) | ( (op_code_internal == RTYPE) & (funct == JR) ) | (op_code_internal == HALT)) ? 1'b0 : 1'b1; 
-assign cuif.extend = ((op_code_internal == ADDIU) | (op_code_internal == ADDI) | (op_code_internal == LW) 
+assign cuif.extend = ((op_code_internal == ADDIU) | (op_code_internal == ADDI) | (op_code_internal == LW)  | (op_code_internal == BEQ) | (op_code_internal == BNE)
 	| (op_code_internal == SLTI) | (op_code_internal == SLTIU) | (op_code_internal == SW) | (op_code_internal == XORI) ) ? 1'b1 : 1'b0; 
 
 // directing parts of instruction to output ports 
-assign cuif.load_addr = address; 
+assign cuif.addr = address; 
 assign cuif.imm16 = imm_16; 
 assign cuif.Rt = rt; 
  
@@ -159,21 +159,21 @@ end
 always_comb begin: MUX_PC_SRC
 	
 	// assign default values to prevent latches 
-	cuif.PCSrc = SEL_LOAD_ADDR; 
+	cuif.PCSrc = SEL_LOAD_NXT_INSTR; 
 
 	// opcode is bequal and equal is one  
 	if ( (op_code_internal == BEQ) & (cuif.equal == 1'b1) ) begin 
 
-		cuif.PCSrc = SEL_LOAD_IMM16; 
+		cuif.PCSrc = SEL_LOAD_BR_ADDR; 
 	end 
 	// if opcode is bneq and equal is zero 
 	else if ( (op_code_internal == BNE) & (cuif.equal == 1'b0)) begin 
 
-		cuif.PCSrc = SEL_LOAD_IMM16; 
+		cuif.PCSrc = SEL_LOAD_BR_ADDR; 
 	end
 	else if ( (op_code_internal == J) | (op_code_internal == JAL)) begin 
 
-		cuif.PCSrc = SEL_LOAD_ADDR; 
+		cuif.PCSrc = SEL_LOAD_JMP_ADDR; 
 	end
 	// opcode that required pc source to be jump address
 	else if ((op_code_internal == RTYPE) & (funct == JR)) begin 

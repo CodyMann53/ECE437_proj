@@ -14,10 +14,10 @@ package data_path_muxs_pkg;
   // mux select signal that decides which signal gets stored as next program counter
   typedef enum logic [1:0] {
 
-    SEL_LOAD_ADDR = 2'd0, 
+    SEL_LOAD_JMP_ADDR = 2'd0, 
     SEL_LOAD_JR_ADDR = 2'd1, 
     SEL_LOAD_NXT_INSTR = 2'd2, 
-    SEL_LOAD_IMM16 = 2'd3
+    SEL_LOAD_BR_ADDR = 2'd3
 
   } pc_mux_input_selection;
 

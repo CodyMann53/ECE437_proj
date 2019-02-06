@@ -44,10 +44,10 @@ always_comb begin: PC_NEXT_LOGIC
 
 		// Choose next program counter based off of program source
 		casez (pcif.PCSrc) 
-			SEL_LOAD_ADDR:next_program_counter = {pc_incr_4[31:28],pcif.load_addr, 2'b00}; 
+			SEL_LOAD_BR_ADDR:next_program_counter = program_counter + 4 + pcif.br_addr; 
 			SEL_LOAD_JR_ADDR:next_program_counter = pcif.jr_addr; 
 			SEL_LOAD_NXT_INSTR:next_program_counter = program_counter + 4; 
-			SEL_LOAD_IMM16: next_program_counter = program_counter + 4 + {2'b11, 12'hFFF, pcif.load_imm, 2'b00};  
+			SEL_LOAD_JMP_ADDR: next_program_counter = {pc_incr_4[31:28],pcif.jmp_addr};  
 		endcase 
 	end 
 end 
