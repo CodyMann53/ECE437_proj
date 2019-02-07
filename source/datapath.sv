@@ -83,7 +83,7 @@ assign aluif.port_a = rfif.rdat1;
 assign aluif.alu_op = cuif.alu_op; 
 
 // register file inputs
-assign rfif.WEN = cuif.RegWr; 
+assign rfif.WEN = (  ( (dpif.ihit == 1'b1) | (dpif.dhit == 1'b1) ) & cuif.RegWr); 
 assign rfif.wsel = wsel; 
 assign rfif.wdat = wdat; 
 assign rfif.rsel2 = cuif.Rt; 
@@ -155,7 +155,13 @@ always_comb begin: EXTENDER
   // case statement for control signal 
   casez (cuif.extend) 
     1'b0: imm16_ext = {16'h0, cuif.imm16};  
-    1'b1: imm16_ext = {16'hffff, cuif.imm16}; 
+    1'b1: if (cuif.imm16[15] == 1'b0) begin 
+
+            imm16_ext = {16'h0, cuif.imm16}; 
+          end 
+          else begin 
+            imm16_ext = {16'hffff, cuif.imm16}; 
+          end 
   endcase
 end 
 endmodule

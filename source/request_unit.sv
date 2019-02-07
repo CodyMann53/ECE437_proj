@@ -23,9 +23,9 @@ logic dWEN_reg, iREN_reg, dREN_reg, halt_reg, dWEN_reg_nxt, iREN_reg_nxt, dREN_r
 /********** Assign statements ***************************/
 
 // route halt to cache interface 
-assign ruif.halt_out = (halt_reg | ruif.halt); 
+assign ruif.halt_out = (halt_reg); 
 
-assign ruif.imemREN = ( iREN_reg | ruif.iREN); 
+assign ruif.imemREN =  iREN_reg; 
 
 // output assign statements 
 assign ruif.dmemWEN = dWEN_reg; 
@@ -39,9 +39,9 @@ always_comb begin: ENABLE_LOGIC_DWEN
 	
 	// assign default values to the enable signals 
  
-	dWEN_reg_nxt = 1'b0; 
+	dWEN_reg_nxt = dWEN_reg; 
 
-	if ( (ruif.halt == 1'b1) | (halt_reg == 1'b1)) begin 
+	if (halt_reg == 1'b1) begin 
 
 		dWEN_reg_nxt = 1'b0; 
 	end 
@@ -51,14 +51,13 @@ always_comb begin: ENABLE_LOGIC_DWEN
 		// just keep the memory data write request low 
 		dWEN_reg_nxt = 1'b0; 
 	end
-	// If requesting a data write and dhit is high 
-	else if ((ruif.dWEN == 1'b1) & (ruif.ihit == 1'b1)) begin 
+	else if ((ruif.dWEN == 1'b1) &(ruif.ihit == 1'b1)) begin 
 
 		// dkeep memroy write request high 
 		dWEN_reg_nxt = 1'b1; 
 	end 
 	// if dhit goes low 
-	else if ((ruif.dWEN == 1'b1) & (ruif.dhit == 1'b1)) begin 
+	else if (ruif.dhit == 1'b1) begin 
 
 		// deasert the memory request data write 
 		dWEN_reg_nxt = 1'b0; 
@@ -69,9 +68,9 @@ end
 always_comb begin: ENABLE_LOGIC_DREN
 	
 	// assign default values to the enable signals
-	dREN_reg_nxt = 1'b0; 
+	dREN_reg_nxt = dREN_reg; 
 
-	if ((ruif.halt == 1'b1) | (halt_reg == 1'b1)) begin 
+	if (halt_reg == 1'b1) begin 
 
 		dREN_reg_nxt = 1'b0; 
 	end 
@@ -81,14 +80,13 @@ always_comb begin: ENABLE_LOGIC_DREN
 		// just keep the memory data read request low 
 		dREN_reg_nxt = 1'b0; 
 	end
-	// If requesting a data read and dhit is high 
 	else if ((ruif.dREN == 1'b1) & (ruif.ihit == 1'b1)) begin 
 
 		// dkeep memroy read request high 
 		dREN_reg_nxt = 1'b1; 
 	end 
 	// if dhit goes low 
-	else if ((ruif.dREN == 1'b1) & (ruif.dhit == 1'b1)) begin 
+	else if (ruif.dhit == 1'b1) begin 
 
 		// deasert the memory request data read 
 		dREN_reg_nxt = 1'b0; 
