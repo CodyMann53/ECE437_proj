@@ -36,49 +36,48 @@ module system_tb;
   // dut
 `ifndef MAPPED
   system                              DUT (CLK,nRST,syif);
-
-  // CPU Tracker. Uncomment and change signal names to enable.
-
- /* cpu_tracker                         cpu_track0 (
+  /*
+  // NOTE: All of these signals MUST be passed all the way through
+  // to the write back stage and sampled in the WRITEBACK stage.
+  // This means more signals that would normally be necessary
+  // for correct execution must be passed along to help with debugging.
+  cpu_tracker                         cpu_track0 (
     // No need to change this
     .CLK(DUT.CPU.DP.CLK),
-    // Since single cycle, this is just PC enable
-    .wb_stall(DUT.CPU.DP.pcif.pc_wait),
+    // This is the enable signal for the write back stage
+    .wb_enable(DUT.CPU.DP.pipeline_enable),
     // The 'funct' portion of an instruction. Must be of funct_t type
-    .funct(funct_t'(DUT.CPU.DP.cuif.instruction[5:0]) ),
-    // The opcode portion of an instruction. Must be of opcode_t type
-    .opcode(opcode_t'(DUT.CPU.DP.cuif.instruction[31:26]) ),
+    .funct(DUT.CPU.DP.MW_o.funct),
+    // The 'opcode' portion of an instruction. Must be of opcode_t type
+    .opcode(DUT.CPU.DP.MW_o.opcode),
     // The 'rs' portion of an instruction
-    .rs(DUT.CPU.DP.cuif.instruction[25:21]),
+    .rs(DUT.CPU.DP.MW_o.rs),
     // The 'rt' portion of an instruction
-    .rt(DUT.CPU.DP.cuif.instruction[20:16]),
-    // The final selected wsel
-    .wsel(DUT.CPU.DP.rfif.wsel),
-    // Make sure the interface (dpif) matches your name
-    .instr(DUT.CPU.DP.dpif.imemload),
+    .rt(DUT.CPU.DP.MW_o.rt),
+    // The final wsel
+    .wsel(DUT.CPU.DP.MW_o.wsel),
+    // The 32 bit instruction
+    .instr(DUT.CPU.DP.MW_o.instr),
     // Connect the PC to this
-    .pc(DUT.CPU.DP.PC.program_counter),
+    .pc(DUT.CPU.DP.MW_o.pc),
     // Connect the next PC value (the next registered value) here
-    .npc(DUT.CPU.DP.PC.next_program_counter),
+    .next_pc_val(DUT.CPU.DP.MW_o.next_pc_val),
     // The final imm/shamt signals
-    // This means it should already be shifted/extended/whatever
-    .imm({16'h0, DUT.CPU.DP.cuif.imm16}),
-    .shamt(DUT.CPU.DP.cuif.instruction[10:6]),
-    .lui({DUT.CPU.DP.cuif.instruction[15:0], 16'h0}),
+    // This means it should already be extended 
+    .imm(DUT.CPU.DP.MW_o.imm_shamt_final),
+    .shamt(DUT.CPU.DP.MW_o.imm_shamt_final),
+    // the value for lui BEFORE being being shifted
+     .lui_pre_shift(DUT.CPU.DP.MW_o.lui_pre_shift),
     // The branch target (aka offset added to npc)
-    .branch_addr(DUT.CPU.DP.br_addr + DUT.CPU.DP.PC.program_counter + 32'd4),
-    // Make sure the interface (dpif) matches your name
-    .dat_addr(DUT.CPU.DP.dpif.dmemaddr),
-    // Make sure the interface (dpif) matches your name
-    .store_dat(DUT.CPU.DP.dpif.dmemstore),
-    // Make sure the interface (rfif) matches your name
-    .reg_dat(DUT.CPU.DP.rfif.wdat),
-    // Make sure the interface (dpif) matches your name
-    .load_dat(DUT.CPU.DP.dpif.dmemload),
-    // Make sure the interface (dpif) matches your name
-    .dhit(DUT.CPU.DP.dpif.dhit)
-  );*/
-
+    .branch_addr(DUT.CPU.DP.MW_o.baddr),
+    // Port O of the ALU from the M/W register
+    .dat_addr(DUT.CPU.DP.MW_o.portO),
+    // The value that was stored in memory during MEM stage
+    .store_dat(DUT.CPU.DP.MW_o.rdat2),
+    // The value selected to be written into register during WB stage
+    .reg_dat(DUT.CPU.DP.MW_o.wdat)
+  );
+  */
 `else
   system                              DUT (,,,,//for altera debug ports
     CLK,
@@ -138,6 +137,7 @@ program test(input logic CLK, output logic nRST, system_if.tb syif);
       $display("Starting memory dump.");
     else
       begin $display("Failed to open %s.",filename); $finish; end
+
     for (int unsigned i = 0; memfd && i < 16384; i++)
     begin
       int chksum = 0;
@@ -147,7 +147,6 @@ program test(input logic CLK, output logic nRST, system_if.tb syif);
       syif.addr = i << 2;
       syif.REN = 1;
       repeat (4) @(posedge CLK);
-
       if (syif.load === 0)
         continue;
       values = {8'h04,16'(i),8'h00,syif.load};

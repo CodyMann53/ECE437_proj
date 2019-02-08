@@ -2,13 +2,12 @@
   Eric Villasenor
   evillase@gmail.com
 
-  single cycle top block
+  pipeline top block
   holds data path components
   and cache level
 */
-`include "cache_control_if.vh"
 
-module singlecycle (
+module pipeline (
   input logic CLK, nRST,
   output logic halt,
   cpu_ram_if.cpu scif
@@ -29,7 +28,7 @@ parameter PC0 = 0;
   // map caches
   caches                    CM (CLK, nRST, dcif, cif0);
   // map coherence
-  memory_control            CC ( ccif);
+  memory_control            CC (CLK, nRST, ccif);
 
   // interface connections
   assign scif.memaddr = ccif.ramaddr;
@@ -41,6 +40,4 @@ parameter PC0 = 0;
   assign ccif.ramstate = scif.ramstate;
 
   assign halt = dcif.flushed;
-
-
 endmodule
