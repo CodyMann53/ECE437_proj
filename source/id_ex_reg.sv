@@ -6,9 +6,11 @@
 */
 
 `include "cpu_types_pkg.vh"
+`include "data_path_muxs_pkg.vh"
 `include "id_ex_reg_if.vh"
 
 import cpu_types_pkg::*;
+import data_path_muxs_pkg::*; 
 
 
 module id_ex_reg
