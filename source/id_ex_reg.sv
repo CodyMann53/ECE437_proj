@@ -20,29 +20,57 @@ module id_ex_reg
 /********** Local type definitions ***************************/
   
 /********** Local variable definitions ***************************/
-regbits_t rt_reg, rt_nxt,  
-opcode_t opcode_reg, opcode_nxt, func_reg, func_nxt; 
-logic [15:0] imm16_reg, imm16_nxt; 
+
+logic iREN_reg, iREN_nxt, 
+	  dREN_reg, dREN_nxt, 
+	  dWEN_reg, dWEN_nxt,
+	  halt_reg, halt_nxt, 
+	  WEN_reg, WEN_nxt; 
+pc_mux_input_selection PCSrc_reg, PCSrc_nxt; 
+reg_dest_mux_selection reg_dest_reg, reg_dest_nxt; 
+aluop_t alu_op_reg, alu_op_nxt; 
+regbits_t rt_reg, rt_nxt,
+		  rd_reg, rd_nxt; 
+alu_source_mux_selection ALUSrc_reg, ALUSrc_nxt; 
+word_t rdat1_reg, rdat1_nxt, 
+	   rdat2_reg, rdat2_nxt; 
+logic [15:0] imm16_ext_reg, imm16_ext_nxt; 
+
 
 /********** Assign statements ***************************/
 
 // assign the output signals to the register values 
-assign if_id_regif.Rs_IF_ID = rs_reg; 
-assign if_id_regif.Rt_IF_ID = rt_reg; 
-assign if_id_regif.Rd_IF_ID = rd_reg; 
-assign if_id_regif.opcode_IF_ID = opcode_reg; 
-assign if_id_regif.func_IF_ID = func_reg; 
+assign id_ex_regif.iREN_ID_EX = iREN_reg; 
+assign id_ex_regif.dREN_ID_EX = dREN_reg; 
+assign id_ex_regif.dWEN_ID_EX = dWEN_reg; 
+assign id_ex_regif.halt_ID_EX = halt_reg; 
+assign id_ex_regif.WEN_ID_EX = WEN_reg; 
+assign id_ex_regif.reg_dest_ID_EX = reg_dest_reg; 
+assign id_ex_regif.alu_op_ID_EX = alu_op_reg; 
+assign id_ex_regif.Rt_ID_EX = rt_reg; 
+assign id_ex_regif.Rd_ID_EX = rd_reg; 
+assign id_ex_regif.ALUsrc_ID_EX = ALUSrc_reg; 
+assign id_ex_regif.rdat1_ID_EX = rdat1_reg; 
+assign id_ex_regif.rdat2_ID_EX = rdat2_reg; 
+assign id_ex_regif.imm16_ext_ID_EX = imm16_ext_reg; 
 
 /********** Combination Logic Blocks ***************************/
 always_comb begin: NXT_LOGIC
 
 	// just assign section of instruction to thier respective latched values 
-	rs_nxt = if_id_regif.instruction[25:21]; 
-	rd_nxt = if_id_regif.instruction[15:11]; 
-	rt_nxt = if_id_regif.instruction[20:16]; 
-	imm16_nxt = if_id_regif.instruction[15:0]; 
-	opcode_nxt = opcode_t'(if_id_regif.instruction[31:26]); 
-	func_nxt = funct_t'(if_id_regif.instruction[5:0]); 
+	iREN_nxt = id_ex_regif.iREN; 
+	dREN_nxt = id_ex_regif.dREN; 
+	dWEN_nxt = id_ex_regif.dWEN; 
+	halt_nxt = id_ex_regif.halt; 
+	WEN_nxt = id_ex_regif.WEN; 
+	reg_dest_nxt = id_ex_regif.reg_dest; 
+	alu_op_nxt = id_ex_regif.alu_op; 
+	rt_nxt = id_ex_regif.Rt_IF_ID; 
+	rd_nxt = id_ex_regif.Rd_IF_ID; 
+	ALUSrc_nxt = id_ex_regif.ALUsrc; 
+	rdat1_nxt = id_ex_regif.rdat1; 
+	rdat2_nxt id_ex_regif.rdat2; 
+	imm16_ext_nxt = id_ex_regif.imm16_ext; 
 end 
 
 /********** Sequential Logic Blocks ***************************/
@@ -52,23 +80,38 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 	if (nRST == 1'b0) begin 
 
 		// reset the registers to zero 
-		rs_reg <= 5'd0; 
+		iREN_reg <= 1'b0; 
+		dREN_reg <= 1'b0; 
+		dWEN_reg <= 1'b0; 
+		halt_reg <= 1'b0; 
+		WEN_reg <= 1'b0; 
+		reg_dest_reg <= SEL_RD; 
+		alu_op_reg <= ALU_ADD; 
 		rt_reg <= 5'd0; 
 		rd_reg <= 5'd0; 
-		opcode_reg <= 6'd0; 
-		func_nxt <= 6'd0;
-		imm16_reg <= 16'd0;  
+		ALUSrc_reg <= SEL_REG_DATA;
+		rdat1_reg <= 32'd0; 
+		rdat2_reg <= 32'd0; 
+		imm16_ext_reg <= 16'd0;  
+
 	end 
 	// no reset applied 
 	else begin 
 
 		// set to their next state values 
-		rs_reg <= rs_nxt; 
+		iREN_reg <= iREN_nxt; 
+		dREN_reg <= dREN_nxt; 
+		dWEN_reg <= dWEN_nxt; 
+		halt_reg <= halt_nxt; 
+		WEN_reg <= WEN_nxt; 
+		reg_dest_reg <= reg_dest_nxt; 
+		alu_op_reg <= alu_op_nxt; 
 		rt_reg <= rt_nxt; 
 		rd_reg <= rd_nxt; 
-		opcode_reg <= opcode_nxt; 
-		func_reg <= func_nxt; 
-		imm16_reg <= imm16_nxt; 
+		ALUSrc_reg <= ALUSrc_nxt;
+		rdat1_reg <= rdat1_nxt; 
+		rdat2_reg <= rdat2_nxt; 
+		imm16_ext_reg <= imm16_ext_nxt;  
 	end
 end 
 endmodule
