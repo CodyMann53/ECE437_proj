@@ -50,7 +50,7 @@ always_comb begin: DECODER
 
 end 
 
-always_ff @(posedge CLK, negedge nRST) begin: REGISTER_MEMORY_LOGIC
+always_ff @(negedge CLK, negedge nRST) begin: REGISTER_MEMORY_LOGIC
 
 	// if reset is brought low 
 	if (nRST == 1'b0) begin 
