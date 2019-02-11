@@ -18,7 +18,7 @@ interface ex_mem_reg_if;
   import data_path_muxs_pkg::*; 
 
   // inputs 
-  logic WEN_ID_EX, enable_EX_MEM, flush_EX_MEM; 
+  logic WEN_ID_EX, enable_EX_MEM, flush_EX_MEM, iREN_ID_EX, dREN_ID_EX, dWEN_ID_EX, halt_ID_EX; 
   reg_dest_mux_selection reg_dest_ID_EX; 
   aluop_t alu_op_ID_EX; 
   regbits_t Rt_ID_EX, Rd_ID_EX; 
@@ -26,14 +26,14 @@ interface ex_mem_reg_if;
 
   // outputs
   word_t dmemaddr_EX_MEM, dmemstore_EX_MEM, result_EX_MEM; 
-  logic WEN_EX_MEM; 
+  logic WEN_EX_MEM, imemREN, dmemREN, dmemWEN, halt_EX_MEM; 
   reg_dest_mux_selection reg_dest_EX_MEM; 
   regbits_t Rt_EX_MEM, Rd_EX_MEM; 
 
   // EX_MEM register module ports 
   modport ex_mem_reg (
     input WEN_ID_EX, reg_dest_ID_EX, alu_op_ID_EX, Rt_ID_EX, Rd_ID_EX, result, enable_EX_MEM, flush_EX_MEM, rdat2, 
-    output dmemaddr_EX_MEM, dmemstore_EX_MEM, result_EX_MEM, WEN_EX_MEM, reg_dest_EX_MEM, Rt_EX_MEM, Rd_EX_MEM
+    output dmemaddr_EX_MEM, dmemstore_EX_MEM, result_EX_MEM, WEN_EX_MEM, reg_dest_EX_MEM, Rt_EX_MEM, Rd_EX_MEM, dREN_ID_EX, dWEN_ID_EX, iREN_ID_EX, halt_ID_EX
   );
 endinterface
 `endif //EX_MEM_REG_IF_VH

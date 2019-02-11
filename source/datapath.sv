@@ -21,6 +21,7 @@
 `include "id_ex_reg_if.vh"
 `include "ex_mem_reg_if.vh"
 `include "mem_wb_reg_if.vh"
+`include "pipeline_controller_if.vh"
 
 // control signals for mux's 
 `include "data_path_muxs_pkg.vh"
@@ -69,6 +70,8 @@ ex_mem_reg EX_MEM(CLK, nRST, ex_mem_regif);
 mem_wb_reg_if mem_wb_regif(); 
 mem_wb_reg MEM_WB(CLK, nRST, mem_wb_regif);  
 
+pipeline_controller_if pipeline_controllerif(); 
+pipeline_controller PIP_CONT(pipeline_controllerif); 
 
 /************************** Locac Variable definitions ***************************/
 word_t imm16_ext, portb;
@@ -86,6 +89,8 @@ assign pcif.ihit = dpif.ihit;
 
 // IF/ID register inputs 
 assign if_id_regif.instruction = dpif.imemload; 
+assign if_id_regif.enable_IF_ID = pipeline_controllerif.enable_IF_ID; 
+assign if_id_regif.flush_IF_ID = pipeline_controllerif.flush_IF_ID; 
 
 // ID stage
 // control unit inputs 
@@ -100,6 +105,8 @@ assign rfif.rsel2 = mem_wb_regif.Rt_MEM_WB;
 assign rfif.rsel1 = mem_wb_regif.Rd_MEM_WB; 
 
 // ID/EX register inputs 
+assign id_ex_regif.enable_ID_EX = pipeline_controllerif.enable_ID_EX; 
+assign id_ex_regif.flush_ID_EX = pipeline_controllerif.flush_ID_EX; 
 assign id_ex_regif.iREN = cuif.iREN; 
 assign id_ex_regif.dREN = cuif.dREN; 
 assign id_ex_regif.dWEN = cuif.dWEN; 
@@ -122,34 +129,44 @@ assign aluif.port_a = id_ex_regif.rdat1_ID_EX;
 assign aluif.alu_op = id_ex_regif.alu_op_ID_EX; 
 
 // EX/MEM register inputs 
-assign ex_mem_regif.enable_EX_MEM = 
-assign ex_mem_regif.flush_EX_MEM = 
+assign ex_mem_regif.enable_EX_MEM = pipeline_controllerif.enable_EX_MEM;  
+assign ex_mem_regif.flush_EX_MEM = pipeline_controllerif.flush_EX_MEM; 
 assign ex_mem_regif.WEN_ID_EX = id_ex_regif.WEN_ID_EX; 
 assign ex_mem_regif.reg_dest_ID_EX = id_ex_regif.reg_dest_ID_EX; 
 assign ex_mem_regif.alu_op_ID_EX = id_ex_regif.alu_op_ID_EX; 
 assign ex_mem_regif.Rt_ID_EX = id_ex_regif.Rt_ID_EX; 
 assign ex_mem_regif.Rd_ID_EX = id_ex_regif.Rd_ID_EX; 
 assign ex_mem_regif.rdat2_ID_EX = id_ex_regif.rdat2_ID_EX; 
-assign ex_mem_regif.result = aluif.result; 
+assign ex_mem_regif.result = aluif.result;
+assign ex_mem_regif.iREN_ID_EX = id_ex_regif.iREN_ID_EX; 
+assign ex_mem_regif.dREN_ID_EX = id_ex_regif.dREN_ID_EX; 
+assign ex_mem_regif.dWEN_ID_EX = id_ex_regif.dWEN_ID_EX; 
+assign ex_mem_regif.halt_ID_EX = id_ex_regif.halt_ID_EX;  
 
 
 // MEM state
 // data_path to cache signals 
 assign dpif.imemaddr = pcif.imemaddr; 
-assign dpif.imemREN = ; 
-assign dpif.dmemWEN = ; 
-assign dpif.dmemREN = ;
-assign dpif.halt = ; 
+assign dpif.imemREN = ex_mem_regif.imemREN; 
+assign dpif.dmemWEN = ex_mem_regif.dmemWEN; 
+assign dpif.dmemREN = ex_mem_regif.dmemREN; 
 assign dpif.dmemaddr = ex_mem_regif.dmemaddr_EX_MEM; 
 assign dpif.dmemstore = ex_mem_regif.dmemstore_EX_MEM; 
 
 // MEM/WB register inputs 
+assign mem_wb_regif.enable_MEM_WB = pipeline_controllerif.enable_MEM_WB; 
+assign mem_wb_regif.flush_MEM_WB = pipeline_controllerif.flush_MEM_WB; 
 assign mem_wb_regif.result_EX_MEM = ex_mem_regif.result_EX_MEM; 
 assign mem_wb_regif.WEN_EX_MEM = ex_mem_regif.WEN_EX_MEM; 
 assign mem_wb_regif.reg_dest_EX_MEM = ex_mem_regif.reg_dest_EX_MEM; 
 assign mem_wb_regif.Rt_EX_MEM = ex_mem_regif.Rt_EX_MEM; 
 assign mem_wb_regif.Rd_EX_MEM = ex_mem_regif.Rd_EX_MEM; 
 assign mem_wb_regif.dmemload = dpif.dmemload; 
+assign mem_wb_regif.halt_EX_MEM = ex_mem_regif.halt_EX_MEM; 
+
+// pipeline controller inputs 
+assign pipeline_controllerif.dhit = dpif.dhit; 
+assign pipeline_controllerif.ihit = dpif.ihit; 
 
 /************************** shift left logic ***************************/
 

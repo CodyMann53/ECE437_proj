@@ -13,79 +13,50 @@ import data_path_muxs_pkg::*;
 
 module pipeline_controller
 	(
-	input CLK, nRST,
  	pipeline_controller_if pipeline_controllerif, 
  	); 
 
 /********** Local type definitions ***************************/
   
 /********** Local variable definitions ***************************/	
-logic iREN_reg, iREN_nxt, dREN_reg, dREN_nxt, dWEN_reg, dWEN_nxt. halt_reg, halt_nxt;
 
 /********** Assign statements ***************************/
+assign pipeline_controllerif.enable_IF_ID = pipeline_controllerif.ihit; 
+assign pipeline_controllerif.enable_ID_EX = pipeline_controllerif.ihit; 
+assign pipeline_controllerif.enable_EX_MEM = (pipeline_controllerif.ihit | pipeline_controllerif.dhit); 
+assign pipeline_controllerif.enable_MEM_WB = (pipeline_controllerif.ihit | pipeline_controllerif.dhit); 
+
+assign pipeline_controllerif.flush_IF_ID = 1'b0; 
+assign pipeline_controllerif.flush_ID_EX = 1'b0; 
+assign pipeline_controllerif.flush_EX_MEM = pipeline_controllerif.dhit; 
+assign pipeline_controllerif.flush_MEM_WB = 1'b0; 
 
 // assign the output signals to the register values 
-assign pipeline_controllerif.halt = halt_reg; 
-assign pipeline_controllerif.dmemREN = dREN_reg; 
-assign pipeline_controllerif.dmemWEN = dWEN_reg; 
-assign pipeline_controllerif.imemREN = iREN_reg; 
 
 /********** Combination Logic Blocks ***************************/
-always_comb begin: ENABLE_LOGIC_DWEN
 
-	// just assign section of instruction to thier respective latched values 
-	dWEN_nxt = dWEN_reg; 
 
-	if (halt_reg == 1'b1) begin 
-		dWEN_nxt = 1'b0; 
-	end 
-	else if (pipeline_controllerif.dWEN_ID_EX == 1'b0) begin 
-		dWEN_nxt = 1'b0; 
-	end 
-	else if ((pipeline_controllerif.dWEN_ID_EX == 1'b1) & (pipeline_controllerif.ihit == 1'b1)begin 
-		dWEN_nxt = 1'b1; 
-	end 
-	else if (pipeline_controllerif.dhit == 1'b1)begin 
-		dWEN_nxt = 1'b0; 
+always_comb begin: LOGIC_ENABLE
+	
+	// set default values 
+	pipeline_controllerif.enable_IF_ID = 1'b1; 
+	pipeline_controllerif.enable_ID_EX = 1'b1;
+	pipeline_controllerif.enable_EX_MEM = 1'b1; 
+	pipeline_controllerif.enable_MEM_WB = 1'b1; 
+
+	// if either of the data write or data read enables are high, then should tell the pipeline registers to stall 
+	if ((dREN_reg == 1'b1) | (dWEN_reg == 1'b1)) begin 
+		pipeline_controllerif.enable_IF_ID = 1'b0; 
+		pipeline_controllerif.enable_ID_EX = 1'b0;
+		pipeline_controllerif.enable_EX_MEM = 1'b0; 
+		pipeline_controllerif.enable_MEM_WB = 1'b0; 
 	end 
 end 
-
-always_comb begin: ENABLE_LOGIC_DREN
-
-	// just assign section of instruction to thier respective latched values 
-	dREN_nxt = dREN_reg; 
-
-	if (halt_reg == 1'b1) begin 
-		dREN_nxt = 1'b0; 
-	end 
-	else if (pipeline_controllerif.dREN_ID_EX == 1'b0) begin 
-		dREN_nxt = 1'b0; 
-	end 
-	else if ((pipeline_controllerif.dREN_ID_EX == 1'b1) & (pipeline_controllerif.ihit == 1'b1)begin 
-		dREN_nxt = 1'b1; 
-	end 
-	else if (pipeline_controllerif.dhit == 1'b1)begin 
-		dREN_nxt = 1'b0; 
-	end 
-end 
-
-
-/********** Sequential Logic Blocks ***************************/
-always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
-
-	// if reset is brought low 
-	if (nRST == 1'b0) begin 
-		dREN_reg <= 1'b0; 
-		dWEN_reg <= 1'b0; 
-		iREN_reg <= 1'b0; 
-		halt_reg <= 1'b0; 
-	end 
-	// no reset applied 
-	else begin 
-		dREN_reg <= dREN_nxt; 
-		dWEN_reg <= dWEN_nxt; 
-		iREN_reg <= iREN_nxt; 
-		halt_reg <= pipeline_controllerif.halt_ID_EX; 
-	end
+always_comb begin: LOGIC_FLUSH
+	//just set all flush to zero for now 
+	pipeline_controllerif.flush_IF_ID = 1'b0; 
+	pipeline_controllerif.flush_ID_EX = 1'b0; 
+	pipeline_controllerif.flush_EX_MEM = 1'b0; 
+	pipeline_controllerif.flush_MEM_WB = 1'b0; 
 end 
 endmodule

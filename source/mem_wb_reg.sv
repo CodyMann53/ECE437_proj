@@ -21,7 +21,8 @@ module mem_wb_reg
 /********** Local type definitions ***************************/
   
 /********** Local variable definitions ***************************/	
-logic WEN_reg, WEN_nxt; 
+logic WEN_reg, WEN_nxt, 
+	  halt_nxt, halt_reg; 
 word_t result_reg, result_nxt, 
 	   dmemload_reg, dmemload_nxt; 
 reg_dest_mux_selection reg_dest_reg, reg_dest_nxt; 
@@ -36,6 +37,7 @@ assign mem_wb_regif.reg_dest_MEM_WB = reg_dest_reg;
 assign mem_wb_regif.mem_data_MEM_WB = dmemload_reg; 
 assign mem_wb_regif.Rt_MEM_WB = rt_reg; 
 assign mem_wb_regif.Rd_MEM_WB = rd_reg; 
+assign mem_wb_regif.halt = halt_reg; 
 
 /********** Combination Logic Blocks ***************************/
 always_comb begin: NXT_LOGIC
@@ -46,7 +48,8 @@ always_comb begin: NXT_LOGIC
 	reg_dest_nxt = reg_dest_reg; 
 	rt_nxt = rt_reg; 
 	rd_nxt = rd_reg; 
-	dmemload_nxt = dmemload_reg; 
+	dmemload_nxt = dmemload_reg;
+	halt_nxt = halt_reg;  
 
 	if ((mem_wb_regif.enable_MEM_WB == 1'b1) & (mem_wb_regif.flush_MEM_WB == 1'b0)) begin 
 		WEN_nxt = mem_wb_regif.WEN_EX_MEM; 
@@ -55,6 +58,7 @@ always_comb begin: NXT_LOGIC
 		rt_nxt = mem_wb_regif.Rt_EX_MEM; 
 		rd_nxt = mem_wb_regif.Rd_EX_MEM; 
 		dmemload_nxt = mem_wb_regif.dmemload; 
+		halt_nxt = mem_wb_regif.halt_EX_MEM; 
 	end 
 	else if (mem_wb_regif.flush_MEM_WB == 1'b1) begin 
 		WEN_nxt = 1'b0; 
@@ -63,6 +67,7 @@ always_comb begin: NXT_LOGIC
 		rt_nxt = 5'd0; 
 		rd_nxt = 5'd0; 
 		dmemload_nxt = 32'd0; 
+		halt_nxt = 1'b0; 
 	end 
 end 
 
@@ -78,7 +83,8 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		reg_dest_reg <= SEL_RD; 
 		rt_reg <= 5'd0; 
 		rd_reg <= 5'd0; 
-		dmemload_reg <= 32'd0; 
+		dmemload_reg <= 32'd0;
+		halt_reg <= 1'b0;  
 	end 
 	// no reset applied 
 	else begin 
@@ -90,6 +96,7 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		rt_reg <= rt_nxt; 
 		rd_reg <= rd_nxt; 
 		dmemload_reg <= dmemload_nxt; 
+		halt_reg <= halt_nxt; 
 	end
 end 
 endmodule

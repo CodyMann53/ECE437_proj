@@ -19,20 +19,20 @@ interface mem_wb_reg_if;
 
   // inputs
   word_t result_EX_MEM, dmemload; 
-  logic WEN_EX_MEM, enable_MEM_WB, flush_MEM_WB; 
+  logic WEN_EX_MEM, enable_MEM_WB, flush_MEM_WB, halt_EX_MEM; 
   reg_dest_mux_selection reg_dest_EX_MEM; 
   regbits_t Rt_EX_MEM, Rd_EX_MEM;
 
   // outputs 
-  logic WEN_MEM_WB; 
+  logic WEN_MEM_WB, halt; 
   reg_dest_mux_selection reg_dest_MEM_WB; 
   word_t mem_data_MEM_WB; 
   regbits_t Rt_MEM_WB, Rd_MEM_WB;  
 
   // EX_MEM register module ports 
   modport ex_mem_reg (
-    input result_EX_MEM, dmemload, WEN_EX_MEM, reg_dest_EX_MEM, Rt_EX_MEM, Rd_EX_MEM, enable_MEM_WB, flush_MEM_WB, 
-    output WEN_MEM_WB, reg_dest_MEM_WB, mem_data_MEM_WB, Rt_MEM_WB, Rd_MEM_WB
+    input result_EX_MEM, dmemload, WEN_EX_MEM, reg_dest_EX_MEM, Rt_EX_MEM, Rd_EX_MEM, enable_MEM_WB, flush_MEM_WB, halt_EX_MEM, 
+    output WEN_MEM_WB, reg_dest_MEM_WB, mem_data_MEM_WB, Rt_MEM_WB, Rd_MEM_WB, halt
   );
 endinterface
 `endif //MEM_WB_REG_IF_VH

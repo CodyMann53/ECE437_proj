@@ -46,6 +46,10 @@ assign ex_mem_regif.WEN_EX_MEM = WEN_reg;
 assign ex_mem_regif.reg_dest_EX_MEM = reg_dest_reg; 
 assign ex_mem_regif.Rt_EX_MEM = rt_reg; 
 assign ex_mem_regif.Rd_EX_MEM = rd_reg; 
+assign ex_mem_regif.imemREN = iREN_reg;
+assign ex_mem_regif.dmemREN = dREN_reg; 
+assign ex_mem_regif.dmemWEN = dWEN_reg; 
+assign ex_mem_regif.halt_EX_MEM = halt_reg;  
 
 /********** Combination Logic Blocks ***************************/
 always_comb begin: NXT_LOGIC
@@ -57,6 +61,10 @@ always_comb begin: NXT_LOGIC
 	rd_nxt = rd_reg; 
 	result_nxt = result_reg; 
 	rdat2_nxt = rdat2_reg; 
+	halt_nxt = halt_reg; 
+	iREN_nxt = iREN_reg; 
+	dREN_nxt = dREN_reg; 
+	dWEN_nxt = dWEN_reg; 
 
 	if ((ex_mem_regif.enable_EX_MEM == 1'b1) & (ex_mem_regif.flush_EX_MEM == 1'b0)) begin 
 		WEN_nxt = ex_mem_regif.WEN_ID_EX; 
@@ -66,6 +74,10 @@ always_comb begin: NXT_LOGIC
 		rd_nxt = ex_mem_regif.Rd_ID_EX; 
 		result_nxt = ex_mem_regif.result; 
 		rdat2_nxt = ex_mem_regif.rdat2; 
+		halt_nxt = ex_mem_regif.halt_ID_EX; 
+		iREN_nxt = ex_mem_regif.iREN_ID_EX; 
+		dREN_nxt = ex_mem_regif.dREN_ID_EX; 
+		dWEN_nxt = ex_mem_regif.dWEN_ID_EX; 
 	end 
 	else if (ex_mem_regif.flush_EX_MEM == 1'b1) begin 
 		halt_nxt = 1'b0; 
@@ -75,7 +87,11 @@ always_comb begin: NXT_LOGIC
 		rt_nxt = 5'd0; 
 		rd_nxt = 5'd0; 
 		result_nxt = 32'd0; 
-		rdat2_nxt = 32'd0; 
+		rdat2_nxt = 32'd0;
+		halt_nxt = 1'b0; 
+		iREN_nxt = 1'b0; 
+		dREN_nxt = 1'b0; 
+		dWEN_nxt = 1'b0;  
 	end 
 end 
 
@@ -93,6 +109,10 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		rd_reg <= 5'd0; 
 		rdat2_reg <= 32'd0;
 		result_reg <= 32'd0;  
+		halt_reg <= 1'b0; 
+		iREN_reg <= 1'b0; 
+		dREN_reg <= 1'b0; 
+		dWEN_reg <= 1'b0; 
 	end 
 	// no reset applied 
 	else begin 
@@ -104,7 +124,11 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		rt_reg <= rt_nxt; 
 		rd_reg <= rd_nxt; 
 		rdat2_reg <= rdat2_nxt;
-		result_reg <= result_nxt;   
+		result_reg <= result_nxt;
+		halt_reg <= halt_nxt; 
+		iREN_reg <= iREN_nxt; 
+		dREN_reg <= dREN_nxt; 
+		dWEN_reg <= dWEN_nxt;    
 	end
 end 
 endmodule
