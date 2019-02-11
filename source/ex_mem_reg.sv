@@ -55,8 +55,6 @@ always_comb begin: NXT_LOGIC
 
 	// just assign section of instruction to thier respective latched values 
 	iREN_nxt = ex_mem_regif.iREN_ID_EX; 
-	dREN_nxt = ex_mem_regif.dREN_ID_EX; 
-	dWEN_nxt = ex_mem_regif.dWEN_ID_EX; 
 	halt_nxt = ex_mem_regif.halt_ID_EX; 
 	WEN_nxt = ex_mem_regif.WEN_ID_EX; 
 	reg_dest_nxt = ex_mem_regif.reg_dest_ID_EX; 
@@ -66,6 +64,55 @@ always_comb begin: NXT_LOGIC
 	result_nxt = ex_mem_regif.result; 
 	rdat2_nxt = ex_mem_regif.rdat2; 
 end 
+
+/*
+// comb block for deciding when to deasert dWEN to the memory controller
+always_comb begin: ENABLE_LOGIC_DWEN
+	
+	// assign defalut values to prevent latches 
+	dWEN_nxt = dWEN_reg; 
+
+	if (halt_reg == 1'b1) begin 
+
+		dWEN_nxt = 1'b0; 
+	end 
+	else if (ex_mem_regif.dWEN_ID_EX == 1'b0) begin 
+
+		dWEN_nxt = 1'b0; 
+	end 
+	else if ((ex_mem_regif.dWEN_ID_EX == 1'b1) & (ex_mem_regif.ihit == 1'b1)) begin 
+
+		dWEN_nxt = 1'b1; 
+	end
+	else if ((ex_mem_regif.dhit == 1'b1)) begin 
+
+		dWEN_nxt = 1'b1; 
+	end
+end 
+
+// comb block for deciding when to deasert dREN to the memory controller
+always_comb begin: ENABLE_LOGIC_DREN
+	
+	// assign defalut values to prevent latches 
+	dREN_nxt = dREN_reg; 
+
+	if (halt_reg == 1'b1) begin 
+
+		dREN_nxt = 1'b0; 
+	end 
+	else if (ex_mem_regif.dREN_ID_EX == 1'b0) begin 
+
+		dREN_nxt = 1'b0; 
+	end 
+	else if ((ex_mem_regif.dREN_ID_EX == 1'b1) & (ex_mem_regif.ihit == 1'b1)) begin 
+
+		dREN_nxt = 1'b1; 
+	end
+	else if ((ex_mem_regif.dhit == 1'b1)) begin 
+
+		dREN_nxt = 1'b1; 
+	end
+end */
 
 /********** Sequential Logic Blocks ***************************/
 always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC

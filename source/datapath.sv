@@ -3,7 +3,7 @@
   evillase@gmail.com
 
   datapath contains register file, control, hazard,
-  muxes, and glue logic for processor
+  muxes, and glue logic for processor. This is pipeline version.
 */
 
 // data path interface
@@ -16,12 +16,17 @@
 `include "register_file_if.vh"
 `include "pc_if.vh"
 
+// register file interfaces 
+`include "if_id_reg_if.vh"
+`include "id_ex_reg_if.vh"
+`include "ex_mem_reg_if.vh"
+`include "mem_wb_reg_if.vh"
+
 // control signals for mux's 
 `include "data_path_muxs_pkg.vh"
 
 // alu op, mips op, and instruction type
 `include "cpu_types_pkg.vh"
-
  
 
 module datapath (
@@ -51,72 +56,120 @@ register_file REGISTER (CLK, nRST, rfif);
 pc_if pcif(); 
 pc PC (CLK, nRST, pcif); 
 
+// pipeline registers 
+if_id_reg_if if_id_regif(); 
+if_id_reg IF_ID(CLK, nRST, if_id_regif); 
+
+id_ex_reg_if id_ex_regif(); 
+id_ex_reg ID_EX(CLK, nRST, id_ex_regif);
+
+ex_mem_reg_if ex_mem_regif(); 
+ex_mem_reg EX_MEM(CLK, nRST, ex_mem_regif); 
+
+mem_wb_reg_if mem_wb_regif(); 
+mem_wb_reg MEM_WB(CLK, nRST, mem_wb_regif);  
+
+
 /************************** Locac Variable definitions ***************************/
-word_t imm16_ext, port_b, wdat, br_addr; 
+word_t imm16_ext, portb;
 regbits_t wsel; 
-logic [27:0] jmp_addr;
 
 /************************** glue logic ***************************/
 
+// IF section 
 // program counter inputs
-assign pcif.PCSrc = cuif.PCSrc; 
-assign pcif.br_addr =  br_addr;
-assign pcif.jmp_addr = jmp_addr; 
-assign pcif.jr_addr = rfif.rdat1; 
+assign pcif.PCSrc = id_ex_regif.PCSrc_ID_EX; 
+assign pcif.br_addr =  32'd0;
+assign pcif.jmp_addr = 28'd0; 
+assign pcif.jr_addr = 32'd0; 
 assign pcif.ihit = dpif.ihit; 
 
+// IF/ID register inputs 
+assign if_id_regif.instruction = dpif.imemload; 
+
+// ID stage
 // control unit inputs 
-assign cuif.instruction = dpif.imemload; 
-assign cuif.equal = aluif.zero; 
-
-// request unit inputs 
-assign ruif.iREN = cuif.iREN; 
-assign ruif.dREN = cuif.dREN;
-assign ruif.dWEN = cuif.dWEN; 
-assign ruif.halt = cuif.halt; 
-assign ruif.ihit = dpif.ihit; 
-assign ruif.dhit = dpif.dhit; 
-
-// alu inputs
-assign aluif.port_b = port_b; 
-assign aluif.port_a = rfif.rdat1; 
-assign aluif.alu_op = cuif.alu_op; 
+assign cuif.opcode_IF_ID = if_id_regif.opcode_IF_ID; 
+assign cuif.func_IF_ID = if_id_regif.func_IF_ID; 
 
 // register file inputs
-assign rfif.WEN = (  ( (dpif.ihit == 1'b1) | (dpif.dhit == 1'b1) ) & cuif.RegWr); 
+assign rfif.WEN = mem_wb_regif.WEN_MEM_WB; 
 assign rfif.wsel = wsel; 
-assign rfif.wdat = wdat; 
-assign rfif.rsel2 = cuif.Rt; 
-assign rfif.rsel1 = cuif.Rs; 
+assign rfif.wdat = mem_wb_regif.mem_data_MEM_WB; 
+assign rfif.rsel2 = mem_wb_regif.Rt_MEM_WB; 
+assign rfif.rsel1 = mem_wb_regif.Rd_MEM_WB; 
 
+// ID/EX register inputs 
+assign id_ex_regif.iREN = cuif.iREN; 
+assign id_ex_regif.dREN = cuif.dREN; 
+assign id_ex_regif.dWEN = cuif.dWEN; 
+assign id_ex_regif.ALUSrc = cuif.ALUSrc; 
+assign id_ex_regif.PCSrc = cuif.PCSrc;
+assign id_ex_regif.WEN = cuif.WEN; 
+assign id_ex_regif.alu_op = cuif.alu_op;
+assign id_ex_regif.halt = cuif.halt; 
+assign id_ex_regif.reg_dest = cuif.reg_dest; 
+assign id_ex_regif.Rd_IF_ID = if_id_regif.Rd_IF_ID; 
+assign id_ex_regif.Rt_IF_ID = if_id_regif.Rt_IF_ID;
+assign id_ex_regif.rdat1 = rfif.rdat1; 
+assign id_ex_regif.rdat2 = rfif.rdat2; 
+assign id_ex_regif.imm16_ext = imm16_ext; 
+
+// EX stage
+// alu inputs
+assign aluif.port_b = port_b; 
+assign aluif.port_a = id_ex_regif.rdat1_ID_EX; 
+assign aluif.alu_op = id_ex_regif.alu_op_ID_EX; 
+
+// EX/MEM register inputs 
+assign ex_mem_regif.iREN_ID_EX = id_ex_regif.iREN_ID_EX; 
+assign ex_mem_regif.dREN_ID_EX = id_ex_regif.dREN_ID_EX; 
+assign ex_mem_regif.dWEN_ID_EX = id_ex_regif.dWEN_ID_EX; 
+assign ex_mem_regif.halt_ID_EX = id_ex_regif.halt_ID_EX; 
+assign ex_mem_regif.WEN_ID_EX = id_ex_regif.WEN_ID_EX; 
+assign ex_mem_regif.reg_dest_ID_EX = id_ex_regif.reg_dest_ID_EX; 
+assign ex_mem_regif.alu_op_ID_EX = id_ex_regif.alu_op_ID_EX; 
+assign ex_mem_regif.Rt_ID_EX = id_ex_regif.Rt_ID_EX; 
+assign ex_mem_regif.Rd_ID_EX = id_ex_regif.Rd_ID_EX; 
+assign ex_mem_regif.rdat2_ID_EX = id_ex_regif.rdat2_ID_EX; 
+assign ex_mem_regif.result = aluif.result; 
+assign ex_mem_regif.dhit = dpif.dhit; 
+assign ex_mem_regif.ihit = dpif.ihit; 
+
+// MEM state
 // data_path to cache signals 
 assign dpif.imemaddr = pcif.imemaddr; 
-assign dpif.imemREN = ruif.imemREN; 
-assign dpif.dmemWEN = ruif.dmemWEN; 
-assign dpif.dmemREN = ruif.dmemREN; 
-assign dpif.halt = ruif.halt_out; 
-assign dpif.dmemaddr = aluif.result; 
-assign dpif.dmemstore = rfif.rdat2; 
+assign dpif.imemREN = ex_mem_regif.imemREN_EX_MEM; 
+assign dpif.dmemWEN = ex_mem_regif.dmemWEN_EX_MEM; 
+assign dpif.dmemREN = ex_mem_regif.dmemREN_EX_MEM;
+assign dpif.halt = ex_mem_regif.halt_EX_MEM; 
+assign dpif.dmemaddr = ex_mem_regif.dmemaddr_EX_MEM; 
+assign dpif.dmemstore = ex_mem_regif.dmemstore_EX_MEM; 
+
+// MEM/WB register inputs 
+assign mem_wb_regif.result_EX_MEM = ex_mem_regif.result_EX_MEM; 
+assign mem_wb_regif.WEN_EX_MEM = ex_mem_regif.WEN_EX_MEM; 
+assign mem_wb_regif.reg_dest_EX_MEM = ex_mem_regif.reg_dest_EX_MEM; 
+assign mem_wb_regif.Rt_EX_MEM = ex_mem_regif.Rt_EX_MEM; 
+assign mem_wb_regif.Rd_EX_MEM = ex_mem_regif.Rd_EX_MEM; 
+assign mem_wb_regif.dmemload = dpif.dmemload; 
 
 /************************** shift left logic ***************************/
-assign br_addr = imm16_ext << 2; 
-assign jmp_addr = {cuif.addr, 2'b00}; 
 
 
 /************************** Mux logic ***************************/
 
-// This mux directs which input goes into the alu port b
+// This mux directs which input should go to the alu portb 
 always_comb begin: MUX_1
   
-  // assign default value to prevent latches 
-  port_b = 32'd0; 
+  // set default value to prevent latches 
+  portb = 32'd0; 
 
-  // case statement for control signals 
-  casez (cuif.ALUSrc)
-    SEL_REG_DATA: port_b = rfif.rdat2; 
-    SEL_IMM16: port_b = imm16_ext; 
+  casez (id_ex_regif.ALUSrc_ID_EX)
+    SEL_REG_DATA: portb = id_ex_regif.rdat2_ID_EX;  
+    SEL_IMM16: portb = id_ex_regif.imm16_ext_ID_EX; 
   endcase
-end
+end 
 
 // This mux directs which input goes into the write select port of register file 
 always_comb begin: MUX_2
@@ -125,28 +178,13 @@ always_comb begin: MUX_2
   wsel = 5'b0; 
 
   // case statement for control signal 
-  casez (cuif.reg_dest)
-    SEL_RD: wsel = cuif.Rd;  
-    SEL_RT:  wsel = cuif.Rt;  
+  casez (mem_wb_regif.reg_dest_MEM_WB)
+    SEL_RD: wsel = mem_wb_regif.Rd_MEM_WB;  
+    SEL_RT:  wsel = mem_wb_regif.reg_dest_MEM_WB;  
   endcase
 end 
 
-// This mux directs which value gets sent to the wdat port of register file
-always_comb begin: MUX_3
-  
-  // default values to prevent latches 
-  wdat = 32'd0; 
-
-  // control signal selection 
-  casez (cuif.mem_to_reg)
-    SEL_RESULT: wdat = aluif.result; 
-    SEL_NPC: wdat = pcif.imemaddr + 32'd4; 
-    SEL_DLOAD: wdat = dpif.dmemload;  
-    SEL_IMM16_TO_UPPER_32: wdat = {cuif.imm16,16'b0}; 
-  endcase
-end 
 /************************** Extender logic ***************************/
-
 always_comb begin: EXTENDER
   
   // set default value to prevent latches

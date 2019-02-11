@@ -16,30 +16,19 @@ interface control_unit_if;
  import cpu_types_pkg::*;
  import data_path_muxs_pkg::*; 
 
-  logic RegWr, extend, equal, iREN, dWEN, dREN, halt; 
+  logic WEN, extend, equal, iREN, dWEN, dREN, halt; 
   mem_to_reg_mux_selection mem_to_reg; 
-  reg_dest_mux_selection reg_dest; 
-  regbits_t Rd, Rt, Rs; 
+  reg_dest_mux_selection reg_dest;  
   aluop_t alu_op; 
   alu_source_mux_selection ALUSrc; 
-  word_t instruction;
-  logic [25:0] addr; 
   pc_mux_input_selection PCSrc; 
-  logic [IMM_W - 1:0] imm16; 
+  logic [5:0] opcode_IF_ID, func_IF_ID; 
 
   // control unit ports
   modport cu (
-    input instruction, equal,
-    output imm16, RegWr, reg_dest, Rd, Rs, Rt, alu_op, ALUSrc, mem_to_reg, iREN, dWEN, dREN, 
-    PCSrc, addr, halt, extend
+    input  opcode_IF_ID, func_IF_ID,
+    output WEN, reg_dest, alu_op, ALUSrc, mem_to_reg, iREN, dWEN, dREN, 
+    PCSrc, halt, extend
   );
-
-  // testbench ports
-  modport tb (
-    output instruction, equal,
-    input imm16, RegWr, reg_dest, Rd, Rs, Rt, alu_op, ALUSrc, mem_to_reg, iREN, dWEN, dREN, 
-    PCSrc, addr, halt, extend
-  );
-
 endinterface
 `endif //CONTROL_UNIT_IF_VH

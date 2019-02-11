@@ -39,26 +39,15 @@ logic [25:0] address;
 /********** Assign statements ***************************/
 
 // break up the instruction into its respective data sections
-assign op_code_internal = opcode_t'(cuif.instruction[31:26]);
-assign funct = funct_t'(cuif.instruction[5:0]); 
-assign rd = cuif.instruction[15:11]; 
-assign rt = cuif.instruction[20:16];
-assign rs = cuif.instruction[25:21]; 
-assign imm_16 = cuif.instruction[15:0]; 
-assign address = cuif.instruction[25:0]; 
+assign op_code_internal = cuif.opcode_IF_ID;
+assign funct = cuif.func_IF_ID; 
 
 // control signal logic equations 
 assign cuif.dWEN = (opcode_t'(op_code_internal) == SW) ? 1'b1 : 1'b0; 
 assign cuif.dREN = ((op_code_internal == LUI) | (op_code_internal == LW)) ? 1'b1 : 1'b0; 
-assign cuif.RegWr = ((op_code_internal == J) | (op_code_internal == SW) | (op_code_internal == BNE) | (op_code_internal == BEQ) | ( (op_code_internal == RTYPE) & (funct == JR) ) | (op_code_internal == HALT)) ? 1'b0 : 1'b1; 
+assign cuif.WEN = ((op_code_internal == J) | (op_code_internal == SW) | (op_code_internal == BNE) | (op_code_internal == BEQ) | ( (op_code_internal == RTYPE) & (funct == JR) ) | (op_code_internal == HALT)) ? 1'b0 : 1'b1; 
 assign cuif.extend = ((op_code_internal == ADDIU) | (op_code_internal == ADDI) | (op_code_internal == LW)  | (op_code_internal == BEQ) | (op_code_internal == BNE)
-	| (op_code_internal == SLTI) | (op_code_internal == SLTIU) | (op_code_internal == SW) ) ? 1'b1 : 1'b0; 
-
-// directing parts of instruction to output ports 
-assign cuif.addr = address; 
-assign cuif.imm16 = imm_16; 
-assign cuif.Rt = rt; 
- 
+	| (op_code_internal == SLTI) | (op_code_internal == SLTIU) | (op_code_internal == SW) ) ? 1'b1 : 1'b0;  
 
 /********** Combination Logic Blocks ***************************/
 
@@ -160,31 +149,6 @@ always_comb begin: MUX_PC_SRC
 	
 	// assign default values to prevent latches 
 	cuif.PCSrc = SEL_LOAD_NXT_INSTR; 
-
-	// opcode is bequal and equal is one  
-	if ( (op_code_internal == BEQ) & (cuif.equal == 1'b1) ) begin 
-
-		cuif.PCSrc = SEL_LOAD_BR_ADDR; 
-	end 
-	// if opcode is bneq and equal is zero 
-	else if ( (op_code_internal == BNE) & (cuif.equal == 1'b0)) begin 
-
-		cuif.PCSrc = SEL_LOAD_BR_ADDR; 
-	end
-	else if ( (op_code_internal == J) | (op_code_internal == JAL)) begin 
-
-		cuif.PCSrc = SEL_LOAD_JMP_ADDR; 
-	end
-	// opcode that required pc source to be jump address
-	else if ((op_code_internal == RTYPE) & (funct == JR)) begin 
-
-		cuif.PCSrc = SEL_LOAD_JR_ADDR; 
-	end 
-	// pc should just be next instruction 
-	else begin 
-
-		cuif.PCSrc = SEL_LOAD_NXT_INSTR; 
-	end 
 end 
 	
 // mux control signal logic for selecting between rd and rt for register destination
