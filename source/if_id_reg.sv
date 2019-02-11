@@ -37,12 +37,29 @@ assign if_id_regif.func_IF_ID = func_reg;
 always_comb begin: NXT_LOGIC
 
 	// just assign section of instruction to thier respective latched values 
-	rs_nxt = if_id_regif.instruction[25:21]; 
-	rd_nxt = if_id_regif.instruction[15:11]; 
-	rt_nxt = if_id_regif.instruction[20:16]; 
-	imm16_nxt = if_id_regif.instruction[15:0]; 
-	opcode_nxt = opcode_t'(if_id_regif.instruction[31:26]); 
-	func_nxt = funct_t'(if_id_regif.instruction[5:0]); 
+	rs_nxt = rs_reg; 
+	rd_nxt = rd_reg; 
+	rt_nxt = rt_reg; 
+	imm16_nxt = imm16_reg; 
+	opcode_nxt = opcode_reg; 
+	func_nxt = func_reg; 
+
+	if ((if_id_regif.enable_IF_ID == 1'b1) & (if_id_regif.flush_IF_ID == 1'b0))begin 
+		rs_nxt = if_id_regif.instruction[25:21]; 
+		rd_nxt = if_id_regif.instruction[15:11]; 
+		rt_nxt = if_id_regif.instruction[20:16]; 
+		imm16_nxt = if_id_regif.instruction[15:0]; 
+		opcode_nxt = opcode_t'(if_id_regif.instruction[31:26]); 
+		func_nxt = funct_t'(if_id_regif.instruction[5:0]); 
+	end 
+	else if (if_id_regif.flush_IF_ID == 1'b1) begin 
+		rs_nxt = 5'd0; 
+		rd_nxt = 5'd0; 
+		rt_nxt = 5'd0; 
+		imm16_nxt = 16'd0; 
+		opcode_nxt = RTYPE; 
+		func_nxt = ADD; 
+	end 
 end 
 
 /********** Sequential Logic Blocks ***************************/

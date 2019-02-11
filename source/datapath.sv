@@ -122,10 +122,8 @@ assign aluif.port_a = id_ex_regif.rdat1_ID_EX;
 assign aluif.alu_op = id_ex_regif.alu_op_ID_EX; 
 
 // EX/MEM register inputs 
-assign ex_mem_regif.iREN_ID_EX = id_ex_regif.iREN_ID_EX; 
-assign ex_mem_regif.dREN_ID_EX = id_ex_regif.dREN_ID_EX; 
-assign ex_mem_regif.dWEN_ID_EX = id_ex_regif.dWEN_ID_EX; 
-assign ex_mem_regif.halt_ID_EX = id_ex_regif.halt_ID_EX; 
+assign ex_mem_regif.enable_EX_MEM = 
+assign ex_mem_regif.flush_EX_MEM = 
 assign ex_mem_regif.WEN_ID_EX = id_ex_regif.WEN_ID_EX; 
 assign ex_mem_regif.reg_dest_ID_EX = id_ex_regif.reg_dest_ID_EX; 
 assign ex_mem_regif.alu_op_ID_EX = id_ex_regif.alu_op_ID_EX; 
@@ -133,16 +131,15 @@ assign ex_mem_regif.Rt_ID_EX = id_ex_regif.Rt_ID_EX;
 assign ex_mem_regif.Rd_ID_EX = id_ex_regif.Rd_ID_EX; 
 assign ex_mem_regif.rdat2_ID_EX = id_ex_regif.rdat2_ID_EX; 
 assign ex_mem_regif.result = aluif.result; 
-assign ex_mem_regif.dhit = dpif.dhit; 
-assign ex_mem_regif.ihit = dpif.ihit; 
+
 
 // MEM state
 // data_path to cache signals 
 assign dpif.imemaddr = pcif.imemaddr; 
-assign dpif.imemREN = ex_mem_regif.imemREN_EX_MEM; 
-assign dpif.dmemWEN = ex_mem_regif.dmemWEN_EX_MEM; 
-assign dpif.dmemREN = ex_mem_regif.dmemREN_EX_MEM;
-assign dpif.halt = ex_mem_regif.halt_EX_MEM; 
+assign dpif.imemREN = ; 
+assign dpif.dmemWEN = ; 
+assign dpif.dmemREN = ;
+assign dpif.halt = ; 
 assign dpif.dmemaddr = ex_mem_regif.dmemaddr_EX_MEM; 
 assign dpif.dmemstore = ex_mem_regif.dmemstore_EX_MEM; 
 

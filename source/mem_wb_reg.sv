@@ -41,12 +41,29 @@ assign mem_wb_regif.Rd_MEM_WB = rd_reg;
 always_comb begin: NXT_LOGIC
 
 	// just assign section of instruction to thier respective latched values 
-	WEN_nxt = mem_wb_regif.WEN_EX_MEM; 
-	result_nxt = mem_wb_regif.result_EX_MEM; 
-	reg_dest_nxt = mem_wb_regif.reg_dest_EX_MEM; 
-	rt_nxt = mem_wb_regif.Rt_EX_MEM; 
-	rd_nxt = mem_wb_regif.Rd_EX_MEM; 
-	dmemload_nxt = mem_wb_regif.dmemload; 
+	WEN_nxt = WEN_reg; 
+	result_nxt = result_reg; 
+	reg_dest_nxt = reg_dest_reg; 
+	rt_nxt = rt_reg; 
+	rd_nxt = rd_reg; 
+	dmemload_nxt = dmemload_reg; 
+
+	if ((mem_wb_regif.enable_MEM_WB == 1'b1) & (mem_wb_regif.flush_MEM_WB == 1'b0)) begin 
+		WEN_nxt = mem_wb_regif.WEN_EX_MEM; 
+		result_nxt = mem_wb_regif.result_EX_MEM; 
+		reg_dest_nxt = mem_wb_regif.reg_dest_EX_MEM; 
+		rt_nxt = mem_wb_regif.Rt_EX_MEM; 
+		rd_nxt = mem_wb_regif.Rd_EX_MEM; 
+		dmemload_nxt = mem_wb_regif.dmemload; 
+	end 
+	else if (mem_wb_regif.flush_MEM_WB == 1'b1) begin 
+		WEN_nxt = 1'b0; 
+		result_nxt = 32'd0; 
+		reg_dest_nxt = SEL_RD; 
+		rt_nxt = 5'd0; 
+		rd_nxt = 5'd0; 
+		dmemload_nxt = 32'd0; 
+	end 
 end 
 
 /********** Sequential Logic Blocks ***************************/

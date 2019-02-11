@@ -60,19 +60,50 @@ assign id_ex_regif.imm16_ext_ID_EX = imm16_ext_reg;
 always_comb begin: NXT_LOGIC
 
 	// just assign section of instruction to thier respective latched values 
-	iREN_nxt = id_ex_regif.iREN; 
-	dREN_nxt = id_ex_regif.dREN; 
-	dWEN_nxt = id_ex_regif.dWEN; 
-	halt_nxt = id_ex_regif.halt; 
-	WEN_nxt = id_ex_regif.WEN; 
-	reg_dest_nxt = id_ex_regif.reg_dest; 
-	alu_op_nxt = id_ex_regif.alu_op; 
-	rt_nxt = id_ex_regif.Rt_IF_ID; 
-	rd_nxt = id_ex_regif.Rd_IF_ID; 
-	ALUSrc_nxt = id_ex_regif.ALUsrc; 
-	rdat1_nxt = id_ex_regif.rdat1; 
-	rdat2_nxt id_ex_regif.rdat2; 
-	imm16_ext_nxt = id_ex_regif.imm16_ext; 
+	iREN_nxt = iREN_reg; 
+	dREN_nxt = dREN_reg; 
+	dWEN_nxt = dWEN_reg; 
+	halt_nxt = halt_reg; 
+	WEN_nxt = WEN_reg; 
+	reg_dest_nxt = reg_dest_reg; 
+	alu_op_nxt = alu_op_reg; 
+	rt_nxt = rt_reg; 
+	rd_nxt = rd_reg; 
+	ALUSrc_nxt = ALUSrc_reg;
+	rdat1_nxt = rdat1_reg; 
+	rdat2_nxt = rdat2_reg; 
+	imm16_ext_nxt = imm16_ext_reg;  
+
+	if ((id_ex_regif.enable_ID_EX == 1'b1) & (id_ex_regif.flush_ID_EX == 1'b0)) begin 
+		iREN_nxt = id_ex_regif.iREN; 
+		dREN_nxt = id_ex_regif.dREN; 
+		dWEN_nxt = id_ex_regif.dWEN; 
+		halt_nxt = id_ex_regif.halt; 
+		WEN_nxt = id_ex_regif.WEN; 
+		reg_dest_nxt = id_ex_regif.reg_dest; 
+		alu_op_nxt = id_ex_regif.alu_op; 
+		rt_nxt = id_ex_regif.Rt_IF_ID; 
+		rd_nxt = id_ex_regif.Rd_IF_ID; 
+		ALUSrc_nxt = id_ex_regif.ALUsrc; 
+		rdat1_nxt = id_ex_regif.rdat1; 
+		rdat2_nxt id_ex_regif.rdat2; 
+		imm16_ext_nxt = id_ex_regif.imm16_ext; 
+	end 
+	else if (id_ex_regif.flush_ID_EX == 1'b1) begin 
+		iREN_nxt = 1'b0; 
+		dREN_nxt = 1'b0; 
+		dWEN_nxt = 1'b0; 
+		halt_nxt = 1'b0; 
+		WEN_nxt = 1'b0; 
+		nxt_dest_nxt = SEL_RD; 
+		alu_op_nxt = ALU_ADD; 
+		rt_nxt = 5'd0; 
+		rd_nxt = 5'd0; 
+		ALUSrc_nxt = SEL_REG_DATA;
+		rdat1_nxt = 32'd0; 
+		rdat2_nxt = 32'd0; 
+		imm16_ext_nxt = 32'd0;  
+	end 
 end 
 
 /********** Sequential Logic Blocks ***************************/
@@ -94,7 +125,7 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		ALUSrc_reg <= SEL_REG_DATA;
 		rdat1_reg <= 32'd0; 
 		rdat2_reg <= 32'd0; 
-		imm16_ext_reg <= 16'd0;  
+		imm16_ext_reg <= 32'd0;  
 
 	end 
 	// no reset applied 
