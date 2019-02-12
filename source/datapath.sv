@@ -91,6 +91,7 @@ assign pcif.ihit = dpif.ihit;
 assign if_id_regif.instruction = dpif.imemload; 
 assign if_id_regif.enable_IF_ID = pipeline_controllerif.enable_IF_ID; 
 assign if_id_regif.flush_IF_ID = pipeline_controllerif.flush_IF_ID; 
+assign if_id_regif.imemaddr = pcif. imemaddr; 
 
 // ID stage
 // control unit inputs 

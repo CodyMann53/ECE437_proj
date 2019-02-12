@@ -38,6 +38,15 @@ word_t rdat1_reg, rdat1_nxt,
 	   rdat2_reg, rdat2_nxt; 
 logic [15:0] imm16_ext_reg, imm16_ext_nxt; 
 
+// tracker needed signals 
+word_t imemaddr_reg, imemaddr_nxt; 
+opcode_t opcode_reg, opcode_nxt; 
+funct_t funct_reg, funct_nxt; 
+word_t instruction_reg, instruction_nxt; 
+logic [15:0] imm16_reg, imm16_nxt;
+
+
+
 
 /********** Assign statements ***************************/
 
