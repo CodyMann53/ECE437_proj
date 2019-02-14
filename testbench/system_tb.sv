@@ -65,15 +65,15 @@ module system_tb;
     // The final imm/shamt signals
     // This means it should already be extended 
     .imm(DUT.CPU.DP.mem_wb_regif.imm16_ext_MEM_WB),
-    .shamt(DUT.CPU.DP.mem_wb_regif.rdat1_MEM_WB[4:0]),                       // NOTE: need to add here 
+    .shamt(DUT.CPU.DP.mem_wb_regif.rdat1_MEM_WB[4:0]),                       
     // the value for lui BEFORE being being shifted
      .lui_pre_shift(DUT.CPU.DP.mem_wb_regif.imm16_MEM_WB),           
     // The branch target (aka offset added to npc)
     .branch_addr(32'd0),                                      
     // Port O of the ALU from the M/W register
-    .dat_addr(DUT.CPU.DP.),                                   // NOTE: need to add here 
+    .dat_addr(DUT.CPU.DP.mem_wb_regif.result_MEM_WB),                                   
     // The value that was stored in memory during MEM stage
-    .store_dat(DUT.CPU.DP.mem_wb_regif.dmemstore_MEM_WB),                       // 
+    .store_dat(DUT.CPU.DP.mem_wb_regif.dmemstore_MEM_WB),                       
     // The value selected to be written into register during WB stage
     .reg_dat(DUT.CPU.DP.mem_wb_regif.mem_data_MEM_WB)
   );

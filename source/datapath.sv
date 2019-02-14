@@ -152,6 +152,7 @@ assign ex_mem_regif.iREN_ID_EX = id_ex_regif.iREN_ID_EX;
 assign ex_mem_regif.dREN_ID_EX = id_ex_regif.dREN_ID_EX; 
 assign ex_mem_regif.dWEN_ID_EX = id_ex_regif.dWEN_ID_EX; 
 assign ex_mem_regif.halt_ID_EX = id_ex_regif.halt_ID_EX;  
+assign ex_mem_regif.rdat1_ID_EX = id_ex_regif.rdat1_ID_EX; 
 
 // EX/MEM register inputs for cpu tracker 
 assign ex_mem_regif.imemaddr_ID_EX = id_ex_regif.imemaddr_ID_EX; 
@@ -191,6 +192,7 @@ assign mem_wb_regif.imm16_EX_MEM = ex_mem_regif.imm16_EX_MEM;
 assign mem_wb_regif.imm16_ext_EX_MEM = ex_mem_regif.imm16_ext_EX_MEM; 
 assign mem_wb_regif.dmemstore_EX_MEM = ex_mem_regif.dmemstore_EX_MEM; 
 assign mem_wb_regif.next_imemaddr_EX_MEM = ex_mem_regif.imemaddr_EX_MEM; 
+assign mem_wb_regif.rdat1_EX_MEM = ex_mem_regif.rdat1_EX_MEM; 
 
 // pipeline controller inputs 
 assign pipeline_controllerif.dhit = dpif.dhit; 

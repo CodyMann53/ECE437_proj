@@ -59,6 +59,7 @@ assign mem_wb_regif.imm16_ext_MEM_WB = imm16_ext_reg;
 assign mem_wb_regif.dmemstore_MEM_WB = dmemstore_reg;
 assign mem_wb_regif.next_imemaddr_MEM_WB = next_imemaddr_reg;  
 assign mem_wb_regif.rdat1_MEM_WB = rdat1_reg; 
+assign mem_wb_regif.result_MEM_WB = result_reg; 
 
 /********** Combination Logic Blocks ***************************/
 always_comb begin: NXT_LOGIC
