@@ -59,23 +59,23 @@ module system_tb;
     // The 32 bit instruction
     .instr(DUT.CPU.DP.mem_wb_regif.instruction_MEM_WB),
     // Connect the PC to this
-    .pc(DUT.CPU.DP.mem_wb_regif.),
+    .pc(DUT.CPU.DP.mem_wb_regif.imemaddr_MEM_WB),
     // Connect the next PC value (the next registered value) here
-    .next_pc_val(DUT.CPU.DP.MW_o.next_pc_val),
+    .next_pc_val(DUT.CPU.DP.mem_wb_regif.next_imemaddr_MEM_WB),
     // The final imm/shamt signals
     // This means it should already be extended 
-    .imm(DUT.CPU.DP.MW_o.imm_shamt_final),
-    .shamt(DUT.CPU.DP.MW_o.imm_shamt_final),
+    .imm(DUT.CPU.DP.mem_wb_regif.imm16_ext_MEM_WB),
+    .shamt(DUT.CPU.DP.mem_wb_regif.rdat1_MEM_WB[4:0]),                       // NOTE: need to add here 
     // the value for lui BEFORE being being shifted
-     .lui_pre_shift(DUT.CPU.DP.MW_o.lui_pre_shift),
+     .lui_pre_shift(DUT.CPU.DP.mem_wb_regif.imm16_MEM_WB),           
     // The branch target (aka offset added to npc)
-    .branch_addr(DUT.CPU.DP.MW_o.baddr),
+    .branch_addr(32'd0),                                      
     // Port O of the ALU from the M/W register
-    .dat_addr(DUT.CPU.DP.MW_o.portO),
+    .dat_addr(DUT.CPU.DP.),                                   // NOTE: need to add here 
     // The value that was stored in memory during MEM stage
-    .store_dat(DUT.CPU.DP.MW_o.rdat2),
+    .store_dat(DUT.CPU.DP.mem_wb_regif.dmemstore_MEM_WB),                       // 
     // The value selected to be written into register during WB stage
-    .reg_dat(DUT.CPU.DP.MW_o.wdat)
+    .reg_dat(DUT.CPU.DP.mem_wb_regif.mem_data_MEM_WB)
   );
   
 `else

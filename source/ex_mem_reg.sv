@@ -37,12 +37,13 @@ word_t result_reg, result_nxt,
 	   rdat2_reg, rdat2_nxt; 
 
 // cpu tracker variables 
-word_t imemaddr_reg, imemaddr_nxt; 
+word_t imemaddr_reg, imemaddr_nxt, next_imemaddr_reg, next_imemaddr_nxt; 
 opcode_t opcode_reg, opcode_nxt;
 funct_t func_reg, func_nxt; 
 word_t instruction_reg, instruction_nxt; 
 logic [15:0] imm16_reg, imm16_nxt; 
 word_t imm16_ext_reg, imm16_ext_nxt; 
+regbits_t rdat1_reg, rdat1_nxt; 
 
 /********** Assign statements ***************************/
 
@@ -65,6 +66,8 @@ assign ex_mem_regif.opcode_EX_MEM = opcode_reg;
 assign ex_mem_regif.func_EX_MEM = func_reg; 
 assign ex_mem_regif.imm16_EX_MEM = imm16_reg; 
 assign ex_mem_regif.imm16_ext_EX_MEM = imm16_ext_reg; 
+assign ex_mem_regif.next_imemaddr_EX_MEM = next_imemaddr_reg; 
+assign ex_mem_regif.Rs_EX_MEM = rdat1_reg; 
 
 /********** Combination Logic Blocks ***************************/
 always_comb begin: NXT_LOGIC
@@ -87,6 +90,8 @@ always_comb begin: NXT_LOGIC
 	func_nxt = func_reg; 
 	imm16_nxt = imm16_reg; 
 	imm16_ext_nxt = imm16_ext_reg; 
+	next_imemaddr_nxt = next_imemaddr_reg; 
+	rdat1_nxt = rdat1_reg; 
 
 	if ((ex_mem_regif.enable_EX_MEM == 1'b1) & (ex_mem_regif.flush_EX_MEM == 1'b0)) begin 
 		WEN_nxt = ex_mem_regif.WEN_ID_EX; 
@@ -108,6 +113,8 @@ always_comb begin: NXT_LOGIC
 		instruction_nxt = ex_mem_regif.instruction_ID_EX; 
 		imm16_nxt = ex_mem_regif.imm16_ID_EX; 
 		imm16_ext_nxt = ex_mem_regif.imm16_ext_ID_EX; 
+		next_imemaddr_nxt = ex_mem_regif.next_imemaddr_ID_EX; 
+		rdat1_nxt = ex_mem_regif.rdat1_ID_EX; 
 	end 
 	else if (ex_mem_regif.flush_EX_MEM == 1'b1) begin 
 		halt_nxt = 1'b0; 
@@ -130,6 +137,8 @@ always_comb begin: NXT_LOGIC
 		instruction_nxt = 32'd0; 
 		imm16_nxt = 16'd0; 
 		imm16_ext_nxt = 32'd0; 
+		next_imemaddr_nxt = 32'd0; 
+		rdat1_nxt = 5'd0; 
 	end 
 end 
 
@@ -159,6 +168,8 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		instruction_reg <= 32'd0; 
 		imm16_reg <= 16'd0; 
 		imm16_ext_reg <= 32'd0;
+		next_imemaddr_reg <= 32'd0; 
+		rdat1_reg <= 5'd0; 
 	end 
 	// no reset applied 
 	else begin 
@@ -182,7 +193,9 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		func_reg <= func_nxt; 
 		instruction_reg <= instruction_nxt; 
 		imm16_reg <= imm16_nxt; 
-		imm16_ext_reg <= imm16_ext_nxt;  
+		imm16_ext_reg <= imm16_ext_nxt; 
+		next_imemaddr_reg <= next_imemaddr_nxt;  
+		rdat1_reg <= rdat1_nxt; 
 	end
 end 
 endmodule

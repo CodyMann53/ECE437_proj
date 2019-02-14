@@ -39,7 +39,8 @@ word_t rdat1_reg, rdat1_nxt,
 logic [15:0] imm16_ext_reg, imm16_ext_nxt; 
 
 // tracker needed signals 
-word_t imemaddr_reg, imemaddr_nxt; 
+word_t imemaddr_reg, imemaddr_nxt, 
+	   next_imemaddr_reg, next_imemaddr_nxt; 
 opcode_t opcode_reg, opcode_nxt; 
 funct_t funct_reg, funct_nxt; 
 word_t instruction_reg, instruction_nxt; 
@@ -68,6 +69,7 @@ assign id_ex_regif.opcode_ID_EX = opcode_reg;
 assign id_ex_regif.func_ID_EX = funct_reg; 
 assign id_ex_regif.instruction_ID_EX = instruction_reg; 
 assign id_ex_regif.imm16_ID_EX = imm16_reg;
+assign id_ex_regif.next_imemaddr_ID_EX = next_imemaddr_reg; 
 
 /********** Combination Logic Blocks ***************************/
 always_comb begin: NXT_LOGIC
@@ -93,6 +95,7 @@ always_comb begin: NXT_LOGIC
 	funct_nxt = funct_reg; 
 	instruction_nxt = instruction_reg;
 	imm16_nxt = imm16_reg; 
+	next_imemaddr_nxt = next_imemaddr_reg; 
 
 	if ((id_ex_regif.enable_ID_EX == 1'b1) & (id_ex_regif.flush_ID_EX == 1'b0)) begin 
 		iREN_nxt = id_ex_regif.iREN; 
@@ -115,6 +118,7 @@ always_comb begin: NXT_LOGIC
 		funct_nxt = id_ex_regif.func_IF_ID; 
 		instruction_nxt = id_ex_regif.instruction_IF_ID; 
 		imm16_nxt = id_ex_regif.imm16_IF_ID; 
+		next_imemaddr_nxt = id_ex_regif.next_imemaddr_IF_ID; 
 	end 
 	else if (id_ex_regif.flush_ID_EX == 1'b1) begin 
 		iREN_nxt = 1'b0; 
@@ -137,6 +141,7 @@ always_comb begin: NXT_LOGIC
 		funct_nxt = 6'd0; 
 		instruction_nxt = 32'd0; 
 		imm16_nxt = 16'd0; 
+		next_imemaddr_nxt = 32'd0; 
 	end 
 end 
 
@@ -168,6 +173,7 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		funct_reg <= 6'd0; 
 		instruction_reg <= 32'd0; 
 		imm16_reg <= 16'd0; 
+		next_imemaddr_reg <= 32'd0;
 
 	end 
 	// no reset applied 
@@ -195,6 +201,7 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		funct_reg <= funct_nxt; 
 		instruction_reg <= instruction_nxt; 
 		imm16_reg <= imm16_nxt; 
+		next_imemaddr_reg <= 32'd0; 
 	end
 end 
 endmodule

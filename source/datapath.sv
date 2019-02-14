@@ -92,6 +92,7 @@ assign if_id_regif.instruction = dpif.imemload;
 assign if_id_regif.enable_IF_ID = pipeline_controllerif.enable_IF_ID; 
 assign if_id_regif.flush_IF_ID = pipeline_controllerif.flush_IF_ID; 
 assign if_id_regif.imemaddr = pcif. imemaddr; 
+assign if_id_regif.next_imemaddr = pcif.next_imemaddr; 
 
 // ID stage
 // control unit inputs 
@@ -129,6 +130,7 @@ assign id_ex_regif.opcode_IF_ID = if_id_regif.opcode_IF_ID;
 assign id_ex_regif.func_IF_ID = if_id_regif.func_IF_ID; 
 assign id_ex_regif.instruction_IF_ID = if_id_regif.instruction_IF_ID; 
 assign id_ex_regif.imm16_IF_ID = if_id_regif.imm16_IF_ID; 
+assign id_ex_regif.next_imemaddr_IF_ID = if_id_regif.next_imemaddr_IF_ID; 
 
 // EX stage
 // alu inputs
@@ -158,6 +160,7 @@ assign ex_mem_regif.func_ID_EX = id_ex_regif.func_ID_EX;
 assign ex_mem_regif.instruction_ID_EX = id_ex_regif.instruction_ID_EX; 
 assign ex_mem_regif.imm16_ID_EX = id_ex_regif.imm16_ID_EX; 
 assign ex_mem_regif.imm16_ext_ID_EX = id_ex_regif.imm16_ext_ID_EX; 
+assign ex_mem_regif.next_imemaddr_ID_EX = id_ex_regif.next_imemaddr_ID_EX; 
 
 // MEM state
 // data_path to cache signals 
@@ -187,6 +190,7 @@ assign mem_wb_regif.instruction_EX_MEM = ex_mem_regif.instruction_EX_MEM;
 assign mem_wb_regif.imm16_EX_MEM = ex_mem_regif.imm16_EX_MEM; 
 assign mem_wb_regif.imm16_ext_EX_MEM = ex_mem_regif.imm16_ext_EX_MEM; 
 assign mem_wb_regif.dmemstore_EX_MEM = ex_mem_regif.dmemstore_EX_MEM; 
+assign mem_wb_regif.next_imemaddr_EX_MEM = ex_mem_regif.imemaddr_EX_MEM; 
 
 // pipeline controller inputs 
 assign pipeline_controllerif.dhit = dpif.dhit; 
