@@ -123,6 +123,13 @@ assign id_ex_regif.rdat1 = rfif.rdat1;
 assign id_ex_regif.rdat2 = rfif.rdat2; 
 assign id_ex_regif.imm16_ext = imm16_ext; 
 
+// ID/EX register inputs for cpu tracker 
+assign id_ex_regif.imemaddr_IF_ID = if_id_regif.imemaddr_IF_ID; 
+assign id_ex_regif.opcode_IF_ID = if_id_regif.opcode_IF_ID; 
+assign id_ex_regif.func_IF_ID = if_id_regif.func_IF_ID; 
+assign id_ex_regif.instruction_IF_ID = if_id_regif.instruction_IF_ID; 
+assign id_ex_regif.imm16_IF_ID = if_id_regif.imm16_IF_ID; 
+
 // EX stage
 // alu inputs
 assign aluif.port_b = port_b; 
@@ -144,6 +151,13 @@ assign ex_mem_regif.dREN_ID_EX = id_ex_regif.dREN_ID_EX;
 assign ex_mem_regif.dWEN_ID_EX = id_ex_regif.dWEN_ID_EX; 
 assign ex_mem_regif.halt_ID_EX = id_ex_regif.halt_ID_EX;  
 
+// EX/MEM register inputs for cpu tracker 
+assign ex_mem_regif.imemaddr_ID_EX = id_ex_regif.imemaddr_ID_EX; 
+assign ex_mem_regif.opcode_ID_EX = id_ex_regif.opcode_ID_EX; 
+assign ex_mem_regif.func_ID_EX = id_ex_regif.func_ID_EX; 
+assign ex_mem_regif.instruction_ID_EX = id_ex_regif.instruction_ID_EX; 
+assign ex_mem_regif.imm16_ID_EX = id_ex_regif.imm16_ID_EX; 
+assign ex_mem_regif.imm16_ext_ID_EX = id_ex_regif.imm16_ext_ID_EX; 
 
 // MEM state
 // data_path to cache signals 
@@ -164,6 +178,15 @@ assign mem_wb_regif.Rt_EX_MEM = ex_mem_regif.Rt_EX_MEM;
 assign mem_wb_regif.Rd_EX_MEM = ex_mem_regif.Rd_EX_MEM; 
 assign mem_wb_regif.dmemload = dpif.dmemload; 
 assign mem_wb_regif.halt_EX_MEM = ex_mem_regif.halt_EX_MEM; 
+
+// MEM/WB register inputs for cpu tracker signals 
+assign mem_wb_regif.imemaddr_EX_MEM = ex_mem_regif.imemaddr_EX_MEM; 
+assign mem_wb_regif.opcode_EX_MEM = ex_mem_regif.opcode_EX_MEM; 
+assign mem_wb_regif.func_EX_MEM = ex_mem_regif.func_EX_MEM; 
+assign mem_wb_regif.instruction_EX_MEM = ex_mem_regif.instruction_EX_MEM; 
+assign mem_wb_regif.imm16_EX_MEM = ex_mem_regif.imm16_EX_MEM; 
+assign mem_wb_regif.imm16_ext_EX_MEM = ex_mem_regif.imm16_ext_EX_MEM; 
+assign mem_wb_regif.dmemstore_EX_MEM = ex_mem_regif.dmemstore_EX_MEM; 
 
 // pipeline controller inputs 
 assign pipeline_controllerif.dhit = dpif.dhit; 

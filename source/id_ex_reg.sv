@@ -45,9 +45,6 @@ funct_t funct_reg, funct_nxt;
 word_t instruction_reg, instruction_nxt; 
 logic [15:0] imm16_reg, imm16_nxt;
 
-
-
-
 /********** Assign statements ***************************/
 
 // assign the output signals to the register values 
@@ -64,6 +61,13 @@ assign id_ex_regif.ALUsrc_ID_EX = ALUSrc_reg;
 assign id_ex_regif.rdat1_ID_EX = rdat1_reg; 
 assign id_ex_regif.rdat2_ID_EX = rdat2_reg; 
 assign id_ex_regif.imm16_ext_ID_EX = imm16_ext_reg; 
+
+// pass through 
+assign id_ex_regif.imemaddr_ID_EX = imemaddr_reg;
+assign id_ex_regif.opcode_ID_EX = opcode_reg; 
+assign id_ex_regif.func_ID_EX = funct_reg; 
+assign id_ex_regif.instruction_ID_EX = instruction_reg; 
+assign id_ex_regif.imm16_ID_EX = imm16_reg;
 
 /********** Combination Logic Blocks ***************************/
 always_comb begin: NXT_LOGIC
@@ -83,6 +87,13 @@ always_comb begin: NXT_LOGIC
 	rdat2_nxt = rdat2_reg; 
 	imm16_ext_nxt = imm16_ext_reg;  
 
+	// cpu pass through signals 
+	imemaddr_nxt = imemaddr_reg; 
+	opcode_nxt = opcode_reg; 
+	funct_nxt = funct_reg; 
+	instruction_nxt = instruction_reg;
+	imm16_nxt = imm16_reg; 
+
 	if ((id_ex_regif.enable_ID_EX == 1'b1) & (id_ex_regif.flush_ID_EX == 1'b0)) begin 
 		iREN_nxt = id_ex_regif.iREN; 
 		dREN_nxt = id_ex_regif.dREN; 
@@ -97,6 +108,13 @@ always_comb begin: NXT_LOGIC
 		rdat1_nxt = id_ex_regif.rdat1; 
 		rdat2_nxt id_ex_regif.rdat2; 
 		imm16_ext_nxt = id_ex_regif.imm16_ext; 
+
+		// cpu tracker signals 
+		imemaddr_nxt = id_ex_regif.imemaddr_IF_ID; 
+		opcode_nxt = id_ex_regif.opcode_IF_ID; 
+		funct_nxt = id_ex_regif.func_IF_ID; 
+		instruction_nxt = id_ex_regif.instruction_IF_ID; 
+		imm16_nxt = id_ex_regif.imm16_IF_ID; 
 	end 
 	else if (id_ex_regif.flush_ID_EX == 1'b1) begin 
 		iREN_nxt = 1'b0; 
@@ -111,7 +129,14 @@ always_comb begin: NXT_LOGIC
 		ALUSrc_nxt = SEL_REG_DATA;
 		rdat1_nxt = 32'd0; 
 		rdat2_nxt = 32'd0; 
-		imm16_ext_nxt = 32'd0;  
+		imm16_ext_nxt = 32'd0;
+
+		// cpu tracker signals   
+		imemaddr_nxt = 32'd0; 
+		opcode_nxt = 6'd0; 
+		funct_nxt = 6'd0; 
+		instruction_nxt = 32'd0; 
+		imm16_nxt = 16'd0; 
 	end 
 end 
 
@@ -135,6 +160,14 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		rdat1_reg <= 32'd0; 
 		rdat2_reg <= 32'd0; 
 		imm16_ext_reg <= 32'd0;  
+		imemaddr_reg <= 32'd0; 
+
+		// cpu tracker signals 
+		imemaddr_reg <= 32'd0; 
+		opcode_reg <= 6'd0; 
+		funct_reg <= 6'd0; 
+		instruction_reg <= 32'd0; 
+		imm16_reg <= 16'd0; 
 
 	end 
 	// no reset applied 
@@ -154,6 +187,14 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		rdat1_reg <= rdat1_nxt; 
 		rdat2_reg <= rdat2_nxt; 
 		imm16_ext_reg <= imm16_ext_nxt;  
+		imemaddr_reg <= imemaddr_nxt; 
+
+		// cpu tracker signals 
+		imemaddr_reg <= imemaddr_nxt; 
+		opcode_reg <= opcode_nxt; 
+		funct_reg <= funct_nxt; 
+		instruction_reg <= instruction_nxt; 
+		imm16_reg <= imm16_nxt; 
 	end
 end 
 endmodule

@@ -17,7 +17,7 @@ interface pc_if;
   import data_path_muxs_pkg::*; 
 
   logic     ihit; 
-  word_t    imemaddr, jr_addr;
+  word_t    imemaddr, jr_addr, next_imemaddr;
   logic [25:0] jmp_addr; 
   logic [15:0] br_addr; 
   pc_mux_input_selection PCSrc; 
@@ -25,12 +25,12 @@ interface pc_if;
   // program counter ports 
   modport pc (
     input   PCSrc, ihit, jr_addr, br_addr, jmp_addr,  
-    output  imemaddr
+    output  imemaddr, next_imemaddr
   );
 
   // program counter tb
   modport tb (
-    input   imemaddr,
+    input   imemaddr, next_imemaddr
     output  PCSrc, ihit, jr_addr, br_addr, jmp_addr 
   );
 endinterface

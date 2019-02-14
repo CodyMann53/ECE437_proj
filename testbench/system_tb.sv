@@ -36,7 +36,7 @@ module system_tb;
   // dut
 `ifndef MAPPED
   system                              DUT (CLK,nRST,syif);
-  /*
+  
   // NOTE: All of these signals MUST be passed all the way through
   // to the write back stage and sampled in the WRITEBACK stage.
   // This means more signals that would normally be necessary
@@ -45,21 +45,21 @@ module system_tb;
     // No need to change this
     .CLK(DUT.CPU.DP.CLK),
     // This is the enable signal for the write back stage
-    .wb_enable(DUT.CPU.DP.pipeline_enable),
+    .wb_enable(DUT.CPU.DP.pipeline_controllerif.enable),
     // The 'funct' portion of an instruction. Must be of funct_t type
-    .funct(DUT.CPU.DP.MW_o.funct),
+    .funct(DUT.CPU.DP.mem_wb_regif.func_MEM_WB),
     // The 'opcode' portion of an instruction. Must be of opcode_t type
-    .opcode(DUT.CPU.DP.MW_o.opcode),
+    .opcode(DUT.CPU.DP.mem_wb_regif.opcode_MEM_WB),
     // The 'rs' portion of an instruction
-    .rs(DUT.CPU.DP.MW_o.rs),
+    .rs(DUT.CPU.DP.mem_wb_regif.Rs_MEM_WB),
     // The 'rt' portion of an instruction
-    .rt(DUT.CPU.DP.MW_o.rt),
+    .rt(DUT.CPU.DP.mem_wb_regif.Rt_MEM_WB),
     // The final wsel
-    .wsel(DUT.CPU.DP.MW_o.wsel),
+    .wsel(DUT.CPU.DP.wsel),
     // The 32 bit instruction
-    .instr(DUT.CPU.DP.MW_o.instr),
+    .instr(DUT.CPU.DP.mem_wb_regif.instruction_MEM_WB),
     // Connect the PC to this
-    .pc(DUT.CPU.DP.MW_o.pc),
+    .pc(DUT.CPU.DP.mem_wb_regif.),
     // Connect the next PC value (the next registered value) here
     .next_pc_val(DUT.CPU.DP.MW_o.next_pc_val),
     // The final imm/shamt signals
@@ -77,7 +77,7 @@ module system_tb;
     // The value selected to be written into register during WB stage
     .reg_dat(DUT.CPU.DP.MW_o.wdat)
   );
-  */
+  
 `else
   system                              DUT (,,,,//for altera debug ports
     CLK,
