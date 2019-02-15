@@ -28,7 +28,7 @@ parameter PC0 = 0;
   // map caches
   caches                    CM (CLK, nRST, dcif, cif0);
   // map coherence
-  memory_control            CC (CLK, nRST, ccif);
+  memory_control            CC (ccif);
 
   // interface connections
   assign scif.memaddr = ccif.ramaddr;

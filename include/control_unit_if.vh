@@ -22,13 +22,14 @@ interface control_unit_if;
   aluop_t alu_op; 
   alu_source_mux_selection ALUSrc; 
   pc_mux_input_selection PCSrc; 
-  logic [5:0] opcode_IF_ID, func_IF_ID; 
+  logic [5:0] opcode_IF_ID, func_IF_ID;
+  logic [15:0] imm16;  
 
   // control unit ports
   modport cu (
     input  opcode_IF_ID, func_IF_ID,
     output WEN, reg_dest, alu_op, ALUSrc, mem_to_reg, iREN, dWEN, dREN, 
-    PCSrc, halt, extend
+    PCSrc, halt, extend, imm16 
   );
 endinterface
 `endif //CONTROL_UNIT_IF_VH

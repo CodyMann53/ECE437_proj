@@ -17,7 +17,8 @@ interface if_id_reg_if;
 
   word_t instruction, imemaddr, imemaddr_IF_ID; 
   regbits_t Rs_IF_ID, Rt_IF_ID, Rd_IF_ID; 
-  opcode_t opcode_IF_ID, func_IF_ID; 
+  opcode_t opcode_IF_ID; 
+  funct_t func_IF_ID; 
   logic [15:0] imm16_IF_ID, enable_IF_ID, flush_IF_ID; 
 
   // pass through signals for the cpu tracker  

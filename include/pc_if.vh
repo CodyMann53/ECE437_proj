@@ -30,7 +30,7 @@ interface pc_if;
 
   // program counter tb
   modport tb (
-    input   imemaddr, next_imemaddr
+    input   imemaddr, next_imemaddr,
     output  PCSrc, ihit, jr_addr, br_addr, jmp_addr 
   );
 endinterface

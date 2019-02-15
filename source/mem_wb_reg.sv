@@ -15,7 +15,7 @@ import data_path_muxs_pkg::*;
 module mem_wb_reg
 	(
 	input CLK, nRST,
- 	mem_wb_reg_if mem_wb_regif, 
+ 	mem_wb_reg_if mem_wb_regif 
  	); 
 
 /********** Local type definitions ***************************/
@@ -36,8 +36,9 @@ funct_t func_reg, func_nxt;
 word_t instruction_reg, instruction_nxt; 
 logic [15:0] imm16_reg, imm16_nxt; 
 word_t imm16_ext_reg, imm16_ext_nxt; 
-logic dmemstore_reg, dmemstore_nxt; 
-regbits_t rdat1_reg, rdat1_nxt; 
+word_t dmemstore_reg, dmemstore_nxt; 
+word_t rdat1_reg, rdat1_nxt; 
+regbits_t rs_reg, rs_nxt; 
 
 /********** Assign statements ***************************/
 
@@ -60,6 +61,7 @@ assign mem_wb_regif.dmemstore_MEM_WB = dmemstore_reg;
 assign mem_wb_regif.next_imemaddr_MEM_WB = next_imemaddr_reg;  
 assign mem_wb_regif.rdat1_MEM_WB = rdat1_reg; 
 assign mem_wb_regif.result_MEM_WB = result_reg; 
+assign mem_wb_regif.Rs_MEM_WB = rs_reg; 
 
 /********** Combination Logic Blocks ***************************/
 always_comb begin: NXT_LOGIC
@@ -83,6 +85,7 @@ always_comb begin: NXT_LOGIC
 	dmemstore_nxt = dmemstore_reg; 
 	next_imemaddr_nxt = next_imemaddr_reg; 
 	rdat1_nxt = rdat1_reg; 
+	rs_nxt = rs_reg; 
 
 	if ((mem_wb_regif.enable_MEM_WB == 1'b1) & (mem_wb_regif.flush_MEM_WB == 1'b0)) begin 
 		WEN_nxt = mem_wb_regif.WEN_EX_MEM; 
@@ -103,6 +106,7 @@ always_comb begin: NXT_LOGIC
 		dmemstore_nxt = mem_wb_regif.dmemstore_EX_MEM; 
 		next_imemaddr_nxt = mem_wb_regif.next_imemaddr_EX_MEM; 
 		rdat1_nxt = mem_wb_regif.rdat1_EX_MEM; 
+		rs_nxt = mem_wb_regif.Rs_EX_MEM; 
 	end 
 	else if (mem_wb_regif.flush_MEM_WB == 1'b1) begin 
 		WEN_nxt = 1'b0; 
@@ -115,14 +119,15 @@ always_comb begin: NXT_LOGIC
 
 		// cpu tracker signals 
 		imemaddr_nxt = 32'd0; 
-		opcode_nxt = 6'd0; 
-		func_nxt = 6'd0; 
+		opcode_nxt = RTYPE; 
+		func_nxt = ADD; 
 		instruction_nxt = 32'd0; 
 		imm16_nxt = 16'd0; 
 		imm16_ext_nxt = 32'd0; 
-		dmemstore_nxt = 1'b0; 
+		dmemstore_nxt = 32'b0; 
 		next_imemaddr_nxt = 32'd0; 
-		rdat1_nxt = 5'd0; 
+		rdat1_nxt = 32'd0; 
+		rs_nxt = 5'd0; 
 	end 
 end 
 
@@ -143,14 +148,15 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 
 		// cpu tracker signals 
 		imemaddr_reg <= 32'd0; 
-		opcode_reg <= 6'd0; 
-		func_reg <= 6'd0; 
+		opcode_reg <= RTYPE; 
+		func_reg <= ADD; 
 		instruction_reg <= 32'd0; 
 		imm16_reg <= 16'd0; 
 		imm16_ext_reg <= 32'd0; 
-		dmemstore_reg <= 1'b0; 
+		dmemstore_reg <= 32'b0; 
 		next_imemaddr_reg <= 32'd0; 
-		rdat1_reg <= 5'd0; 
+		rdat1_reg <= 32'd0; 
+		rs_reg <= 5'd0; 
 
 	end 
 	// no reset applied 
@@ -175,6 +181,7 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		dmemstore_reg <= dmemstore_nxt; 
 		next_imemaddr_reg <= next_imemaddr_nxt;
 		rdat1_reg <= rdat1_nxt; 
+		rs_reg <= rs_nxt; 
 	end
 end 
 endmodule

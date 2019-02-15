@@ -14,14 +14,15 @@ import cpu_types_pkg::*;
 module if_id_reg
 	(
 	input CLK, nRST,
- 	if_id_reg_if if_id_regif, 
+ 	if_id_reg_if if_id_regif
  	); 
 
 /********** Local type definitions ***************************/
   
 /********** Local variable definitions ***************************/
 regbits_t rs_reg, rs_nxt, rt_reg, rt_nxt, rd_reg, rd_nxt; 
-opcode_t opcode_reg, opcode_nxt, func_reg, func_nxt; 
+opcode_t opcode_reg, opcode_nxt; 
+funct_t func_reg, func_nxt; 
 logic [15:0] imm16_reg, imm16_nxt; 
 word_t imemaddr_reg, imemaddr_nxt, instruction_reg, instruction_nxt;
 
@@ -35,7 +36,7 @@ assign if_id_regif.Rs_IF_ID = rs_reg;
 assign if_id_regif.Rt_IF_ID = rt_reg; 
 assign if_id_regif.Rd_IF_ID = rd_reg; 
 assign if_id_regif.opcode_IF_ID = opcode_reg; 
-assign if_id_regif.func_IF_ID = func_reg; 
+assign if_id_regif.func_IF_ID = func_reg;//' 
 assign if_id_regif.imemaddr_IF_ID = imemaddr_reg; 
 assign if_id_regif.instruction_IF_ID = instruction_reg; 
 assign if_id_regif.imm16_IF_ID = imm16_reg; 
@@ -97,8 +98,8 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		rs_reg <= 5'd0; 
 		rt_reg <= 5'd0; 
 		rd_reg <= 5'd0; 
-		opcode_reg <= 6'd0; 
-		func_nxt <= 6'd0;
+		opcode_reg <= RTYPE; 
+		func_reg <= ADD;
 		imm16_reg <= 16'd0;  
 		imemaddr_reg <= 32'd0; 
 

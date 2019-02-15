@@ -74,7 +74,7 @@ pipeline_controller_if pipeline_controllerif();
 pipeline_controller PIP_CONT(pipeline_controllerif); 
 
 /************************** Locac Variable definitions ***************************/
-word_t imm16_ext, portb;
+word_t imm16_ext, port_b;
 regbits_t wsel; 
 
 /************************** glue logic ***************************/
@@ -104,7 +104,7 @@ assign rfif.WEN = mem_wb_regif.WEN_MEM_WB;
 assign rfif.wsel = wsel; 
 assign rfif.wdat = mem_wb_regif.mem_data_MEM_WB; 
 assign rfif.rsel2 = mem_wb_regif.Rt_MEM_WB; 
-assign rfif.rsel1 = mem_wb_regif.Rd_MEM_WB; 
+assign rfif.rsel1 = mem_wb_regif.Rs_MEM_WB; 
 
 // ID/EX register inputs 
 assign id_ex_regif.enable_ID_EX = pipeline_controllerif.enable_ID_EX; 
@@ -127,10 +127,12 @@ assign id_ex_regif.imm16_ext = imm16_ext;
 // ID/EX register inputs for cpu tracker 
 assign id_ex_regif.imemaddr_IF_ID = if_id_regif.imemaddr_IF_ID; 
 assign id_ex_regif.opcode_IF_ID = if_id_regif.opcode_IF_ID; 
-assign id_ex_regif.func_IF_ID = if_id_regif.func_IF_ID; 
+assign id_ex_regif.func_IF_ID = funct_t'(if_id_regif.func_IF_ID); //'
 assign id_ex_regif.instruction_IF_ID = if_id_regif.instruction_IF_ID; 
 assign id_ex_regif.imm16_IF_ID = if_id_regif.imm16_IF_ID; 
 assign id_ex_regif.next_imemaddr_IF_ID = if_id_regif.next_imemaddr_IF_ID; 
+assign id_ex_regif.Rs_IF_ID = if_id_regif.Rs_IF_ID; 
+
 
 // EX stage
 // alu inputs
@@ -146,7 +148,6 @@ assign ex_mem_regif.reg_dest_ID_EX = id_ex_regif.reg_dest_ID_EX;
 assign ex_mem_regif.alu_op_ID_EX = id_ex_regif.alu_op_ID_EX; 
 assign ex_mem_regif.Rt_ID_EX = id_ex_regif.Rt_ID_EX; 
 assign ex_mem_regif.Rd_ID_EX = id_ex_regif.Rd_ID_EX; 
-assign ex_mem_regif.rdat2_ID_EX = id_ex_regif.rdat2_ID_EX; 
 assign ex_mem_regif.result = aluif.result;
 assign ex_mem_regif.iREN_ID_EX = id_ex_regif.iREN_ID_EX; 
 assign ex_mem_regif.dREN_ID_EX = id_ex_regif.dREN_ID_EX; 
@@ -162,6 +163,7 @@ assign ex_mem_regif.instruction_ID_EX = id_ex_regif.instruction_ID_EX;
 assign ex_mem_regif.imm16_ID_EX = id_ex_regif.imm16_ID_EX; 
 assign ex_mem_regif.imm16_ext_ID_EX = id_ex_regif.imm16_ext_ID_EX; 
 assign ex_mem_regif.next_imemaddr_ID_EX = id_ex_regif.next_imemaddr_ID_EX; 
+assign ex_mem_regif.Rs_ID_EX = id_ex_regif.Rs_ID_EX; 
 
 // MEM state
 // data_path to cache signals 
@@ -193,6 +195,7 @@ assign mem_wb_regif.imm16_ext_EX_MEM = ex_mem_regif.imm16_ext_EX_MEM;
 assign mem_wb_regif.dmemstore_EX_MEM = ex_mem_regif.dmemstore_EX_MEM; 
 assign mem_wb_regif.next_imemaddr_EX_MEM = ex_mem_regif.imemaddr_EX_MEM; 
 assign mem_wb_regif.rdat1_EX_MEM = ex_mem_regif.rdat1_EX_MEM; 
+assign mem_wb_regif.Rs_EX_MEM = ex_mem_regif.Rs_EX_MEM; 
 
 // pipeline controller inputs 
 assign pipeline_controllerif.dhit = dpif.dhit; 
@@ -207,11 +210,11 @@ assign pipeline_controllerif.ihit = dpif.ihit;
 always_comb begin: MUX_1
   
   // set default value to prevent latches 
-  portb = 32'd0; 
+  port_b = 32'd0; 
 
   casez (id_ex_regif.ALUSrc_ID_EX)
-    SEL_REG_DATA: portb = id_ex_regif.rdat2_ID_EX;  
-    SEL_IMM16: portb = id_ex_regif.imm16_ext_ID_EX; 
+    SEL_REG_DATA: port_b = id_ex_regif.rdat2_ID_EX;  
+    SEL_IMM16: port_b = id_ex_regif.imm16_ext_ID_EX; 
   endcase
 end 
 
@@ -237,13 +240,13 @@ always_comb begin: EXTENDER
   // case statement for control signal 
   casez (cuif.extend) 
     1'b0: imm16_ext = {16'h0, cuif.imm16};  
-    1'b1: if (cuif.imm16[15] == 1'b0) begin 
+    1'b1: if (if_id_regif.imm16_IF_ID[15] == 1'b0) begin 
 
-            imm16_ext = {16'h0, cuif.imm16}; 
+            imm16_ext = {16'h0, if_id_regif.imm16_IF_ID}; 
           end 
           else begin 
-            imm16_ext = {16'hffff, cuif.imm16}; 
-          end 
+            imm16_ext = {16'hffff, if_id_regif.imm16_IF_ID}; 
+          end
   endcase
 end 
 endmodule

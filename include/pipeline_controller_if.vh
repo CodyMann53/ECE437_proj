@@ -31,7 +31,7 @@ interface pipeline_controller_if;
     output enable_IF_ID, flush_IF_ID, 
         enable_ID_EX, flush_ID_EX, 
         enable_EX_MEM, flush_EX_MEM, 
-        enable_MEM_WB, flush_MEM_WB, 
+        enable_MEM_WB, flush_MEM_WB
   );
 endinterface
 `endif //PIPELINE_CONTROLLER_IF_VH
