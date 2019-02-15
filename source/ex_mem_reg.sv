@@ -70,6 +70,7 @@ assign ex_mem_regif.imm16_ext_EX_MEM = imm16_ext_reg;
 assign ex_mem_regif.next_imemaddr_EX_MEM = next_imemaddr_reg; 
 assign ex_mem_regif.rdat1_EX_MEM = rdat1_reg; 
 assign ex_mem_regif.Rs_EX_MEM = rs_reg; 
+assign ex_mem_regif.instruction_EX_MEM = instruction_reg; 
 
 /********** Combination Logic Blocks ***************************/
 always_comb begin: NXT_LOGIC
@@ -130,7 +131,7 @@ always_comb begin: NXT_LOGIC
 		result_nxt = 32'd0; 
 		rdat2_nxt = 32'd0;
 		halt_nxt = 1'b0; 
-		iREN_nxt = 1'b0; 
+		iREN_nxt = 1'b1; 
 		dREN_nxt = 1'b0; 
 		dWEN_nxt = 1'b0;
 
@@ -162,7 +163,7 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		rdat2_reg <= 32'd0;
 		result_reg <= 32'd0;  
 		halt_reg <= 1'b0; 
-		iREN_reg <= 1'b0; 
+		iREN_reg <= 1'b1; 
 		dREN_reg <= 1'b0; 
 		dWEN_reg <= 1'b0; 
 

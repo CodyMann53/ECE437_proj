@@ -48,9 +48,6 @@ alu ALU (aluif);
 control_unit_if cuif(); 
 control_unit CONTROL (cuif); 
 
-request_unit_if ruif(); 
-request_unit REQUEST (CLK, nRST, ruif);
-
 register_file_if rfif(); 
 register_file REGISTER (CLK, nRST, rfif); 
 
@@ -133,7 +130,6 @@ assign id_ex_regif.imm16_IF_ID = if_id_regif.imm16_IF_ID;
 assign id_ex_regif.next_imemaddr_IF_ID = if_id_regif.next_imemaddr_IF_ID; 
 assign id_ex_regif.Rs_IF_ID = if_id_regif.Rs_IF_ID; 
 
-
 // EX stage
 // alu inputs
 assign aluif.port_b = port_b; 
@@ -164,6 +160,7 @@ assign ex_mem_regif.imm16_ID_EX = id_ex_regif.imm16_ID_EX;
 assign ex_mem_regif.imm16_ext_ID_EX = id_ex_regif.imm16_ext_ID_EX; 
 assign ex_mem_regif.next_imemaddr_ID_EX = id_ex_regif.next_imemaddr_ID_EX; 
 assign ex_mem_regif.Rs_ID_EX = id_ex_regif.Rs_ID_EX; 
+assign ex_mem_regif.rdat2 = id_ex_regif.rdat2_ID_EX; 
 
 // MEM state
 // data_path to cache signals 
@@ -173,6 +170,7 @@ assign dpif.dmemWEN = ex_mem_regif.dmemWEN;
 assign dpif.dmemREN = ex_mem_regif.dmemREN; 
 assign dpif.dmemaddr = ex_mem_regif.dmemaddr_EX_MEM; 
 assign dpif.dmemstore = ex_mem_regif.dmemstore_EX_MEM; 
+assign dpif.halt = mem_wb_regif.halt; 
 
 // MEM/WB register inputs 
 assign mem_wb_regif.enable_MEM_WB = pipeline_controllerif.enable_MEM_WB; 
@@ -197,6 +195,7 @@ assign mem_wb_regif.next_imemaddr_EX_MEM = ex_mem_regif.imemaddr_EX_MEM;
 assign mem_wb_regif.rdat1_EX_MEM = ex_mem_regif.rdat1_EX_MEM; 
 assign mem_wb_regif.Rs_EX_MEM = ex_mem_regif.Rs_EX_MEM; 
 
+
 // pipeline controller inputs 
 assign pipeline_controllerif.dhit = dpif.dhit; 
 assign pipeline_controllerif.ihit = dpif.ihit; 
@@ -214,7 +213,7 @@ always_comb begin: MUX_1
 
   casez (id_ex_regif.ALUSrc_ID_EX)
     SEL_REG_DATA: port_b = id_ex_regif.rdat2_ID_EX;  
-    SEL_IMM16: port_b = id_ex_regif.imm16_ext_ID_EX; 
+    SEL_IMM16: port_b = imm16_ext; 
   endcase
 end 
 
@@ -239,7 +238,7 @@ always_comb begin: EXTENDER
 
   // case statement for control signal 
   casez (cuif.extend) 
-    1'b0: imm16_ext = {16'h0, cuif.imm16};  
+    1'b0: imm16_ext = {16'h0, if_id_regif.imm16_IF_ID};  
     1'b1: if (if_id_regif.imm16_IF_ID[15] == 1'b0) begin 
 
             imm16_ext = {16'h0, if_id_regif.imm16_IF_ID}; 

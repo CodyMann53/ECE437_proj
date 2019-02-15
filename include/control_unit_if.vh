@@ -16,7 +16,7 @@ interface control_unit_if;
  import cpu_types_pkg::*;
  import data_path_muxs_pkg::*; 
 
-  logic WEN, extend, equal, iREN, dWEN, dREN, halt; 
+  logic WEN, extend, iREN, dWEN, dREN, halt; 
   mem_to_reg_mux_selection mem_to_reg; 
   reg_dest_mux_selection reg_dest;  
   aluop_t alu_op; 

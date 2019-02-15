@@ -50,6 +50,23 @@ always_comb begin: MUX_PC_SRC
 	cuif.PCSrc = SEL_LOAD_NXT_INSTR; 
 end 
 	
+// mux control signal logic for alu source
+always_comb begin: MUX_ALU_SRC
+
+	// assign default values to prevent latches 
+	cuif.ALUSrc = SEL_REG_DATA; 
+
+	// if certain cases where immediate value should be selected 
+	if ((cuif.opcode_IF_ID == ADDIU) | (cuif.opcode_IF_ID == ADDI) | (cuif.opcode_IF_ID == ANDI)
+		| (cuif.opcode_IF_ID == LW) | (cuif.opcode_IF_ID == ORI) | (cuif.opcode_IF_ID == SW) 
+		| (cuif.opcode_IF_ID == XORI) ) begin 
+		cuif.ALUSrc = SEL_IMM16; 
+	end 
+	else begin 
+
+		cuif.ALUSrc = SEL_REG_DATA; 
+	end 
+end
 // mux control signal logic for selecting between rd and rt for register destination
 always_comb begin: MUX_REG_DEST
 	
@@ -134,9 +151,9 @@ always_comb begin: IREN_LOGIC
 	
 	cuif.iREN = 1'b1; 
 
-	if (cuif.opcode_IF_ID == HALT) begin 
+	/*if (cuif.opcode_IF_ID == HALT) begin 
 
 		cuif.iREN = 1'b0; 
-	end
+	end*/
 end 
 endmodule

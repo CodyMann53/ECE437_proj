@@ -63,6 +63,7 @@ assign id_ex_regif.ALUSrc_ID_EX = ALUSrc_reg;
 assign id_ex_regif.rdat1_ID_EX = rdat1_reg; 
 assign id_ex_regif.rdat2_ID_EX = rdat2_reg; 
 assign id_ex_regif.imm16_ext_ID_EX = imm16_ext_reg; 
+assign id_ex_regif.PCSrc_ID_EX = PCSrc_reg; 
 
 // pass through 
 assign id_ex_regif.imemaddr_ID_EX = imemaddr_reg;
@@ -89,7 +90,8 @@ always_comb begin: NXT_LOGIC
 	ALUSrc_nxt = ALUSrc_reg;
 	rdat1_nxt = rdat1_reg; 
 	rdat2_nxt = rdat2_reg; 
-	imm16_ext_nxt = imm16_ext_reg;  
+	imm16_ext_nxt = imm16_ext_reg;
+	PCSrc_nxt = PCSrc_reg;   
 
 	// cpu pass through signals 
 	imemaddr_nxt = imemaddr_reg; 
@@ -114,6 +116,7 @@ always_comb begin: NXT_LOGIC
 		rdat1_nxt = id_ex_regif.rdat1; 
 		rdat2_nxt = id_ex_regif.rdat2; 
 		imm16_ext_nxt = id_ex_regif.imm16_ext; 
+		PCSrc_nxt = id_ex_regif.PCSrc; 
 
 		// cpu tracker signals 
 		imemaddr_nxt = id_ex_regif.imemaddr_IF_ID; 
@@ -125,7 +128,7 @@ always_comb begin: NXT_LOGIC
 		rs_nxt = id_ex_regif.Rs_IF_ID; 
 	end 
 	else if (id_ex_regif.flush_ID_EX == 1'b1) begin 
-		iREN_nxt = 1'b0; 
+		iREN_nxt = 1'b1; 
 		dREN_nxt = 1'b0; 
 		dWEN_nxt = 1'b0; 
 		halt_nxt = 1'b0; 
@@ -138,6 +141,7 @@ always_comb begin: NXT_LOGIC
 		rdat1_nxt = 32'd0; 
 		rdat2_nxt = 32'd0; 
 		imm16_ext_nxt = 32'd0;
+		PCSrc_nxt = SEL_LOAD_NXT_INSTR; 
 
 		// cpu tracker signals   
 		imemaddr_nxt = 32'd0; 
@@ -157,7 +161,7 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 	if (nRST == 1'b0) begin 
 
 		// reset the registers to zero 
-		iREN_reg <= 1'b0; 
+		iREN_reg <= 1'b1; 
 		dREN_reg <= 1'b0; 
 		dWEN_reg <= 1'b0; 
 		halt_reg <= 1'b0; 
@@ -171,6 +175,7 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		rdat2_reg <= 32'd0; 
 		imm16_ext_reg <= 32'd0;  
 		imemaddr_reg <= 32'd0; 
+		PCSrc_reg <= SEL_LOAD_NXT_INSTR;
 
 		// cpu tracker signals 
 		imemaddr_reg <= 32'd0; 
@@ -200,6 +205,7 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		rdat2_reg <= rdat2_nxt; 
 		imm16_ext_reg <= imm16_ext_nxt;  
 		imemaddr_reg <= imemaddr_nxt; 
+		PCSrc_reg <= PCSrc_nxt; 
 
 		// cpu tracker signals 
 		imemaddr_reg <= imemaddr_nxt; 
