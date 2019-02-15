@@ -75,7 +75,7 @@ module system_tb;
     // The value that was stored in memory during MEM stage
     .store_dat(DUT.CPU.DP.mem_wb_regif.dmemstore_MEM_WB),                       
     // The value selected to be written into register during WB stage
-    .reg_dat(DUT.CPU.DP.mem_wb_regif.mem_data_MEM_WB)
+    .reg_dat(DUT.CPU.DP.wdat)
   );
   
 `else

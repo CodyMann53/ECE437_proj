@@ -71,7 +71,7 @@ pipeline_controller_if pipeline_controllerif();
 pipeline_controller PIP_CONT(pipeline_controllerif); 
 
 /************************** Locac Variable definitions ***************************/
-word_t imm16_ext, port_b;
+word_t imm16_ext, port_b, wdat;
 regbits_t wsel; 
 
 /************************** glue logic ***************************/
@@ -99,9 +99,9 @@ assign cuif.func_IF_ID = if_id_regif.func_IF_ID;
 // register file inputs
 assign rfif.WEN = mem_wb_regif.WEN_MEM_WB; 
 assign rfif.wsel = wsel; 
-assign rfif.wdat = mem_wb_regif.mem_data_MEM_WB; 
-assign rfif.rsel2 = mem_wb_regif.Rt_MEM_WB; 
-assign rfif.rsel1 = mem_wb_regif.Rs_MEM_WB; 
+assign rfif.wdat = wdat; 
+assign rfif.rsel2 = if_id_regif.Rt_IF_ID; 
+assign rfif.rsel1 = if_id_regif.Rs_IF_ID; 
 
 // ID/EX register inputs 
 assign id_ex_regif.enable_ID_EX = pipeline_controllerif.enable_ID_EX; 
@@ -120,6 +120,7 @@ assign id_ex_regif.Rt_IF_ID = if_id_regif.Rt_IF_ID;
 assign id_ex_regif.rdat1 = rfif.rdat1; 
 assign id_ex_regif.rdat2 = rfif.rdat2; 
 assign id_ex_regif.imm16_ext = imm16_ext; 
+assign id_ex_regif.mem_to_reg = cuif.mem_to_reg; 
 
 // ID/EX register inputs for cpu tracker 
 assign id_ex_regif.imemaddr_IF_ID = if_id_regif.imemaddr_IF_ID; 
@@ -150,6 +151,7 @@ assign ex_mem_regif.dREN_ID_EX = id_ex_regif.dREN_ID_EX;
 assign ex_mem_regif.dWEN_ID_EX = id_ex_regif.dWEN_ID_EX; 
 assign ex_mem_regif.halt_ID_EX = id_ex_regif.halt_ID_EX;  
 assign ex_mem_regif.rdat1_ID_EX = id_ex_regif.rdat1_ID_EX; 
+assign ex_mem_regif.mem_to_reg_ID_EX = id_ex_regif.mem_to_reg_ID_EX; 
 
 // EX/MEM register inputs for cpu tracker 
 assign ex_mem_regif.imemaddr_ID_EX = id_ex_regif.imemaddr_ID_EX; 
@@ -161,6 +163,7 @@ assign ex_mem_regif.imm16_ext_ID_EX = id_ex_regif.imm16_ext_ID_EX;
 assign ex_mem_regif.next_imemaddr_ID_EX = id_ex_regif.next_imemaddr_ID_EX; 
 assign ex_mem_regif.Rs_ID_EX = id_ex_regif.Rs_ID_EX; 
 assign ex_mem_regif.rdat2 = id_ex_regif.rdat2_ID_EX; 
+ 
 
 // MEM state
 // data_path to cache signals 
@@ -182,6 +185,7 @@ assign mem_wb_regif.Rt_EX_MEM = ex_mem_regif.Rt_EX_MEM;
 assign mem_wb_regif.Rd_EX_MEM = ex_mem_regif.Rd_EX_MEM; 
 assign mem_wb_regif.dmemload = dpif.dmemload; 
 assign mem_wb_regif.halt_EX_MEM = ex_mem_regif.halt_EX_MEM; 
+assign mem_wb_regif.mem_to_reg_EX_MEM = ex_mem_regif.mem_to_reg_EX_MEM; 
 
 // MEM/WB register inputs for cpu tracker signals 
 assign mem_wb_regif.imemaddr_EX_MEM = ex_mem_regif.imemaddr_EX_MEM; 
@@ -191,7 +195,7 @@ assign mem_wb_regif.instruction_EX_MEM = ex_mem_regif.instruction_EX_MEM;
 assign mem_wb_regif.imm16_EX_MEM = ex_mem_regif.imm16_EX_MEM; 
 assign mem_wb_regif.imm16_ext_EX_MEM = ex_mem_regif.imm16_ext_EX_MEM; 
 assign mem_wb_regif.dmemstore_EX_MEM = ex_mem_regif.dmemstore_EX_MEM; 
-assign mem_wb_regif.next_imemaddr_EX_MEM = ex_mem_regif.imemaddr_EX_MEM; 
+assign mem_wb_regif.next_imemaddr_EX_MEM = ex_mem_regif.next_imemaddr_EX_MEM; 
 assign mem_wb_regif.rdat1_EX_MEM = ex_mem_regif.rdat1_EX_MEM; 
 assign mem_wb_regif.Rs_EX_MEM = ex_mem_regif.Rs_EX_MEM; 
 
@@ -213,7 +217,7 @@ always_comb begin: MUX_1
 
   casez (id_ex_regif.ALUSrc_ID_EX)
     SEL_REG_DATA: port_b = id_ex_regif.rdat2_ID_EX;  
-    SEL_IMM16: port_b = imm16_ext; 
+    SEL_IMM16: port_b = id_ex_regif.imm16_ext_ID_EX; 
   endcase
 end 
 
@@ -226,7 +230,21 @@ always_comb begin: MUX_2
   // case statement for control signal 
   casez (mem_wb_regif.reg_dest_MEM_WB)
     SEL_RD: wsel = mem_wb_regif.Rd_MEM_WB;  
-    SEL_RT:  wsel = mem_wb_regif.reg_dest_MEM_WB;  
+    SEL_RT:  wsel = mem_wb_regif.Rt_MEM_WB;  
+  endcase
+end 
+
+// This mux directs which result value should get written back to register file
+always_comb begin: MUX_3
+  
+  // set default values
+  wdat = 32'd0; 
+
+  // case statement based off of the mem_to_reg value 
+  casez (mem_wb_regif.mem_to_reg_MEM_WB)
+
+    SEL_RESULT: wdat = mem_wb_regif.result_MEM_WB; 
+    SEL_DLOAD: wdat = mem_wb_regif.mem_data_MEM_WB; 
   endcase
 end 
 

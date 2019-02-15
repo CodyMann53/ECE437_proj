@@ -29,7 +29,7 @@ interface control_unit_if;
   modport cu (
     input  opcode_IF_ID, func_IF_ID,
     output WEN, reg_dest, alu_op, ALUSrc, mem_to_reg, iREN, dWEN, dREN, 
-    PCSrc, halt, extend, imm16 
+    PCSrc, halt, extend, imm16
   );
 endinterface
 `endif //CONTROL_UNIT_IF_VH

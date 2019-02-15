@@ -31,6 +31,7 @@ interface id_ex_reg_if;
   word_t imm16_ext; 
   word_t imm16_ext_ID_EX, rdat2_ID_EX, rdat1_ID_EX; 
   regbits_t Rs_IF_ID, Rt_ID_EX, Rd_ID_EX, Rs_ID_EX; 
+  mem_to_reg_mux_selection mem_to_reg, mem_to_reg_ID_EX; 
 
   logic [15:0] imm16_IF_ID; 
 
@@ -45,9 +46,9 @@ interface id_ex_reg_if;
   // IF/ID register module ports 
   modport id_ex_reg (
     input   iREN, dWEN, dREN, ALUSrc, PCSrc, WEN, alu_op, halt, reg_dest, Rt_IF_ID, Rd_IF_ID, rdat1, rdat2, imm16_ext, enable_ID_EX, flush_ID_EX, opcode_IF_ID, func_IF_ID, imemaddr_IF_ID,
-    next_imemaddr_ID_EX, next_imemaddr_IF_ID,
+    next_imemaddr_ID_EX, next_imemaddr_IF_ID, mem_to_reg,
     output  iREN_ID_EX, dREN_ID_EX, dWEN_ID_EX, PCSrc_ID_EX, halt_ID_EX, WEN_ID_EX, reg_dest_ID_EX, alu_op_ID_EX, Rt_ID_EX, Rd_ID_EX, imemaddr_ID_EX, opcode_ID_EX, func_ID_EX, instruction_ID_EX, imm16_ID_EX,
-    ALUSrc_ID_EX, rdat1_ID_EX, rdat2_ID_EX, imm16_ext_ID_EX, Rs_ID_EX
+    ALUSrc_ID_EX, rdat1_ID_EX, rdat2_ID_EX, imm16_ext_ID_EX, Rs_ID_EX, mem_to_reg_ID_EX
   );
 endinterface
 `endif //ID_EX_REG_IF_VH

@@ -28,6 +28,7 @@ word_t result_reg, result_nxt,
 reg_dest_mux_selection reg_dest_reg, reg_dest_nxt; 
 regbits_t rt_reg, rt_nxt; 
 regbits_t rd_reg, rd_nxt; 
+mem_to_reg_mux_selection mem_to_reg_reg, mem_to_reg_nxt; 
 
 // cpu tracker variables 
 word_t imemaddr_reg, imemaddr_nxt, next_imemaddr_reg, next_imemaddr_nxt;
@@ -62,6 +63,7 @@ assign mem_wb_regif.next_imemaddr_MEM_WB = next_imemaddr_reg;
 assign mem_wb_regif.rdat1_MEM_WB = rdat1_reg; 
 assign mem_wb_regif.result_MEM_WB = result_reg; 
 assign mem_wb_regif.Rs_MEM_WB = rs_reg; 
+assign mem_wb_regif.mem_to_reg_MEM_WB = mem_to_reg_reg; 
 
 /********** Combination Logic Blocks ***************************/
 always_comb begin: NXT_LOGIC
@@ -74,6 +76,7 @@ always_comb begin: NXT_LOGIC
 	rd_nxt = rd_reg; 
 	dmemload_nxt = dmemload_reg;
 	halt_nxt = halt_reg;  
+	mem_to_reg_nxt = mem_to_reg_reg; 
 
 	// cpu tracker signals 
 	imemaddr_nxt = imemaddr_reg; 
@@ -95,6 +98,7 @@ always_comb begin: NXT_LOGIC
 		rd_nxt = mem_wb_regif.Rd_EX_MEM; 
 		dmemload_nxt = mem_wb_regif.dmemload; 
 		halt_nxt = mem_wb_regif.halt_EX_MEM; 
+		mem_to_reg_nxt = mem_wb_regif.mem_to_reg_EX_MEM; 
 
 		// cpu tracker signals 
 		imemaddr_nxt = mem_wb_regif.imemaddr_EX_MEM; 
@@ -112,10 +116,11 @@ always_comb begin: NXT_LOGIC
 		WEN_nxt = 1'b0; 
 		result_nxt = 32'd0; 
 		reg_dest_nxt = SEL_RD; 
-		rt_nxt = 5'd0; 
-		rd_nxt = 5'd0; 
+		//rt_nxt = 5'd0; 
+		//rd_nxt = 5'd0; 
 		dmemload_nxt = 32'd0; 
 		halt_nxt = 1'b0; 
+		mem_to_reg_nxt = SEL_RESULT; 
 
 		// cpu tracker signals 
 		imemaddr_nxt = 32'd0; 
@@ -127,7 +132,7 @@ always_comb begin: NXT_LOGIC
 		dmemstore_nxt = 32'd0; 
 		next_imemaddr_nxt = 32'd0; 
 		rdat1_nxt = 32'd0; 
-		rs_nxt = 5'd0; 
+		//rs_nxt = 5'd0; 
 	end 
 end 
 
@@ -145,6 +150,7 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		rd_reg <= 5'd0; 
 		dmemload_reg <= 32'd0;
 		halt_reg <= 1'b0;  
+		mem_to_reg_reg <= SEL_RESULT; 
 
 		// cpu tracker signals 
 		imemaddr_reg <= 32'd0; 
@@ -170,6 +176,7 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		rd_reg <= rd_nxt; 
 		dmemload_reg <= dmemload_nxt; 
 		halt_reg <= halt_nxt; 
+		mem_to_reg_reg <= mem_to_reg_nxt; 
 
 		// cpu tracker signals 
 		imemaddr_reg <= imemaddr_nxt; 

@@ -38,6 +38,7 @@ alu_source_mux_selection ALUSrc_reg, ALUSrc_nxt;
 word_t rdat1_reg, rdat1_nxt, 
 	   rdat2_reg, rdat2_nxt; 
 logic [15:0] imm16_ext_reg, imm16_ext_nxt; 
+mem_to_reg_mux_selection mem_to_reg_reg, mem_to_reg_nxt; 
 
 // tracker needed signals 
 word_t imemaddr_reg, imemaddr_nxt, 
@@ -73,6 +74,7 @@ assign id_ex_regif.instruction_ID_EX = instruction_reg;
 assign id_ex_regif.imm16_ID_EX = imm16_reg;
 assign id_ex_regif.next_imemaddr_ID_EX = next_imemaddr_reg;
 assign id_ex_regif.Rs_ID_EX = rs_reg;  
+assign id_ex_regif.mem_to_reg_ID_EX = mem_to_reg_reg; 
 
 /********** Combination Logic Blocks ***************************/
 always_comb begin: NXT_LOGIC
@@ -92,6 +94,7 @@ always_comb begin: NXT_LOGIC
 	rdat2_nxt = rdat2_reg; 
 	imm16_ext_nxt = imm16_ext_reg;
 	PCSrc_nxt = PCSrc_reg;   
+	mem_to_reg_nxt = mem_to_reg_reg; 
 
 	// cpu pass through signals 
 	imemaddr_nxt = imemaddr_reg; 
@@ -117,6 +120,7 @@ always_comb begin: NXT_LOGIC
 		rdat2_nxt = id_ex_regif.rdat2; 
 		imm16_ext_nxt = id_ex_regif.imm16_ext; 
 		PCSrc_nxt = id_ex_regif.PCSrc; 
+		mem_to_reg_nxt = id_ex_regif.mem_to_reg; 
 
 		// cpu tracker signals 
 		imemaddr_nxt = id_ex_regif.imemaddr_IF_ID; 
@@ -142,6 +146,7 @@ always_comb begin: NXT_LOGIC
 		rdat2_nxt = 32'd0; 
 		imm16_ext_nxt = 32'd0;
 		PCSrc_nxt = SEL_LOAD_NXT_INSTR; 
+		mem_to_reg_nxt = SEL_RESULT; 
 
 		// cpu tracker signals   
 		imemaddr_nxt = 32'd0; 
@@ -176,6 +181,7 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		imm16_ext_reg <= 32'd0;  
 		imemaddr_reg <= 32'd0; 
 		PCSrc_reg <= SEL_LOAD_NXT_INSTR;
+		mem_to_reg_reg <= SEL_RESULT; 
 
 		// cpu tracker signals 
 		imemaddr_reg <= 32'd0; 
@@ -206,6 +212,7 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		imm16_ext_reg <= imm16_ext_nxt;  
 		imemaddr_reg <= imemaddr_nxt; 
 		PCSrc_reg <= PCSrc_nxt; 
+		mem_to_reg_reg <= mem_to_reg_nxt; 
 
 		// cpu tracker signals 
 		imemaddr_reg <= imemaddr_nxt; 

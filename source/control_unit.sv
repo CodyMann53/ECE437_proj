@@ -49,7 +49,25 @@ always_comb begin: MUX_PC_SRC
 	// assign default values to prevent latches 
 	cuif.PCSrc = SEL_LOAD_NXT_INSTR; 
 end 
+
+// mux control signal combination logic 
+always_comb begin: MUX_MEM_TO_REG
 	
+	// assign default values to prevent latches
+	cuif.mem_to_reg = SEL_RESULT;
+
+	// if opcode is instruction that requires data from memroy to load 
+	if (cuif.opcode_IF_ID == LW) begin 
+
+		cuif.mem_to_reg = SEL_DLOAD; 
+	end 
+	// else just send the result back to register file 
+	else begin 
+
+		cuif.mem_to_reg = SEL_RESULT; 
+	end 
+end 
+
 // mux control signal logic for alu source
 always_comb begin: MUX_ALU_SRC
 
@@ -81,7 +99,8 @@ always_comb begin: MUX_REG_DEST
 		(cuif.opcode_IF_ID == XORI) |
 		(cuif.opcode_IF_ID == ANDI) |
 		(cuif.opcode_IF_ID == ADDI) |
-		(cuif.opcode_IF_ID == ADDIU) ) begin 
+		(cuif.opcode_IF_ID == ADDIU) | 
+		(cuif.opcode_IF_ID == SW)) begin 
 
 		// destination should be RT
 		cuif.reg_dest = SEL_RT; 
