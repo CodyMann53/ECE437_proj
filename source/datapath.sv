@@ -71,7 +71,7 @@ pipeline_controller_if pipeline_controllerif();
 pipeline_controller PIP_CONT(pipeline_controllerif); 
 
 /************************** Locac Variable definitions ***************************/
-word_t imm16_ext, port_b, wdat;
+word_t imm16_ext, port_b, wdat, rdat2;
 regbits_t wsel; 
 
 /************************** glue logic ***************************/
@@ -162,7 +162,8 @@ assign ex_mem_regif.imm16_ID_EX = id_ex_regif.imm16_ID_EX;
 assign ex_mem_regif.imm16_ext_ID_EX = id_ex_regif.imm16_ext_ID_EX; 
 assign ex_mem_regif.next_imemaddr_ID_EX = id_ex_regif.next_imemaddr_ID_EX; 
 assign ex_mem_regif.Rs_ID_EX = id_ex_regif.Rs_ID_EX; 
-assign ex_mem_regif.rdat2 = id_ex_regif.rdat2_ID_EX; 
+assign ex_mem_regif.rdat2 = rdat2; 
+
  
 
 // MEM state
@@ -256,14 +257,25 @@ always_comb begin: EXTENDER
 
   // case statement for control signal 
   casez (cuif.extend) 
-    1'b0: imm16_ext = {16'h0, if_id_regif.imm16_IF_ID};  
-    1'b1: if (if_id_regif.imm16_IF_ID[15] == 1'b0) begin 
+    2'd0: imm16_ext = {16'h0, if_id_regif.imm16_IF_ID};  
+    2'd1: if (if_id_regif.imm16_IF_ID[15] == 1'b0) begin 
 
             imm16_ext = {16'h0, if_id_regif.imm16_IF_ID}; 
           end 
           else begin 
             imm16_ext = {16'hffff, if_id_regif.imm16_IF_ID}; 
           end
+    2'd2: imm16_ext = {if_id_regif.imm16_IF_ID, 16'd0}; 
+  endcase
+end 
+
+always_comb begin: MEM_STORE
+  
+  // defalut value 
+  rdat2 = id_ex_regif.rdat2_ID_EX; 
+
+  casez (cuif.extend)
+    2'd2: rdat2 = port_b; 
   endcase
 end 
 endmodule

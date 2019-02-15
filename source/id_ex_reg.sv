@@ -37,7 +37,7 @@ regbits_t rt_reg, rt_nxt,
 alu_source_mux_selection ALUSrc_reg, ALUSrc_nxt; 
 word_t rdat1_reg, rdat1_nxt, 
 	   rdat2_reg, rdat2_nxt; 
-logic [15:0] imm16_ext_reg, imm16_ext_nxt; 
+word_t imm16_ext_reg, imm16_ext_nxt; 
 mem_to_reg_mux_selection mem_to_reg_reg, mem_to_reg_nxt; 
 
 // tracker needed signals 

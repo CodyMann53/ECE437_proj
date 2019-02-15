@@ -38,8 +38,6 @@ instr_type op_code_type;
 assign cuif.dWEN = (opcode_t'(cuif.opcode_IF_ID) == SW) ? 1'b1 : 1'b0; 
 assign cuif.dREN = ((cuif.opcode_IF_ID == LUI) | (cuif.opcode_IF_ID == LW)) ? 1'b1 : 1'b0; 
 assign cuif.WEN = ((cuif.opcode_IF_ID == J) | (cuif.opcode_IF_ID == SW) | (cuif.opcode_IF_ID == BNE) | (cuif.opcode_IF_ID == BEQ) | ( (cuif.opcode_IF_ID == RTYPE) & (cuif.func_IF_ID == JR) ) | (cuif.opcode_IF_ID == HALT)) ? 1'b0 : 1'b1; 
-assign cuif.extend = ((cuif.opcode_IF_ID == ADDIU) | (cuif.opcode_IF_ID == ADDI) | (cuif.opcode_IF_ID == LW)  | (cuif.opcode_IF_ID == BEQ) | (cuif.opcode_IF_ID == BNE)
-	| (cuif.opcode_IF_ID == SLTI) | (cuif.opcode_IF_ID == SLTIU) | (cuif.opcode_IF_ID == SW) ) ? 1'b1 : 1'b0;  
 
 /********** Combination Logic Blocks ***************************/
 
@@ -77,7 +75,7 @@ always_comb begin: MUX_ALU_SRC
 	// if certain cases where immediate value should be selected 
 	if ((cuif.opcode_IF_ID == ADDIU) | (cuif.opcode_IF_ID == ADDI) | (cuif.opcode_IF_ID == ANDI)
 		| (cuif.opcode_IF_ID == LW) | (cuif.opcode_IF_ID == ORI) | (cuif.opcode_IF_ID == SW) 
-		| (cuif.opcode_IF_ID == XORI) ) begin 
+		| (cuif.opcode_IF_ID == XORI) | (cuif.opcode_IF_ID == LUI)) begin 
 		cuif.ALUSrc = SEL_IMM16; 
 	end 
 	else begin 
@@ -174,5 +172,24 @@ always_comb begin: IREN_LOGIC
 
 		cuif.iREN = 1'b0; 
 	end*/
+end 
+
+// extend logic 
+always_comb begin: EXTEND_LOGIC
+
+	// default value
+	cuif.extend = 2'd0; 
+
+	casez (cuif.opcode_IF_ID)
+		ADDIU: cuif.extend = 2'd1; 
+		ADDI: cuif.extend = 2'd1; 
+		LW: cuif.extend = 2'd1; 
+		BEQ: cuif.extend = 2'd1; 
+		BNE: cuif.extend = 2'd1; 
+		SLTI: cuif.extend = 2'd1; 
+		SLTIU: cuif.extend = 2'd1; 
+		SW: cuif.extend = 2'd1; 
+		LUI: cuif.extend = 2'd2; 
+	endcase
 end 
 endmodule
