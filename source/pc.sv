@@ -28,6 +28,7 @@ word_t next_program_counter, program_counter, pc_incr_4;
 
 // assigning the instructin address output to the program counter
 assign pcif.imemaddr = program_counter; 
+assign pcif.next_imemaddr = next_program_counter; 
 
 // program counter + 4
 assign pc_incr_4 = program_counter + 4; 

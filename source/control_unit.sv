@@ -28,85 +28,24 @@ module control_unit
 /********** Local variable definitions ***************************/
 instr_type op_code_type; 
 
-// variables for breaking instruction apart
-opcode_t op_code_internal; // 6 bits wide
-logic [REG_W -1: 0] rs, rt, rd; // 5 bits wide
-funct_t funct; // 6 bits wide
-logic [IMM_W -1: 0] imm_16; // 16 bits wide
-logic [25:0] address; 
-
+// variables for breaking instruction apart 
 
 /********** Assign statements ***************************/
 
-// break up the instruction into its respective data sections
-assign op_code_internal = opcode_t'(cuif.instruction[31:26]);
-assign funct = funct_t'(cuif.instruction[5:0]); 
-assign rd = cuif.instruction[15:11]; 
-assign rt = cuif.instruction[20:16];
-assign rs = cuif.instruction[25:21]; 
-assign imm_16 = cuif.instruction[15:0]; 
-assign address = cuif.instruction[25:0]; 
+// break up the instruction into its respective data sections  
 
 // control signal logic equations 
-assign cuif.dWEN = (opcode_t'(op_code_internal) == SW) ? 1'b1 : 1'b0; 
-assign cuif.dREN = ((op_code_internal == LUI) | (op_code_internal == LW)) ? 1'b1 : 1'b0; 
-assign cuif.RegWr = ((op_code_internal == J) | (op_code_internal == SW) | (op_code_internal == BNE) | (op_code_internal == BEQ) | ( (op_code_internal == RTYPE) & (funct == JR) ) | (op_code_internal == HALT)) ? 1'b0 : 1'b1; 
-assign cuif.extend = ((op_code_internal == ADDIU) | (op_code_internal == ADDI) | (op_code_internal == LW)  | (op_code_internal == BEQ) | (op_code_internal == BNE)
-	| (op_code_internal == SLTI) | (op_code_internal == SLTIU) | (op_code_internal == SW) ) ? 1'b1 : 1'b0; 
-
-// directing parts of instruction to output ports 
-assign cuif.addr = address; 
-assign cuif.imm16 = imm_16; 
-assign cuif.Rt = rt; 
- 
+assign cuif.dWEN = (opcode_t'(cuif.opcode_IF_ID) == SW) ? 1'b1 : 1'b0; 
+assign cuif.dREN = ((cuif.opcode_IF_ID == LUI) | (cuif.opcode_IF_ID == LW)) ? 1'b1 : 1'b0; 
+assign cuif.WEN = ((cuif.opcode_IF_ID == J) | (cuif.opcode_IF_ID == SW) | (cuif.opcode_IF_ID == BNE) | (cuif.opcode_IF_ID == BEQ) | ( (cuif.opcode_IF_ID == RTYPE) & (cuif.func_IF_ID == JR) ) | (cuif.opcode_IF_ID == HALT)) ? 1'b0 : 1'b1; 
 
 /********** Combination Logic Blocks ***************************/
 
-// combinational block to make rd $31 in JAL, otherwise just route the value from instr
-always_comb begin: RD_LOGIC
-	// assign default value 
-	cuif.Rd = rd; 
-
-	if (op_code_internal == JAL) begin 
-		// send next program counter to the program counter register. 
-		cuif.Rd = 5'd31; 
-	end 
-end 
-
-// combination locig for rs output 
-always_comb begin: RS_LOGIC
-	// assign default value 
-	cuif.Rs = rs; 
-
-	if ((op_code_internal == RTYPE) & (funct == JR) ) begin 
-		// send program counter saved return address
-		cuif.Rs = 5'd31; 
-	end 
-end 
-
-// combination logic for determinining type of instruction
-always_comb begin: INSTRUCTION_TYPE_LOGIC
-
-	// assign default value to prevent latches 
-	op_code_type = I_TYPE; 
-
-	// if op code is all zeros 
-	if ( (cuif.instruction[31:26] & 6'b111111) == 6'd0) begin 
-
-		// instruction is R_type 
-		op_code_type = R_TYPE; 
-	end 
-	// if the top 4 bits are zero
-	else if ( (cuif.instruction[31:28] & 4'b1111) == 4'b0) begin 
-
-		// instruction is J_type 
-		op_code_type = J_TYPE; 
-	end 
-	// else the instruction is a I_TYPE 
-	else begin 
-
-		op_code_type = I_TYPE; 
-	end
+// mux control signal logic for program counter source
+always_comb begin: MUX_PC_SRC
+	
+	// assign default values to prevent latches 
+	cuif.PCSrc = SEL_LOAD_NXT_INSTR; 
 end 
 
 // mux control signal combination logic 
@@ -115,20 +54,10 @@ always_comb begin: MUX_MEM_TO_REG
 	// assign default values to prevent latches
 	cuif.mem_to_reg = SEL_RESULT;
 
-	// if opcode is instruction that requires New program counter 
-	if (op_code_internal == JAL) begin 
-
-		cuif.mem_to_reg = SEL_NPC; 
-	end 
 	// if opcode is instruction that requires data from memroy to load 
-	else if (op_code_internal == LW) begin 
+	if (cuif.opcode_IF_ID == LW) begin 
 
 		cuif.mem_to_reg = SEL_DLOAD; 
-	end 
-	// if opcode that requires imm 16 to be loaded to upper 32 bits 
-	else if (op_code_internal == LUI) begin 
-
-		cuif.mem_to_reg = SEL_IMM16_TO_UPPER_32; 
 	end 
 	// else just send the result back to register file 
 	else begin 
@@ -144,9 +73,9 @@ always_comb begin: MUX_ALU_SRC
 	cuif.ALUSrc = SEL_REG_DATA; 
 
 	// if certain cases where immediate value should be selected 
-	if ((op_code_internal == ADDIU) | (op_code_internal == ADDI) | (op_code_internal == ANDI)
-		| (op_code_internal == LW) | (op_code_internal == ORI) | (op_code_internal == SW) 
-		| (op_code_internal == XORI) ) begin 
+	if ((cuif.opcode_IF_ID == ADDIU) | (cuif.opcode_IF_ID == ADDI) | (cuif.opcode_IF_ID == ANDI)
+		| (cuif.opcode_IF_ID == LW) | (cuif.opcode_IF_ID == ORI) | (cuif.opcode_IF_ID == SW) 
+		| (cuif.opcode_IF_ID == XORI) | (cuif.opcode_IF_ID == LUI)) begin 
 		cuif.ALUSrc = SEL_IMM16; 
 	end 
 	else begin 
@@ -154,39 +83,6 @@ always_comb begin: MUX_ALU_SRC
 		cuif.ALUSrc = SEL_REG_DATA; 
 	end 
 end
-
-// mux control signal logic for program counter source
-always_comb begin: MUX_PC_SRC
-	
-	// assign default values to prevent latches 
-	cuif.PCSrc = SEL_LOAD_NXT_INSTR; 
-
-	// opcode is bequal and equal is one  
-	if ( (op_code_internal == BEQ) & (cuif.equal == 1'b1) ) begin 
-
-		cuif.PCSrc = SEL_LOAD_BR_ADDR; 
-	end 
-	// if opcode is bneq and equal is zero 
-	else if ( (op_code_internal == BNE) & (cuif.equal == 1'b0)) begin 
-
-		cuif.PCSrc = SEL_LOAD_BR_ADDR; 
-	end
-	else if ( (op_code_internal == J) | (op_code_internal == JAL)) begin 
-
-		cuif.PCSrc = SEL_LOAD_JMP_ADDR; 
-	end
-	// opcode that required pc source to be jump address
-	else if ((op_code_internal == RTYPE) & (funct == JR)) begin 
-
-		cuif.PCSrc = SEL_LOAD_JR_ADDR; 
-	end 
-	// pc should just be next instruction 
-	else begin 
-
-		cuif.PCSrc = SEL_LOAD_NXT_INSTR; 
-	end 
-end 
-	
 // mux control signal logic for selecting between rd and rt for register destination
 always_comb begin: MUX_REG_DEST
 	
@@ -194,14 +90,15 @@ always_comb begin: MUX_REG_DEST
 	cuif.reg_dest = SEL_RD; 
 
 	// If loading values from memory
-	if ((op_code_internal == LUI) | (op_code_internal == LW) | (op_code_internal == ORI) |
-		(op_code_internal == SLTI) |
-		(op_code_internal == SLTI) | 
-		(op_code_internal == SLTIU) | 
-		(op_code_internal == XORI) |
-		(op_code_internal == ANDI) |
-		(op_code_internal == ADDI) |
-		(op_code_internal == ADDIU) ) begin 
+	if ((cuif.opcode_IF_ID == LUI) | (cuif.opcode_IF_ID == LW) | (cuif.opcode_IF_ID == ORI) |
+		(cuif.opcode_IF_ID == SLTI) |
+		(cuif.opcode_IF_ID == SLTI) | 
+		(cuif.opcode_IF_ID == SLTIU) | 
+		(cuif.opcode_IF_ID == XORI) |
+		(cuif.opcode_IF_ID == ANDI) |
+		(cuif.opcode_IF_ID == ADDI) |
+		(cuif.opcode_IF_ID == ADDIU) | 
+		(cuif.opcode_IF_ID == SW)) begin 
 
 		// destination should be RT
 		cuif.reg_dest = SEL_RT; 
@@ -220,8 +117,8 @@ always_comb begin: ALU_OPERATION_SIGNAL_LOGIC
 	// If the instruction type is an Rtype  
 	if (op_code_type == R_TYPE) begin 
 
-		// will need to look at the function component of instruction
-		casez (funct)
+		// will need to look at the cuif.func_IF_IDion component of instruction
+		casez (cuif.func_IF_ID)
 
 			SLLV: 	cuif.alu_op = ALU_SLL; 
 			SRLV: 	cuif.alu_op = ALU_SRL; 
@@ -240,7 +137,7 @@ always_comb begin: ALU_OPERATION_SIGNAL_LOGIC
 	end 
 	else begin 
 
-		casez (op_code_internal)
+		casez (cuif.opcode_IF_ID)
 
 			BEQ:	cuif.alu_op = ALU_SUB; 
 			BNE:	cuif.alu_op = ALU_SUB; 
@@ -261,7 +158,7 @@ always_comb begin: HALT_LOGIC
 	// default value will be zero 
 	cuif.halt = 1'b0; 
 
-	if (op_code_internal == HALT) begin 
+	if (cuif.opcode_IF_ID == HALT) begin 
 
 		cuif.halt = 1'b1; 
 	end 
@@ -271,9 +168,28 @@ always_comb begin: IREN_LOGIC
 	
 	cuif.iREN = 1'b1; 
 
-	if (op_code_internal == HALT) begin 
+	/*if (cuif.opcode_IF_ID == HALT) begin 
 
 		cuif.iREN = 1'b0; 
-	end
+	end*/
+end 
+
+// extend logic 
+always_comb begin: EXTEND_LOGIC
+
+	// default value
+	cuif.extend = 2'd0; 
+
+	casez (cuif.opcode_IF_ID)
+		ADDIU: cuif.extend = 2'd1; 
+		ADDI: cuif.extend = 2'd1; 
+		LW: cuif.extend = 2'd1; 
+		BEQ: cuif.extend = 2'd1; 
+		BNE: cuif.extend = 2'd1; 
+		SLTI: cuif.extend = 2'd1; 
+		SLTIU: cuif.extend = 2'd1; 
+		SW: cuif.extend = 2'd1; 
+		LUI: cuif.extend = 2'd2; 
+	endcase
 end 
 endmodule
