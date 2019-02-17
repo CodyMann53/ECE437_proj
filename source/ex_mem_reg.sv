@@ -100,6 +100,11 @@ always_comb begin: NXT_LOGIC
 	rdat1_nxt = rdat1_reg;
 	rs_nxt = rs_reg;  
 
+	
+	WEN_nxt = WEN_reg; 
+	instruction_nxt = instruction_reg; 
+  
+
 	if ((ex_mem_regif.enable_EX_MEM == 1'b1) & (ex_mem_regif.flush_EX_MEM == 1'b0)) begin 
 		WEN_nxt = ex_mem_regif.WEN_ID_EX; 
 		reg_dest_nxt = ex_mem_regif.reg_dest_ID_EX; 

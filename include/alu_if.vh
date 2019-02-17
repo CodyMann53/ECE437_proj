@@ -10,9 +10,11 @@
 // all types
 `include "cpu_types_pkg.vh"
 
+// import types
+import cpu_types_pkg::*;
+
 interface alu_if;
-  // import types
-  import cpu_types_pkg::*;
+
 
   // declaring signals 
   word_t  port_a, port_b, result;
