@@ -45,7 +45,7 @@ module system_tb;
     // No need to change this
     .CLK(DUT.CPU.DP.CLK),
     // This is the enable signal for the write back stage
-    .wb_enable(DUT.CPU.DP.pipeline_controllerif.enable_MEM_WB),
+    .wb_enable(DUT.CPU.DP.huif.enable_MEM_WB),
     // The 'funct' portion of an instruction. Must be of funct_t type
     .funct(DUT.CPU.DP.mem_wb_regif.func_MEM_WB),
     // The 'opcode' portion of an instruction. Must be of opcode_t type
