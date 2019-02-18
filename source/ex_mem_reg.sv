@@ -34,7 +34,7 @@ aluop_t alu_op_reg, alu_op_nxt;
 regbits_t rt_reg, rt_nxt, 
 		  rd_reg, rd_nxt; 
 word_t result_reg, result_nxt,
-	   rdat2_reg, rdat2_nxt; 
+	   data_store_reg, data_store_nxt; 
 mem_to_reg_mux_selection mem_to_reg_reg, mem_to_reg_nxt; 
 
 // cpu tracker variables 
@@ -51,7 +51,7 @@ regbits_t rs_reg, rs_nxt;
 
 // assign the output signals to the register values 
 assign ex_mem_regif.dmemaddr_EX_MEM = result_reg; 
-assign ex_mem_regif.dmemstore_EX_MEM = rdat2_reg; 
+assign ex_mem_regif.dmemstore_EX_MEM = data_store_reg; 
 assign ex_mem_regif.result_EX_MEM = result_reg; 
 assign ex_mem_regif.WEN_EX_MEM = WEN_reg; 
 assign ex_mem_regif.reg_dest_EX_MEM = reg_dest_reg; 
@@ -83,7 +83,7 @@ always_comb begin: NXT_LOGIC
 	rt_nxt = rt_reg; 
 	rd_nxt = rd_reg; 
 	result_nxt = result_reg; 
-	rdat2_nxt = rdat2_reg; 
+	data_store_nxt = data_store_reg; 
 	halt_nxt = halt_reg; 
 	iREN_nxt = iREN_reg; 
 	dREN_nxt = dREN_reg; 
@@ -112,7 +112,7 @@ always_comb begin: NXT_LOGIC
 		rt_nxt = ex_mem_regif.Rt_ID_EX; 
 		rd_nxt = ex_mem_regif.Rd_ID_EX; 
 		result_nxt = ex_mem_regif.result; 
-		rdat2_nxt = ex_mem_regif.rdat2; 
+		data_store_nxt = ex_mem_regif.data_store; 
 		halt_nxt = ex_mem_regif.halt_ID_EX; 
 		iREN_nxt = ex_mem_regif.iREN_ID_EX; 
 		dREN_nxt = ex_mem_regif.dREN_ID_EX; 
@@ -138,7 +138,7 @@ always_comb begin: NXT_LOGIC
 		//rt_nxt = 5'd0; 
 		//rd_nxt = 5'd0; 
 		result_nxt = 32'd0; 
-		rdat2_nxt = 32'd0;
+		data_store_nxt = 32'd0;
 		halt_nxt = 1'b0; 
 		iREN_nxt = 1'b1; 
 		dREN_nxt = 1'b0; 
@@ -170,7 +170,7 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		alu_op_reg <= ALU_ADD; 
 		rt_reg <= 5'd0; 
 		rd_reg <= 5'd0; 
-		rdat2_reg <= 32'd0;
+		data_store_reg <= 32'd0;
 		result_reg <= 32'd0;  
 		halt_reg <= 1'b0; 
 		iREN_reg <= 1'b1; 
@@ -198,7 +198,7 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		alu_op_reg <= alu_op_nxt; 
 		rt_reg <= rt_nxt; 
 		rd_reg <= rd_nxt; 
-		rdat2_reg <= rdat2_nxt;
+		data_store_reg <= data_store_nxt;
 		result_reg <= result_nxt;
 		halt_reg <= halt_nxt; 
 		iREN_reg <= iREN_nxt; 

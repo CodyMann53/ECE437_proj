@@ -71,7 +71,7 @@ pipeline_controller_if pipeline_controllerif();
 pipeline_controller PIP_CONT(pipeline_controllerif); 
 
 /************************** Locac Variable definitions ***************************/
-word_t imm16_ext, port_b, wdat, rdat2;
+word_t imm16_ext, port_b, wdat, data_store;
 regbits_t wsel; 
 
 /************************** glue logic ***************************/
@@ -130,6 +130,7 @@ assign id_ex_regif.instruction_IF_ID = if_id_regif.instruction_IF_ID;
 assign id_ex_regif.imm16_IF_ID = if_id_regif.imm16_IF_ID; 
 assign id_ex_regif.next_imemaddr_IF_ID = if_id_regif.next_imemaddr_IF_ID; 
 assign id_ex_regif.Rs_IF_ID = if_id_regif.Rs_IF_ID; 
+assign id_ex_regif.extend = cuif.extend; 
 
 // EX stage
 // alu inputs
@@ -152,6 +153,8 @@ assign ex_mem_regif.dWEN_ID_EX = id_ex_regif.dWEN_ID_EX;
 assign ex_mem_regif.halt_ID_EX = id_ex_regif.halt_ID_EX;  
 assign ex_mem_regif.rdat1_ID_EX = id_ex_regif.rdat1_ID_EX; 
 assign ex_mem_regif.mem_to_reg_ID_EX = id_ex_regif.mem_to_reg_ID_EX; 
+assign ex_mem_regif.data_store = data_store; 
+
 
 // EX/MEM register inputs for cpu tracker 
 assign ex_mem_regif.imemaddr_ID_EX = id_ex_regif.imemaddr_ID_EX; 
@@ -162,7 +165,7 @@ assign ex_mem_regif.imm16_ID_EX = id_ex_regif.imm16_ID_EX;
 assign ex_mem_regif.imm16_ext_ID_EX = id_ex_regif.imm16_ext_ID_EX; 
 assign ex_mem_regif.next_imemaddr_ID_EX = id_ex_regif.next_imemaddr_ID_EX; 
 assign ex_mem_regif.Rs_ID_EX = id_ex_regif.Rs_ID_EX; 
-assign ex_mem_regif.rdat2 = rdat2; 
+
 
  
 
@@ -269,13 +272,13 @@ always_comb begin: EXTENDER
   endcase
 end 
 
-always_comb begin: MEM_STORE
+always_comb begin: MUX_4
   
   // defalut value 
-  rdat2 = id_ex_regif.rdat2_ID_EX; 
+  data_store = id_ex_regif.rdat2_ID_EX; 
 
-  casez (cuif.extend)
-    2'd2: rdat2 = port_b; 
+  casez (id_ex_regif.extend_ID_EX)
+    2'd2: data_store = port_b; 
   endcase
 end 
 endmodule
