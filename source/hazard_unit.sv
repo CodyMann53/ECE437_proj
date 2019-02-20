@@ -7,6 +7,7 @@
 
 `include "cpu_types_pkg.vh"
 `include "hazard_unit_if.vh"
+`include "data_path_muxs_pkg.vh"
 
 import cpu_types_pkg::*;
 import data_path_muxs_pkg::*; 
@@ -16,11 +17,17 @@ module hazard_unit
  	hazard_unit_if huif 
  	); 
 
+ /*
+	->Planning how implement the hazard unit for control, structural, and raw hazards with load
+	
+ /*
+
 /********** Local type definitions ***************************/
   
 /********** Local variable definitions ***************************/	
 
 /********** Assign statements ***************************/
+assign huif.PCSrc = SEL_LOAD_NXT_INSTR; 
 assign huif.enable_IF_ID = huif.ihit; 
 assign huif.enable_ID_EX = huif.ihit; 
 assign huif.enable_EX_MEM = (huif.ihit | huif.dhit); 

@@ -9,11 +9,13 @@
 
 // all types
 `include "cpu_types_pkg.vh"
+`include "data_path_muxs_pkg.vh"
+
+// import types
+import cpu_types_pkg::*; 
+import data_path_muxs_pkg::*; 
 
 interface hazard_unit_if;
-
-  // import types
-  import cpu_types_pkg::*; 
 
   // inputs
   logic ihit, dhit; 
@@ -24,6 +26,9 @@ interface hazard_unit_if;
         enable_EX_MEM, flush_EX_MEM, 
         enable_MEM_WB, flush_MEM_WB;
 
+  pc_mux_input_selection PCSrc; 
+  
+
 
   // hazard unit module ports 
   modport hazard_unit (
@@ -31,7 +36,7 @@ interface hazard_unit_if;
     output enable_IF_ID, flush_IF_ID, 
         enable_ID_EX, flush_ID_EX, 
         enable_EX_MEM, flush_EX_MEM, 
-        enable_MEM_WB, flush_MEM_WB
+        enable_MEM_WB, flush_MEM_WB, PCSrc
   );
 endinterface
 `endif //HAZARD_UNIT_IF_VH
