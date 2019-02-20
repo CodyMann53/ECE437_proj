@@ -42,7 +42,7 @@ package data_path_muxs_pkg;
   typedef enum logic [1:0] {
     SEL_RD = 2'd0, 
     SEL_RT = 2'd1, 
-    SEL_RETURN_REGISTER = 2'd2; 
+    SEL_RETURN_REGISTER = 2'd2
   }reg_dest_mux_selection; 
 
 endpackage
