@@ -35,7 +35,7 @@ always_comb begin NXT_STATE_LOGIC:
 	// default value 
 	program_counter_nxt = program_counter_reg; 
 
-	if (pcif.ihit == 1'b1) begin 
+	if ( (pcif.ihit == 1'b1) & (pcif.enable_pc == 1'b1)) begin 
 		program_counter_nxt = pcif.next_pc; 
 	end 
 end 

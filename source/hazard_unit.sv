@@ -17,11 +17,6 @@ module hazard_unit
  	hazard_unit_if huif 
  	); 
 
- /*
-	->Planning how implement the hazard unit for control, structural, and raw hazards with load
-	
- /*
-
 /********** Local type definitions ***************************/
   
 /********** Local variable definitions ***************************/	
@@ -37,5 +32,6 @@ assign huif.flush_IF_ID = 1'b0;
 assign huif.flush_ID_EX = 1'b0; 
 assign huif.flush_EX_MEM = huif.dhit; 
 assign huif.flush_MEM_WB = 1'b0; 
+assign huif.enable_pc = 1'b1; 
 
 endmodule

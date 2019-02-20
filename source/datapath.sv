@@ -83,6 +83,7 @@ word_t br_imm, branch_addr;
 // program counter inputs
 assign pcif.next_pc = next_pc; 
 assign pcif.ihit = dpif.ihit; 
+assign pcif.enable_pc = huif.enable_pc;
 
 // IF/ID register inputs 
 assign if_id_regif.instruction = dpif.imemload; 

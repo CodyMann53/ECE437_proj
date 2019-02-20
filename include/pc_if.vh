@@ -17,11 +17,11 @@ interface pc_if;
   import data_path_muxs_pkg::*; 
 
   word_t next_pc, imemaddr;
-  logic ihit;  
+  logic ihit, enable_pc;  
 
   // program counter ports 
   modport pc (
-    input ihit, next_pc, 
+    input ihit, next_pc, enable_pc, 
     output imemaddr
   );
 

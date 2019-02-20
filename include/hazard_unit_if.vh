@@ -27,6 +27,7 @@ interface hazard_unit_if;
         enable_MEM_WB, flush_MEM_WB;
 
   pc_mux_input_selection PCSrc; 
+  logic enable_pc; 
   
 
 
