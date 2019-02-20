@@ -27,7 +27,8 @@ logic iREN_reg, iREN_nxt,
       dREN_reg, dREN_nxt, 
       dWEN_reg, dWEN_nxt, 
       halt_reg, halt_nxt, 
-      WEN_reg, WEN_nxt; 
+      WEN_reg, WEN_nxt, 
+      zero_reg, zero_nxt; 
 
 reg_dest_mux_selection reg_dest_reg, reg_dest_nxt; 
 aluop_t alu_op_reg, alu_op_nxt; 
@@ -75,6 +76,7 @@ assign ex_mem_regif.rdat1_EX_MEM = rdat1_reg;
 assign ex_mem_regif.Rs_EX_MEM = rs_reg; 
 assign ex_mem_regif.instruction_EX_MEM = instruction_reg; 
 assign ex_mem_regif.mem_to_reg_EX_MEM = mem_to_reg_reg; 
+assign ex_mem_regif.zero_EX_MEM = zero_reg; 
 
 /********** Combination Logic Blocks ***************************/
 always_comb begin: NXT_LOGIC
@@ -92,6 +94,7 @@ always_comb begin: NXT_LOGIC
 	dWEN_nxt = dWEN_reg; 
 	mem_to_reg_nxt = mem_to_reg_reg; 
 	branch_addr_nxt = branch_addr_reg; 
+	zero_nxt = zero_reg; 
 
 	// cpu tracker signals 
 	imemaddr_nxt = imemaddr_reg; 
@@ -122,6 +125,7 @@ always_comb begin: NXT_LOGIC
 		dWEN_nxt = ex_mem_regif.dWEN_ID_EX; 
 		mem_to_reg_nxt = ex_mem_regif.mem_to_reg_ID_EX; 
 		branch_addr_nxt = ex_mem_regif.branch_addr; 
+		zero_nxt = ex_mem_regif.zero; 
 
 		// cpu tracker signals 
 		imemaddr_nxt = ex_mem_regif.imemaddr_ID_EX; 
@@ -149,6 +153,7 @@ always_comb begin: NXT_LOGIC
 		dWEN_nxt = 1'b0;
 		mem_to_reg_nxt = SEL_RESULT; 
 		branch_addr_nxt = 32'd0; 
+		zero_nxt = 1'b0; 
 
 		// cpu tracker signals 
 		imemaddr_nxt = 32'd0; 
@@ -183,6 +188,7 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		dWEN_reg <= 1'b0; 
 		mem_to_reg_reg <= SEL_RESULT; 
 		branch_addr_reg <= 32'd0; 
+		zero_reg <= 1'b0; 
 
 		// cpu tracker signals 
 		imemaddr_reg <= 32'd0; 
@@ -212,6 +218,7 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		dWEN_reg <= dWEN_nxt;  
 		mem_to_reg_reg <= mem_to_reg_nxt; 
 		branch_addr_reg <= branch_addr_nxt; 
+		zero_reg <= zero_nxt; 
 
 		// cpu tracker signals 
 		imemaddr_reg <= imemaddr_nxt; 

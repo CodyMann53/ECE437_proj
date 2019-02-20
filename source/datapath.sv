@@ -233,6 +233,7 @@ always_comb begin: MUX_2
   casez (mem_wb_regif.reg_dest_MEM_WB)
     SEL_RD: wsel = mem_wb_regif.Rd_MEM_WB;  
     SEL_RT:  wsel = mem_wb_regif.Rt_MEM_WB;  
+    SEL_RETURN_REGISTER: wsel = 5'd31; 
   endcase
 end 
 
