@@ -22,6 +22,7 @@
 `include "ex_mem_reg_if.vh"
 `include "mem_wb_reg_if.vh"
 `include "hazard_unit_if.vh"
+`include "foward_unit_if.vh"
 
 // control signals for mux's 
 `include "data_path_muxs_pkg.vh"
@@ -70,12 +71,16 @@ mem_wb_reg MEM_WB(CLK, nRST, mem_wb_regif);
 hazard_unit_if huif(); 
 hazard_unit HAZ_UNIT(huif); 
 
+foward_unit_if fuif();
+foward_unit FU(fuif);
+
 /************************** Locac Variable definitions ***************************/
 word_t imm16_ext, port_b, wdat, data_store;
 regbits_t wsel; 
 word_t next_imemaddr, jmp_addr, next_pc; 
 logic [27:0] jmp_addr_shifted;
-word_t br_imm, branch_addr; 
+word_t br_imm, branch_addr, jmp_return_addr; 
+word_t alu_mux_a, alu_mux_b;
 
 /************************** glue logic ***************************/
 
@@ -134,8 +139,8 @@ assign id_ex_regif.extend = cuif.extend;
 
 // EX stage
 // alu inputs
-assign aluif.port_b = port_b; 
-assign aluif.port_a = id_ex_regif.rdat1_ID_EX; 
+assign aluif.port_b = alu_mux_b; 
+assign aluif.port_a = alu_mux_a; 
 assign aluif.alu_op = id_ex_regif.alu_op_ID_EX; 
 
 // EX/MEM register inputs 
@@ -201,6 +206,11 @@ assign mem_wb_regif.next_imemaddr_EX_MEM = ex_mem_regif.next_imemaddr_EX_MEM;
 assign mem_wb_regif.rdat1_EX_MEM = ex_mem_regif.rdat1_EX_MEM; 
 assign mem_wb_regif.Rs_EX_MEM = ex_mem_regif.Rs_EX_MEM; 
 
+// Foward unit signals
+assign fuif.rs = id_ex_regif.Rs_ID_EX;
+assign fuif.rt = id_ex_regif.Rt_ID_EX;
+assign fuif.reg_wr_mem = ex_mem_regif.reg_dest_EX_MEM;
+assign fuif.reg_wr_wb = mem_wb_regif.reg_dest_MEM_WB;
 
 // pipeline controller inputs 
 assign huif.dhit = dpif.dhit; 
@@ -271,7 +281,7 @@ always_comb begin: MUX_5
 
   casez (huif.PCSrc)
     SEL_LOAD_JMP_ADDR: next_pc = jmp_addr;  
-    SEL_LOAD_JR_ADDR: next_pc = rfif.rdat1; 
+    SEL_LOAD_JR_ADDR: next_pc = jmp_return_addr; 
     SEL_LOAD_NXT_INSTR: next_pc = next_imemaddr; 
     SEL_LOAD_BR_ADDR: next_pc = ex_mem_regif.branch_addr_EX_MEM; 
   endcase
@@ -323,6 +333,63 @@ assign br_imm = id_ex_regif.imm16_ext_ID_EX << 2;
 assign next_imemaddr = pcif.imemaddr + 32'd4; 
 assign branch_addr = id_ex_regif.next_imemaddr_ID_EX + br_imm; 
 
+/************************ Jump Return ****************************/ 
+always_comb begin: JR
+   if (id_ex_regif.opcode_ID_EX == JAL)
+   begin
+      jmp_return_addr = id_ex_regif.next_imemaddr_ID_EX;
+   end
+   else if (ex_mem_regif.opcode_EX_MEM == JAL)
+   begin
+      jmp_return_addr = ex_mem_regif.next_imemaddr_EX_MEM;
+   end
+   else if (mem_wb_regif.opcode_MEM_WB == JAL)
+   begin
+      jmp_return_addr = mem_wb_regif.next_imemaddr_MEM_WB;
+   end
+   else
+   begin
+      jmp_return_addr = rfif.rdat1;
+   end
 
+/************************ ALU_MUX_A ****************************/ 
+always_comb begin: ALU_MUX_A
+   if(fuif.porta_sel == 2'b00)
+   begin
+      alu_mux_a = id_ex_regif.rdat1_ID_EX;
+   end
+   else if(fuif.porta_sel == 2'b01)
+   begin
+      alu_mux_a = ex_mem_regif.result_EX_MEM;
+   end
+   else if(fu_if.porta_sel == 2'b10)
+   begin
+      alu_mux_a = wdat;
+   end
+   else
+   begin
+      alu_mux_a = id_ex_regif.rdat1_ID_EX;
+   end
+end
+
+/************************ ALU_MUX_B ****************************/ 
+always_comb begin: ALU_MUX_B
+   if(fuif.portb_sel == 2'b00)
+   begin
+      alu_mux_b = port_b;
+   end
+   else if(fuif.portb_sel == 2'b01)
+   begin
+      alu_mux_b = ex_mem_regif.result_EX_MEM;
+   end
+   else if(fu_if.portb_sel == 2'b10)
+   begin
+      alu_mux_b = wdat;
+   end
+   else
+   begin
+      alu_mux_b = port_b;
+   end
+end
 
 endmodule
