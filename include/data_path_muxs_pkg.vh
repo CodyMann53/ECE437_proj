@@ -39,9 +39,10 @@ package data_path_muxs_pkg;
 
   // mux that selects which register value from instruction is set as
   // the destination source when writing result back to register 
-  typedef enum logic {
-    SEL_RD = 1'b0, 
-    SEL_RT = 1'b1
+  typedef enum logic [1:0] {
+    SEL_RD = 2'd0, 
+    SEL_RT = 2'd1, 
+    SEL_RETURN_REGISTER = 2'd2
   }reg_dest_mux_selection; 
 
 endpackage

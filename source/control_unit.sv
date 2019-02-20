@@ -53,15 +53,17 @@ always_comb begin: MUX_MEM_TO_REG
 	
 	// assign default values to prevent latches
 	cuif.mem_to_reg = SEL_RESULT;
-
 	// if opcode is instruction that requires data from memroy to load 
 	if (cuif.opcode_IF_ID == LW) begin 
-
 		cuif.mem_to_reg = SEL_DLOAD; 
+	end 
+	// if a jump and link 
+	else if (cuif.opcode_IF_ID == JAL) begin 
+		// send the return address to register 
+		cuif.mem_to_reg = SEL_NPC; 
 	end 
 	// else just send the result back to register file 
 	else begin 
-
 		cuif.mem_to_reg = SEL_RESULT; 
 	end 
 end 
@@ -83,7 +85,7 @@ always_comb begin: MUX_ALU_SRC
 		cuif.ALUSrc = SEL_REG_DATA; 
 	end 
 end
-// mux control signal logic for selecting between rd and rt for register destination
+// mux control signal logic for selecting between rd, rt, and return address registe for register destination
 always_comb begin: MUX_REG_DEST
 	
 	// assign default values to prevent latches 
@@ -103,8 +105,11 @@ always_comb begin: MUX_REG_DEST
 		// destination should be RT
 		cuif.reg_dest = SEL_RT; 
 	end 
+	else if (cuif.opcode_IF_ID == JAL) begin
+		// select the return address register to write 
+		cuif.reg_dest = SEL_RETURN_REGISTER; 
+	end 
 	else begin 
-
 		cuif.reg_dest = SEL_RD; 
 	end 
 end 
