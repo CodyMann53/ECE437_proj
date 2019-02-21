@@ -211,6 +211,7 @@ assign fuif.rs = id_ex_regif.Rs_ID_EX;
 assign fuif.rt = id_ex_regif.Rt_ID_EX;
 assign fuif.reg_wr_mem = fu_reg_dest_EX_MEM;
 assign fuif.reg_wr_wb = fu_reg_dest_MEM_WB;
+assign fuif.reg_dest_ID_EX = id_ex_regif.reg_dest_ID_EX; 
 
 // pipeline controller inputs 
 assign huif.dhit = dpif.dhit; 

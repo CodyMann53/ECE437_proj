@@ -8,9 +8,11 @@
 /********************** Include statements *************************/
 `include "forward_unit_if.vh"
 `include "cpu_types_pkg.vh"
+`include "data_path_muxs_pkg.vh"
 
 /********************** Import statements *************************/
 import cpu_types_pkg::*; 
+import data_path_muxs_pkg::*; 
 
 // mapped timing needs this. 1ns is too fast
 `timescale 1 ns / 1 ns
@@ -69,6 +71,7 @@ program test
                 rt, 
                 reg_wr_mem, 
                 reg_wr_wb; 
+    reg_dest_mux_selection destination; 
     logic [1:0] exp_porta_sel,  
                 exp_portb_sel; 
   } tb_testcase_vector; 
@@ -87,6 +90,7 @@ program test
                       reg_wr_wb;
     input logic [1:0] exp_porta_sel, 
                       exp_portb_sel;  
+    input reg_dest_mux_selection destination; 
     begin 
       tb_testcases[test_num].test_description = test_description; 
       tb_testcases[test_num].rs = rs; 
@@ -95,6 +99,7 @@ program test
       tb_testcases[test_num].reg_wr_wb = reg_wr_wb; 
       tb_testcases[test_num].exp_porta_sel = exp_porta_sel; 
       tb_testcases[test_num].exp_portb_sel = exp_portb_sel; 
+      tb_testcases[test_num].destination = destination; 
     end 
   endtask
 
@@ -123,7 +128,7 @@ program test
   /***************Initial Block ********************/
   initial begin
     // allocate test cases 
-    tb_testcases = new[8];
+    tb_testcases = new[10];
 
     // adding test cases for J-types
     add_testcase(0, // test_num
@@ -133,7 +138,8 @@ program test
                 5'd1, // reg_wr_mem
                 5'd4, // reg_wr_wb
                 2'd1, // exp_porta_sel 
-                2'd0 // exp_portb_sel 
+                2'd0, // exp_portb_sel 
+                SEL_RD // destination
                 );  
 
     add_testcase(1, // test_num
@@ -143,7 +149,8 @@ program test
                 5'd1, // reg_wr_mem
                 5'd4, // reg_wr_wb
                 2'd0, // exp_porta_sel 
-                2'd1 // exp_portb_sel 
+                2'd1, // exp_portb_sel 
+                SEL_RD // destination 
                 );  
 
     add_testcase(2, // test_num
@@ -153,7 +160,8 @@ program test
                 5'd1, // reg_wr_mem
                 5'd2, // reg_wr_wb
                 2'd2, // exp_porta_sel 
-                2'd0 // exp_portb_sel 
+                2'd0, // exp_portb_sel 
+                SEL_RD // destination
                 );  
 
     add_testcase(3, // test_num
@@ -163,7 +171,8 @@ program test
                 5'd1, // reg_wr_mem
                 5'd4, // reg_wr_wb
                 2'd0, // exp_porta_sel 
-                2'd2 // exp_portb_sel 
+                2'd2, // exp_portb_sel 
+                SEL_RD // destination
                 );  
 
     add_testcase(4, // test_num
@@ -173,7 +182,8 @@ program test
                 5'd6, // reg_wr_mem
                 5'd6, // reg_wr_wb
                 2'd0, // exp_porta_sel 
-                2'd0 // exp_portb_sel 
+                2'd0, // exp_portb_sel 
+                SEL_RD // destination
                 );  
 
     add_testcase(5, // test_num
@@ -183,7 +193,8 @@ program test
                 5'd6, // reg_wr_mem
                 5'd6, // reg_wr_wb
                 2'd0, // exp_porta_sel 
-                2'd0 // exp_portb_sel 
+                2'd0, // exp_portb_sel 
+                SEL_RD // destination  
                 );  
 
     add_testcase(6, // test_num
@@ -193,7 +204,8 @@ program test
                 5'd4, // reg_wr_mem
                 5'd0, // reg_wr_wb
                 2'd1, // exp_porta_sel 
-                2'd1 // exp_portb_sel 
+                2'd1, // exp_portb_sel 
+                SEL_RD // destination 
                 );  
 
     add_testcase(7, // test_num
@@ -203,7 +215,28 @@ program test
                 5'd0, // reg_wr_mem
                 5'd4, // reg_wr_wb
                 2'd2, // exp_porta_sel 
-                2'd2 // exp_portb_sel 
+                2'd2, // exp_portb_sel 
+                SEL_RD // destination
+                );  
+    add_testcase(8, // test_num
+                "Testing to make sure that the a forward does not occur when the Rt value matches but is the destination register in mem statge", // test_description
+                5'd4, // rs
+                5'd5, // rt
+                5'd5, // reg_wr_mem
+                5'd0, // reg_wr_wb
+                2'd0, // exp_porta_sel 
+                2'd0, // exp_portb_sel 
+                SEL_RT // destination
+                );  
+    add_testcase(9, // test_num
+                "Testing to make sure that the a forward does not occur when the Rt value matches but is the destination register in wb statge", // test_description
+                5'd4, // rs
+                5'd5, // rt
+                5'd6, // reg_wr_mem
+                5'd5, // reg_wr_wb
+                2'd0, // exp_porta_sel 
+                2'd0, // exp_portb_sel 
+                SEL_RT // destination
                 );  
 
 /******************* Running through test cases*************************************************/
@@ -222,6 +255,7 @@ program test
       fuif.reg_wr_wb = tb_testcases[i].reg_wr_wb; 
       fuif.rs = tb_testcases[i].rs; 
       fuif.rt = tb_testcases[i].rt; 
+      fuif.reg_dest_ID_EX = tb_testcases[i].destination; 
 
       // wait a little before checking outputs 
       #(1)

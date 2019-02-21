@@ -1,17 +1,18 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
-add wave -noupdate -expand -group {Test Information} -radix unsigned /forward_unit_tb/PROG/test_case_num
-add wave -noupdate -expand -group {Test Information} /forward_unit_tb/PROG/test_description
-add wave -noupdate -expand -group Inputs -radix decimal /forward_unit_tb/fuif/reg_wr_mem
-add wave -noupdate -expand -group Inputs -radix decimal /forward_unit_tb/fuif/reg_wr_wb
-add wave -noupdate -expand -group Inputs -radix decimal /forward_unit_tb/fuif/rs
-add wave -noupdate -expand -group Inputs -radix decimal /forward_unit_tb/fuif/rt
+add wave -noupdate -expand -group {Test Info} -radix unsigned /forward_unit_tb/PROG/test_case_num
+add wave -noupdate -expand -group {Test Info} /forward_unit_tb/PROG/test_description
+add wave -noupdate -expand -group Inputs -radix unsigned /forward_unit_tb/fuif/reg_wr_mem
+add wave -noupdate -expand -group Inputs -radix unsigned /forward_unit_tb/fuif/reg_wr_wb
+add wave -noupdate -expand -group Inputs -radix unsigned /forward_unit_tb/fuif/rs
+add wave -noupdate -expand -group Inputs -radix unsigned /forward_unit_tb/fuif/rt
+add wave -noupdate -expand -group Inputs -radix unsigned /forward_unit_tb/fuif/reg_dest_ID_EX
 add wave -noupdate -expand -group Outputs -radix unsigned /forward_unit_tb/fuif/porta_sel
 add wave -noupdate -expand -group Outputs -radix unsigned /forward_unit_tb/fuif/portb_sel
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {2 ns} 0}
+WaveRestoreCursors {{Cursor 1} {109 ns} 0}
 quietly wave cursor active 1
-configure wave -namecolwidth 150
+configure wave -namecolwidth 274
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
 configure wave -signalnamewidth 1
@@ -25,4 +26,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ns} {8 ns}
+WaveRestoreZoom {102 ns} {118 ns}
