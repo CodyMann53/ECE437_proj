@@ -1,8 +1,9 @@
 `include "cpu_types_pkg.vh"
 `include "forward_unit_if.vh"
 
+import cpu_types_pkg::*; 
 module forward_unit 
-   import cpu_types_pkg::*; 
+
    (
      forward_unit_if.fu fuif
    );
@@ -38,5 +39,4 @@ begin
       fuif.portb_sel = 2'b00;
    end
 end
-
 endmodule

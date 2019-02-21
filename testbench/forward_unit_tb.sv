@@ -53,7 +53,7 @@ endmodule
 program test
   // modports
   (
-  forwarding_unit_if fuif
+  forward_unit_if fuif
   );
 
   /***************Program local variable definitions ********************/
@@ -79,7 +79,7 @@ program test
 
   // adds a test case to the array of test cases 
   task add_testcase; 
-    input             test_num; 
+    input int             test_num; 
     input string      test_description; 
     input regbits_t   rs, 
                       rt, 
@@ -123,7 +123,7 @@ program test
   /***************Initial Block ********************/
   initial begin
     // allocate test cases 
-    tb_testcases = new[1];
+    tb_testcases = new[8];
 
     // adding test cases for J-types
     add_testcase(0, // test_num
@@ -133,7 +133,77 @@ program test
                 5'd1, // reg_wr_mem
                 5'd4, // reg_wr_wb
                 2'd1, // exp_porta_sel 
-                2'd0, // exp_portb_sel 
+                2'd0 // exp_portb_sel 
+                );  
+
+    add_testcase(1, // test_num
+                "Testing for correct forwading from mem stage into portb.", // test_description
+                5'd2, // rs
+                5'd1, // rt
+                5'd1, // reg_wr_mem
+                5'd4, // reg_wr_wb
+                2'd0, // exp_porta_sel 
+                2'd1 // exp_portb_sel 
+                );  
+
+    add_testcase(2, // test_num
+                "Testing for correct forwading from wb stage into porta.", // test_description
+                5'd2, // rs
+                5'd4, // rt
+                5'd1, // reg_wr_mem
+                5'd2, // reg_wr_wb
+                2'd2, // exp_porta_sel 
+                2'd0 // exp_portb_sel 
+                );  
+
+    add_testcase(3, // test_num
+                "Testing for correct forwaring from wb stage into portb.", // test_description
+                5'd2, // rs
+                5'd4, // rt
+                5'd1, // reg_wr_mem
+                5'd4, // reg_wr_wb
+                2'd0, // exp_porta_sel 
+                2'd2 // exp_portb_sel 
+                );  
+
+    add_testcase(4, // test_num
+                "Testing for case of no forwarding needed.", // test_description
+                5'd2, // rs
+                5'd4, // rt
+                5'd6, // reg_wr_mem
+                5'd6, // reg_wr_wb
+                2'd0, // exp_porta_sel 
+                2'd0 // exp_portb_sel 
+                );  
+
+    add_testcase(5, // test_num
+                "Testing for case of no forwarding needed.", // test_description
+                5'd2, // rs
+                5'd4, // rt
+                5'd6, // reg_wr_mem
+                5'd6, // reg_wr_wb
+                2'd0, // exp_porta_sel 
+                2'd0 // exp_portb_sel 
+                );  
+
+    add_testcase(6, // test_num
+                "Testing for case of forwarding into both registers from mem.", // test_description
+                5'd4, // rs
+                5'd4, // rt
+                5'd4, // reg_wr_mem
+                5'd0, // reg_wr_wb
+                2'd1, // exp_porta_sel 
+                2'd1 // exp_portb_sel 
+                );  
+
+    add_testcase(7, // test_num
+                "Testing for case of forwarding into both registers from wb.", // test_description
+                5'd4, // rs
+                5'd4, // rt
+                5'd0, // reg_wr_mem
+                5'd4, // reg_wr_wb
+                2'd2, // exp_porta_sel 
+                2'd2 // exp_portb_sel 
                 );  
 
 /******************* Running through test cases*************************************************/
@@ -142,7 +212,8 @@ program test
 
     // loop through all of j type instruction test cases
     for (int i = 0; i < tb_testcases.size(); i++) begin 
-
+       // wait a little time before changing input signals 
+      #(10)
       test_case_num = test_case_num + 1; 
       test_description = tb_testcases[i].test_description; 
 
@@ -153,7 +224,7 @@ program test
       fuif.rt = tb_testcases[i].rt; 
 
       // wait a little before checking outputs 
-      #(10)
+      #(1)
       check_outputs(test_description, tb_testcases[i].exp_porta_sel, tb_testcases[i].exp_portb_sel);
     end 
   end

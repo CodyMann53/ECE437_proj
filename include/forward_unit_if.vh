@@ -3,9 +3,9 @@
 
 `include "cpu_types_pkg.vh"
 
-interface forward_unit_if;
+import cpu_types_pkg::*;
 
-   import cpu_types_pkg::*;
+interface forward_unit_if;
 
    regbits_t reg_wr_mem, reg_wr_wb, rs, rt;
    logic [1:0] porta_sel, portb_sel;
@@ -22,4 +22,4 @@ interface forward_unit_if;
 
 endinterface
 
-endif
+`endif
