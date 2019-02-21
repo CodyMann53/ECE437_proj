@@ -76,7 +76,7 @@ foward_unit FU(fuif);
 
 /************************** Locac Variable definitions ***************************/
 word_t imm16_ext, port_b, wdat, data_store;
-regbits_t wsel; 
+regbits_t wsel, fu_reg_dest_EX_MEM, fu_reg_dest_MEM_WB; 
 word_t next_imemaddr, jmp_addr, next_pc; 
 logic [27:0] jmp_addr_shifted;
 word_t br_imm, branch_addr, jmp_return_addr; 
@@ -209,8 +209,8 @@ assign mem_wb_regif.Rs_EX_MEM = ex_mem_regif.Rs_EX_MEM;
 // Foward unit signals
 assign fuif.rs = id_ex_regif.Rs_ID_EX;
 assign fuif.rt = id_ex_regif.Rt_ID_EX;
-assign fuif.reg_wr_mem = ex_mem_regif.reg_dest_EX_MEM;
-assign fuif.reg_wr_wb = mem_wb_regif.reg_dest_MEM_WB;
+assign fuif.reg_wr_mem = fu_reg_dest_EX_MEM;
+assign fuif.reg_wr_wb = fu_reg_dest_MEM_WB;
 
 // pipeline controller inputs 
 assign huif.dhit = dpif.dhit; 
@@ -390,6 +390,20 @@ always_comb begin: ALU_MUX_B
    begin
       alu_mux_b = port_b;
    end
+end
+
+/****************** FORWARD_UNIT_SIGNALS **********************/ 
+always_comb begin: FU_SIGS
+   casez(ex_mem_regif.reg_dest_EX_MEM)
+      SEL_RD: fu_reg_dest_EX_MEM = ex_mem_regif.Rd_EX_MEM;
+      SEL_RT: fu_reg_dest_EX_MEM = ex_mem_regif.Rt_EX_MEM;
+   endcase
+
+   casez(mem_wb_regif.reg_dest_MEM_WB)
+      SEL_RD: fu_reg_dest_MEM_WB = mem_wb_regif.Rd_MEM_WB;
+      SEL_RT: fu_reg_dest_MEM_WB = mem_wb_regif.Rt_MEM_WB;
+   endcase
+
 end
 
 endmodule
