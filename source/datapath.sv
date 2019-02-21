@@ -22,7 +22,7 @@
 `include "ex_mem_reg_if.vh"
 `include "mem_wb_reg_if.vh"
 `include "hazard_unit_if.vh"
-`include "foward_unit_if.vh"
+`include "forward_unit_if.vh"
 
 // control signals for mux's 
 `include "data_path_muxs_pkg.vh"
@@ -71,8 +71,8 @@ mem_wb_reg MEM_WB(CLK, nRST, mem_wb_regif);
 hazard_unit_if huif(); 
 hazard_unit HAZ_UNIT(huif); 
 
-foward_unit_if fuif();
-foward_unit FU(fuif);
+forward_unit_if fuif();
+forward_unit FU(fuif);
 
 /************************** Locac Variable definitions ***************************/
 word_t imm16_ext, port_b, wdat, data_store;
@@ -334,7 +334,7 @@ assign next_imemaddr = pcif.imemaddr + 32'd4;
 assign branch_addr = id_ex_regif.next_imemaddr_ID_EX + br_imm; 
 
 /************************ Jump Return ****************************/ 
-always_comb begin: JR
+always_comb begin: RETURN_ADDR_LOGIC
    if (id_ex_regif.opcode_ID_EX == JAL)
    begin
       jmp_return_addr = id_ex_regif.next_imemaddr_ID_EX;
@@ -351,6 +351,7 @@ always_comb begin: JR
    begin
       jmp_return_addr = rfif.rdat1;
    end
+end 
 
 /************************ ALU_MUX_A ****************************/ 
 always_comb begin: ALU_MUX_A
@@ -362,7 +363,7 @@ always_comb begin: ALU_MUX_A
    begin
       alu_mux_a = ex_mem_regif.result_EX_MEM;
    end
-   else if(fu_if.porta_sel == 2'b10)
+   else if(fuif.porta_sel == 2'b10)
    begin
       alu_mux_a = wdat;
    end
@@ -382,7 +383,7 @@ always_comb begin: ALU_MUX_B
    begin
       alu_mux_b = ex_mem_regif.result_EX_MEM;
    end
-   else if(fu_if.portb_sel == 2'b10)
+   else if(fuif.portb_sel == 2'b10)
    begin
       alu_mux_b = wdat;
    end
@@ -397,15 +398,14 @@ always_comb begin: FU_SIGS
    casez(ex_mem_regif.reg_dest_EX_MEM)
       SEL_RD: fu_reg_dest_EX_MEM = ex_mem_regif.Rd_EX_MEM;
       SEL_RT: fu_reg_dest_EX_MEM = ex_mem_regif.Rt_EX_MEM;
-      SEL_RETURN_REGISTER : fu_reg_dest_EX_MEM = 5'b11111;
+      SEL_RETURN_REGISTER: fu_reg_dest_EX_MEM = 5'b11111;
    endcase
 
    casez(mem_wb_regif.reg_dest_MEM_WB)
       SEL_RD: fu_reg_dest_MEM_WB = mem_wb_regif.Rd_MEM_WB;
       SEL_RT: fu_reg_dest_MEM_WB = mem_wb_regif.Rt_MEM_WB;
-      SEL_RETURN_REGISTER : fu_reg_dest_MEM_WB = 5'b11111;
+      SEL_RETURN_REGISTER: fu_reg_dest_MEM_WB = 5'b11111;
    endcase
-
 end
 
 endmodule
