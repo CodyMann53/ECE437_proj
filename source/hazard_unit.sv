@@ -88,9 +88,10 @@ always_comb begin: PCSRC_ENABLE_AND_FLUSH_LOGIC
 	end 
 
 	// if a JAL or J instruction in IF/ID 
-	if ((huif.opcode_IF_ID == JAL) | (huif.opcode_IF_ID == J) ) begin 
+	if ((huif.opcode_IF_ID == JAL) | (huif.opcode_IF_ID == J)) begin 
 		// tell the program to go to the jump address in the next instruction
 		huif.PCSrc = SEL_LOAD_JMP_ADDR; 
+		// insert three stalls 
 	end 
 	// If a JR instruction in the IF/ID
 	else if (huif.opcode_IF_ID == JR) begin 
