@@ -397,11 +397,13 @@ always_comb begin: FU_SIGS
    casez(ex_mem_regif.reg_dest_EX_MEM)
       SEL_RD: fu_reg_dest_EX_MEM = ex_mem_regif.Rd_EX_MEM;
       SEL_RT: fu_reg_dest_EX_MEM = ex_mem_regif.Rt_EX_MEM;
+      SEL_RETURN_REGISTER : fu_reg_dest_EX_MEM = 5'b11111;
    endcase
 
    casez(mem_wb_regif.reg_dest_MEM_WB)
       SEL_RD: fu_reg_dest_MEM_WB = mem_wb_regif.Rd_MEM_WB;
       SEL_RT: fu_reg_dest_MEM_WB = mem_wb_regif.Rt_MEM_WB;
+      SEL_RETURN_REGISTER : fu_reg_dest_MEM_WB = 5'b11111;
    endcase
 
 end
