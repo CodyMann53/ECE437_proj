@@ -41,5 +41,15 @@ interface hazard_unit_if;
         enable_EX_MEM, flush_EX_MEM, 
         enable_MEM_WB, flush_MEM_WB, PCSrc
   );
+
+  // hazard unit module ports testbench
+  modport tb (
+    output ihit, dhit, zero_EX_MEM, dREN_ID_EX, opcode_EX_MEM, opcode_IF_ID, func_EX_MEM, func_IF_ID, 
+    Rt_ID_EX, Rs_IF_ID, Rt_IF_ID, 
+    input enable_IF_ID, flush_IF_ID, 
+        enable_ID_EX, flush_ID_EX, 
+        enable_EX_MEM, flush_EX_MEM, 
+        enable_MEM_WB, flush_MEM_WB, PCSrc
+  );
 endinterface
 `endif //HAZARD_UNIT_IF_VH
