@@ -75,7 +75,7 @@ forward_unit_if fuif();
 forward_unit FU(fuif);
 
 /************************** Locac Variable definitions ***************************/
-word_t imm16_ext, port_b, wdat, data_store;
+word_t imm16_ext, port_b, wdat, data_store, d_s;
 regbits_t wsel, fu_reg_dest_EX_MEM, fu_reg_dest_MEM_WB; 
 word_t next_imemaddr, jmp_addr, next_pc; 
 logic [27:0] jmp_addr_shifted;
@@ -158,7 +158,7 @@ assign ex_mem_regif.dWEN_ID_EX = id_ex_regif.dWEN_ID_EX;
 assign ex_mem_regif.halt_ID_EX = id_ex_regif.halt_ID_EX;  
 assign ex_mem_regif.rdat1_ID_EX = id_ex_regif.rdat1_ID_EX; 
 assign ex_mem_regif.mem_to_reg_ID_EX = id_ex_regif.mem_to_reg_ID_EX; 
-assign ex_mem_regif.data_store = data_store; 
+assign ex_mem_regif.data_store = d_s; 
 assign ex_mem_regif.branch_addr = branch_addr; 
 
 
@@ -287,6 +287,17 @@ always_comb begin: MUX_5
     SEL_LOAD_BR_ADDR: next_pc = ex_mem_regif.branch_addr_EX_MEM; 
   endcase
 end
+
+// mux to determine which value gets stored to memory (forward value or register file value)
+always_comb begin: MUX_6
+  // default value
+  d_s = data_store; 
+
+  casez(fuif.portb_sel) 
+    2'd1: d_s = ex_mem_regif.result_EX_MEM; 
+    2'd2: d_s = wdat; 
+  endcase
+end 
 
 // mux to determine which value is used as rs 
 always_comb begin: RSEL_1_LOGIC

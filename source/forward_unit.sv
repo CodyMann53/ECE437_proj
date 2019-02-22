@@ -9,6 +9,7 @@ module forward_unit
      forward_unit_if.fu fuif
    );
 
+
 always_comb
 begin
    if(fuif.rs == fuif.reg_wr_mem) 
@@ -27,7 +28,7 @@ end
 
 always_comb
 begin
-   if ((fuif.rt == fuif.reg_wr_mem) & (fuif.reg_dest_ID_EX != SEL_RT)) // and rt is not thhe result location for ID/EX register
+   if ((fuif.rt == fuif.reg_wr_mem) & (fuif.reg_dest_ID_EX != SEL_RT) ) // and rt is not thhe result location for ID/EX register
    begin
       fuif.portb_sel = 2'b01;
    end

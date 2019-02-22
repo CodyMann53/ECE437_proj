@@ -65,7 +65,7 @@ module system_tb;
     // The final imm/shamt signals
     // This means it should already be extended 
     .imm(DUT.CPU.DP.mem_wb_regif.imm16_ext_MEM_WB),
-    .shamt(DUT.CPU.DP.mem_wb_regif.rdat1_MEM_WB[4:0]),                       
+    .shamt(DUT.CPU.DP.mem_wb_regif.Rt_MEM_WB),                       
     // the value for lui BEFORE being being shifted
      .lui_pre_shift(DUT.CPU.DP.mem_wb_regif.imm16_MEM_WB),           
     // The branch target (aka offset added to npc)

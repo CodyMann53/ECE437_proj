@@ -37,6 +37,7 @@ module forward_unit_tb;
     .\fuif.reg_wr_wb(fuif.reg_wr_wb), 
     .\fuif.rs (fuif.rs), 
     .\fuif.rt (fuif.rt), 
+    .\fuif.opcode_ID_EX (fuif.opcode_ID_EX),
     .\fuif.porta_sel (fuif.porta_sel), 
     .\fuif.portb_sel (fuif.portb_sel)
     );
@@ -71,6 +72,7 @@ program test
                 rt, 
                 reg_wr_mem, 
                 reg_wr_wb; 
+    opcode_t    opcode_ID_EX; 
     reg_dest_mux_selection destination; 
     logic [1:0] exp_porta_sel,  
                 exp_portb_sel; 
@@ -90,7 +92,8 @@ program test
                       reg_wr_wb;
     input logic [1:0] exp_porta_sel, 
                       exp_portb_sel;  
-    input reg_dest_mux_selection destination; 
+    input reg_dest_mux_selection destination;
+    input opcode_t opcode_ID_EX;  
     begin 
       tb_testcases[test_num].test_description = test_description; 
       tb_testcases[test_num].rs = rs; 
@@ -100,6 +103,7 @@ program test
       tb_testcases[test_num].exp_porta_sel = exp_porta_sel; 
       tb_testcases[test_num].exp_portb_sel = exp_portb_sel; 
       tb_testcases[test_num].destination = destination; 
+      tb_testcases[test_num].opcode_ID_EX = opcode_ID_EX; 
     end 
   endtask
 
@@ -132,14 +136,15 @@ program test
 
     // adding test cases for J-types
     add_testcase(0, // test_num
-                "Testing for correct forwaring from mem stage into porta.", // test_description
+                "Testing for correct forwading from mem stage into porta.", // test_description
                 5'd1, // rs
                 5'd2, // rt
                 5'd1, // reg_wr_mem
                 5'd4, // reg_wr_wb
                 2'd1, // exp_porta_sel 
                 2'd0, // exp_portb_sel 
-                SEL_RD // destination
+                SEL_RD, // destination
+                ADDI // opcode_ID_EX
                 );  
 
     add_testcase(1, // test_num
@@ -150,7 +155,8 @@ program test
                 5'd4, // reg_wr_wb
                 2'd0, // exp_porta_sel 
                 2'd1, // exp_portb_sel 
-                SEL_RD // destination 
+                SEL_RD, // destination 
+                ADDI // opcode_ID_EX
                 );  
 
     add_testcase(2, // test_num
@@ -161,7 +167,8 @@ program test
                 5'd2, // reg_wr_wb
                 2'd2, // exp_porta_sel 
                 2'd0, // exp_portb_sel 
-                SEL_RD // destination
+                SEL_RD, // destination
+                ADDI // opcode_ID_EX
                 );  
 
     add_testcase(3, // test_num
@@ -172,7 +179,8 @@ program test
                 5'd4, // reg_wr_wb
                 2'd0, // exp_porta_sel 
                 2'd2, // exp_portb_sel 
-                SEL_RD // destination
+                SEL_RD, // destination
+                ADDI // opcode_ID_EX
                 );  
 
     add_testcase(4, // test_num
@@ -183,7 +191,8 @@ program test
                 5'd6, // reg_wr_wb
                 2'd0, // exp_porta_sel 
                 2'd0, // exp_portb_sel 
-                SEL_RD // destination
+                SEL_RD, // destination
+                ADDI // opcode_ID_EX
                 );  
 
     add_testcase(5, // test_num
@@ -194,7 +203,8 @@ program test
                 5'd6, // reg_wr_wb
                 2'd0, // exp_porta_sel 
                 2'd0, // exp_portb_sel 
-                SEL_RD // destination  
+                SEL_RD, // destination
+                ADDI // opcode_ID_EX  
                 );  
 
     add_testcase(6, // test_num

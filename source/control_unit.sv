@@ -18,15 +18,8 @@ module control_unit
  	); 
 
 /********** Local type definitions ***************************/
-  
- typedef enum logic [1:0] {
-    I_TYPE = 2'd0, 
-    J_TYPE = 2'd1, 
-    R_TYPE = 2'd2
-  } instr_type;
 
 /********** Local variable definitions ***************************/
-instr_type op_code_type; 
 
 // variables for breaking instruction apart 
 
@@ -99,8 +92,7 @@ always_comb begin: MUX_REG_DEST
 		(cuif.opcode_IF_ID == XORI) |
 		(cuif.opcode_IF_ID == ANDI) |
 		(cuif.opcode_IF_ID == ADDI) |
-		(cuif.opcode_IF_ID == ADDIU) | 
-		(cuif.opcode_IF_ID == SW)) begin 
+		(cuif.opcode_IF_ID == ADDIU)) begin 
 
 		// destination should be RT
 		cuif.reg_dest = SEL_RT; 
@@ -120,7 +112,7 @@ always_comb begin: ALU_OPERATION_SIGNAL_LOGIC
 	cuif.alu_op = ALU_ADD; 
 
 	// If the instruction type is an Rtype  
-	if (op_code_type == R_TYPE) begin 
+	if (cuif.opcode_IF_ID == RTYPE) begin 
 
 		// will need to look at the cuif.func_IF_IDion component of instruction
 		casez (cuif.func_IF_ID)
