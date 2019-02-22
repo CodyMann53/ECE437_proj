@@ -1,0 +1,89 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+  <title>Questa Coverage Report</title>
+  <!-- original name: _alu_tb_DUTContentFrame2.htm -->
+  <link rel="StyleSheet" media="print"  href="../css/ucdb2htmlP.css"/>
+  <link rel="StyleSheet" media="screen" href="../css/ucdb2html.css"/>
+  <link rel="StyleSheet" media="screen" href="../css/ucdb2html_newlook.css"/>
+  <script type="text/javascript" src="../scripts/jquery.js"></script>
+  <script type="text/javascript" src="../scripts/showhide.js"></script>
+  
+</head>
+<body id="ucdb2html_detail" onload="showLast()">
+  <h1><span class="strip">Questa</span> Branch Coverage Report</h1>
+  <h3>Scope: /<a href="z1643348548_2504951754_0.htm">alu_tb</a>/<a href="z1548885283_3034267599_0.htm">DUT</a></h3>
+  <!-- use script block so buttons vanish when JavaScript is disabled -->
+  <script type="text/javascript">
+  <!--
+  document.write(
+    '<table class="buttons" cellspacing="2" cellpadding="2"><tr>' +
+       '<td id="showAll" width="100" onclick="showAll()" class="button_on" ' +
+           'title="Display all coverage scopes and bins.">Show All</td>' +
+       '<td id="showCov" width="100" onclick="showCov()" class="button_off" ' +
+           'title="Display only covered scopes and bins.">Show Covered</td>' +
+       '<td id="showMis" width="100" onclick="showMis()" class="button_off" ' +
+           'title="Display only uncovered scopes and bins.">Show Missing</td>' +
+    '</tr></table>');
+  //-->
+  </script>
+  <div class="covered"><a name="cvg113"/><hr/><table>
+  <tr l="20" lnk="__HDL_srcfile_3.htm#20" z="assign aluif.zero = (aluif.result[WORD_W-1:0] &amp; 32'hFFFFFFFF) ?..." c="G" p="100.00"/><tr/>
+  <tr cr="c" t="I" l="20" lnk="__HDL_srcfile_3.htm#20" z="assign aluif.zero = (aluif.result[WORD_W-1:0] &amp; 32'hFFFFFFFF) ?..." h="15" c="g"/>
+  <tr cr="c" t="E" l="20" lnk="__HDL_srcfile_3.htm#20" z="assign aluif.zero = (aluif.result[WORD_W-1:0] &amp; 32'hFFFFFFFF) ?..." h="5" c="g"/>
+  </table>
+  </div><div class="covered"><a name="cvg114"/><hr/><table>
+  <tr l="29" lnk="__HDL_srcfile_3.htm#29" z="		if (aluif.alu_op == ALU_ADD ) begin " c="G" p="100.00"/><tr/>
+  <tr cr="c" t="I" l="29" lnk="__HDL_srcfile_3.htm#29" z="		if (aluif.alu_op == ALU_ADD ) begin " h="5" c="g"/>
+  <tr cr="c" t="A" l="29" lnk="__HDL_srcfile_3.htm#29" z="		if (aluif.alu_op == ALU_ADD ) begin " h="19" c="g"/>
+  </table>
+  </div><div class="covered"><a name="cvg115"/><hr/><table>
+  <tr l="32" lnk="__HDL_srcfile_3.htm#32" z="			if (aluif.port_a[WORD_W-1] == aluif.port_b[WORD_W-1]) begin ..." c="G" p="100.00"/><tr/>
+  <tr cr="c" t="I" l="32" lnk="__HDL_srcfile_3.htm#32" z="			if (aluif.port_a[WORD_W-1] == aluif.port_b[WORD_W-1]) begin ..." h="4" c="g"/>
+  <tr cr="c" t="A" l="32" lnk="__HDL_srcfile_3.htm#32" z="			if (aluif.port_a[WORD_W-1] == aluif.port_b[WORD_W-1]) begin ..." h="1" c="g"/>
+  </table>
+  </div><div class="covered"><a name="cvg116"/><hr/><table>
+  <tr l="35" lnk="__HDL_srcfile_3.htm#35" z="				if (aluif.result[WORD_W-1] == ~(aluif.port_b[WORD_W-1])) be..." c="G" p="100.00"/><tr/>
+  <tr cr="c" t="I" l="35" lnk="__HDL_srcfile_3.htm#35" z="				if (aluif.result[WORD_W-1] == ~(aluif.port_b[WORD_W-1])) be..." h="1" c="g"/>
+  <tr cr="c" t="A" l="35" lnk="__HDL_srcfile_3.htm#35" z="				if (aluif.result[WORD_W-1] == ~(aluif.port_b[WORD_W-1])) be..." h="3" c="g"/>
+  </table>
+  </div><div class="covered"><a name="cvg117"/><hr/><table>
+  <tr l="50" lnk="__HDL_srcfile_3.htm#50" z="	casez (aluif.alu_op)" c="G" p="100.00"/><tr/>
+  <tr cr="c" t="T" l="52" lnk="__HDL_srcfile_3.htm#52" z="		ALU_SLL: 	aluif.result =  aluif.port_b &lt;&lt; aluif.port_a[4:0];" h="1" c="g"/>
+  <tr cr="c" t="T" l="53" lnk="__HDL_srcfile_3.htm#53" z="	    ALU_SRL: 	aluif.result = aluif.port_b &gt;&gt; aluif.port_a[4:0]..." h="1" c="g"/>
+  <tr cr="c" t="T" l="54" lnk="__HDL_srcfile_3.htm#54" z="	    ALU_ADD: 	aluif.result = $signed(aluif.port_b) + $signed(a..." h="4" c="g"/>
+  <tr cr="c" t="T" l="55" lnk="__HDL_srcfile_3.htm#55" z="	    ALU_SUB:	aluif.result = $signed(aluif.port_a) - $signed(al..." h="3" c="g"/>
+  <tr cr="c" t="T" l="56" lnk="__HDL_srcfile_3.htm#56" z="	    ALU_AND: 	aluif.result = aluif.port_a &amp; aluif.port_b; " h="1" c="g"/>
+  <tr cr="c" t="T" l="57" lnk="__HDL_srcfile_3.htm#57" z="	    ALU_OR:  	aluif.result = aluif.port_a | aluif.port_b; " h="1" c="g"/>
+  <tr cr="c" t="T" l="58" lnk="__HDL_srcfile_3.htm#58" z="	    ALU_XOR: 	aluif.result = aluif.port_a ^ aluif.port_b; " h="1" c="g"/>
+  <tr cr="c" t="T" l="59" lnk="__HDL_srcfile_3.htm#59" z="	    ALU_NOR: 	aluif.result = ~(aluif.port_a | aluif.port_b); " h="1" c="g"/>
+  <tr cr="c" t="T" l="60" lnk="__HDL_srcfile_3.htm#60" z="	    ALU_SLT: 	begin " h="2" c="g"/>
+  <tr cr="c" t="T" l="68" lnk="__HDL_srcfile_3.htm#68" z="	    ALU_SLTU: 	begin" h="4" c="g"/>
+  <tr cr="e" t="A" l="50" lnk="__HDL_srcfile_3.htm#50" z="	casez (aluif.alu_op)" h="E-Hit"/>
+  </table>
+  </div><div class="covered"><a name="cvg118"/><hr/><table>
+  <tr l="61" lnk="__HDL_srcfile_3.htm#61" z="		    			if ( $signed(aluif.port_a) &lt; $signed(aluif.port_b)) be..." c="G" p="100.00"/><tr/>
+  <tr cr="c" t="I" l="61" lnk="__HDL_srcfile_3.htm#61" z="		    			if ( $signed(aluif.port_a) &lt; $signed(aluif.port_b)) be..." h="1" c="g"/>
+  <tr cr="c" t="E" l="64" lnk="__HDL_srcfile_3.htm#64" z="		    			else begin " h="1" c="g"/>
+  </table>
+  </div><div class="covered"><a name="cvg119"/><hr/><table>
+  <tr l="69" lnk="__HDL_srcfile_3.htm#69" z="		    			if (aluif.port_a &lt; aluif.port_b) begin " c="G" p="100.00"/><tr/>
+  <tr cr="c" t="I" l="69" lnk="__HDL_srcfile_3.htm#69" z="		    			if (aluif.port_a &lt; aluif.port_b) begin " h="1" c="g"/>
+  <tr cr="c" t="E" l="72" lnk="__HDL_srcfile_3.htm#72" z="		    			else begin " h="3" c="g"/>
+  </table>
+  </div><script type="text/javascript" src="../scripts/buildbranchpage.js"></script>
+  <!-- make sure jumps to last few line nos work -->
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+  
+</body>
+</html>

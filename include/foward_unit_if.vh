@@ -17,9 +17,9 @@ interface forward_unit_if;
 
    modport tb (
       output reg_wr_mem, reg_wr_wb, rs, rt,
-      input porta_sel, portb_sel      
+      input porta_sel, portb_sel    
    );
 
 endinterface
 
-endif
+`endif

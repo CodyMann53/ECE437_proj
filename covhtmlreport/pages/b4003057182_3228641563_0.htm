@@ -1,0 +1,74 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+  <title>Questa Coverage Report</title>
+  <!-- original name: _memory_control_tb_DUT_RAMContentFrame2.htm -->
+  <link rel="StyleSheet" media="print"  href="../css/ucdb2htmlP.css"/>
+  <link rel="StyleSheet" media="screen" href="../css/ucdb2html.css"/>
+  <link rel="StyleSheet" media="screen" href="../css/ucdb2html_newlook.css"/>
+  <script type="text/javascript" src="../scripts/jquery.js"></script>
+  <script type="text/javascript" src="../scripts/showhide.js"></script>
+  
+</head>
+<body id="ucdb2html_detail" onload="showLast()">
+  <h1><span class="strip">Questa</span> Branch Coverage Report</h1>
+  <h3>Scope: /<a href="z4070542341_1963698134_0.htm">memory_control_tb</a>/<a href="z4003057182_3228641563_0.htm">DUT_RAM</a></h3>
+  <!-- use script block so buttons vanish when JavaScript is disabled -->
+  <script type="text/javascript">
+  <!--
+  document.write(
+    '<table class="buttons" cellspacing="2" cellpadding="2"><tr>' +
+       '<td id="showAll" width="100" onclick="showAll()" class="button_on" ' +
+           'title="Display all coverage scopes and bins.">Show All</td>' +
+       '<td id="showCov" width="100" onclick="showCov()" class="button_off" ' +
+           'title="Display only covered scopes and bins.">Show Covered</td>' +
+       '<td id="showMis" width="100" onclick="showMis()" class="button_off" ' +
+           'title="Display only uncovered scopes and bins.">Show Missing</td>' +
+    '</tr></table>');
+  //-->
+  </script>
+  <div class="covered"><a name="cvg941"/><hr/><table>
+  <tr l="65" lnk="__HDL_srcfile_6.htm#65" z="  assign ramif.ramload = (rstate == ACCESS) ? q : BAD;" c="G" p="100.00"/><tr/>
+  <tr cr="c" t="I" l="65" lnk="__HDL_srcfile_6.htm#65" z="  assign ramif.ramload = (rstate == ACCESS) ? q : BAD;" h="54" c="g"/>
+  <tr cr="c" t="E" l="65" lnk="__HDL_srcfile_6.htm#65" z="  assign ramif.ramload = (rstate == ACCESS) ? q : BAD;" h="138" c="g"/>
+  </table>
+  </div><div class="covered"><a name="cvg942"/><hr/><table>
+  <tr l="66" lnk="__HDL_srcfile_6.htm#66" z="  assign wren = (rstate == ACCESS) ? ramif.ramWEN : 0;" c="G" p="100.00"/><tr/>
+  <tr cr="c" t="I" l="66" lnk="__HDL_srcfile_6.htm#66" z="  assign wren = (rstate == ACCESS) ? ramif.ramWEN : 0;" h="55" c="g"/>
+  <tr cr="c" t="E" l="66" lnk="__HDL_srcfile_6.htm#66" z="  assign wren = (rstate == ACCESS) ? ramif.ramWEN : 0;" h="88" c="g"/>
+  </table>
+  </div><div class="covered"><a name="cvg943"/><hr/><table>
+  <tr l="71" lnk="__HDL_srcfile_6.htm#71" z="    if (!nRST)" c="G" p="100.00"/><tr/>
+  <tr cr="c" t="I" l="71" lnk="__HDL_srcfile_6.htm#71" z="    if (!nRST)" h="7" c="g"/>
+  <tr cr="c" t="T" l="77" lnk="__HDL_srcfile_6.htm#77" z="    else if (" h="16483" c="g"/>
+  <tr cr="c" t="T" l="87" lnk="__HDL_srcfile_6.htm#87" z="    else if ((ramif.ramREN || ramif.ramWEN) &amp;&amp; count &lt; LAT)" h="49284" c="g"/>
+  <tr cr="c" t="A" l="71" lnk="__HDL_srcfile_6.htm#71" z="    if (!nRST)" h="15" c="g"/>
+  </table>
+  </div><div class="covered"><a name="cvg944"/><hr/><table>
+  <tr l="95" lnk="__HDL_srcfile_6.htm#95" z="    casez({ramif.ramWEN,ramif.ramREN,nRST})" c="G" p="100.00"/><tr/>
+  <tr cr="c" t="T" l="96" lnk="__HDL_srcfile_6.htm#96" z="      3'b00z:   rstate = FREE;" h="69" c="g"/>
+  <tr cr="c" t="T" l="97" lnk="__HDL_srcfile_6.htm#97" z="      3'b011," h="82015" c="g"/>
+  <tr cr="c" t="T" l="98" lnk="__HDL_srcfile_6.htm#98" z="      3'b101:   rstate = BUSY;" h="101" c="g"/>
+  <tr cr="e" t="T" l="99" lnk="__HDL_srcfile_6.htm#99" z="      default:  rstate = ERROR;" h="E-Hit"/>
+  </table>
+  </div><div class="covered"><a name="cvg945"/><hr/><table>
+  <tr l="101" lnk="__HDL_srcfile_6.htm#101" z="    if (!nRST || ((addr == ramif.ramaddr) &amp;&amp; ((ramif.ramREN || ..." c="G" p="100.00"/><tr/>
+  <tr cr="c" t="I" l="101" lnk="__HDL_srcfile_6.htm#101" z="    if (!nRST || ((addr == ramif.ramaddr) &amp;&amp; ((ramif.ramREN || ..." h="38" c="g"/>
+  <tr cr="c" t="A" l="101" lnk="__HDL_srcfile_6.htm#101" z="    if (!nRST || ((addr == ramif.ramaddr) &amp;&amp; ((ramif.ramREN || ..." h="82150" c="g"/>
+  </table>
+  </div><script type="text/javascript" src="../scripts/buildbranchpage.js"></script>
+  <!-- make sure jumps to last few line nos work -->
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+  
+</body>
+</html>

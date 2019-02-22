@@ -28,7 +28,11 @@ end
 
 always_comb
 begin
+<<<<<<< HEAD
    if ((fuif.rt == fuif.reg_wr_mem) & (fuif.reg_dest_ID_EX != SEL_RT) ) // and rt is not thhe result location for ID/EX register
+=======
+   if ((fuif.rt == fuif.reg_wr_mem) & (fuif.reg_dest_ID_EX != SEL_RT) & (fuif.opcode_ID_EX != SW) // and rt is not thhe result location for ID/EX register
+>>>>>>> 759729b691775e905f2f7ab8d804be64196ba2fe
    begin
       fuif.portb_sel = 2'b01;
    end
