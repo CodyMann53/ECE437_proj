@@ -132,7 +132,7 @@ program test
   /***************Initial Block ********************/
   initial begin
     // allocate test cases 
-    tb_testcases = new[10];
+    tb_testcases = new[13];
 
     // adding test cases for J-types
     add_testcase(0, // test_num
@@ -215,7 +215,8 @@ program test
                 5'd0, // reg_wr_wb
                 2'd1, // exp_porta_sel 
                 2'd1, // exp_portb_sel 
-                SEL_RD // destination 
+                SEL_RD, // destination 
+                ADDI // opcode_ID_EX
                 );  
 
     add_testcase(7, // test_num
@@ -226,7 +227,8 @@ program test
                 5'd4, // reg_wr_wb
                 2'd2, // exp_porta_sel 
                 2'd2, // exp_portb_sel 
-                SEL_RD // destination
+                SEL_RD, // destination
+                ADDI // opcode_ID_EX
                 );  
     add_testcase(8, // test_num
                 "Testing to make sure that the a forward does not occur when the Rt value matches but is the destination register in mem statge", // test_description
@@ -236,7 +238,8 @@ program test
                 5'd0, // reg_wr_wb
                 2'd0, // exp_porta_sel 
                 2'd0, // exp_portb_sel 
-                SEL_RT // destination
+                SEL_RT, // destination
+                ADDI // opcode_ID_EX
                 );  
     add_testcase(9, // test_num
                 "Testing to make sure that the a forward does not occur when the Rt value matches but is the destination register in wb statge", // test_description
@@ -246,7 +249,41 @@ program test
                 5'd5, // reg_wr_wb
                 2'd0, // exp_porta_sel 
                 2'd0, // exp_portb_sel 
-                SEL_RT // destination
+                SEL_RT, // destination
+                ADDI // opcode_ID_EX
+                );  
+    add_testcase(10, // test_num
+                "Testing to make sure that the a forward does not occur when the Rt is zero", // test_description
+                5'd4, // rs
+                5'd0, // rt
+                5'd6, // reg_wr_mem
+                5'd5, // reg_wr_wb
+                2'd0, // exp_porta_sel 
+                2'd0, // exp_portb_sel 
+                SEL_RT, // destination
+                ADDI // opcode_ID_EX
+                );  
+    add_testcase(11, // test_num
+                "Testing to make sure that the a forward does not occur when the Rs is zero", // test_description
+                5'd0, // rs
+                5'd5, // rt
+                5'd6, // reg_wr_mem
+                5'd5, // reg_wr_wb
+                2'd0, // exp_porta_sel 
+                2'd0, // exp_portb_sel 
+                SEL_RT, // destination
+                ADDI // opcode_ID_EX
+                );  
+    add_testcase(12, // test_num
+                "Testing forwarding both mem and wb but chooses mem.", // test_description
+                5'd0, // rs
+                5'd5, // rt
+                5'd5, // reg_wr_mem
+                5'd5, // reg_wr_wb
+                2'd0, // exp_porta_sel 
+                2'd1, // exp_portb_sel 
+                SEL_RD, // destination
+                ADDI // opcode_ID_EX
                 );  
 
 /******************* Running through test cases*************************************************/
@@ -266,6 +303,7 @@ program test
       fuif.rs = tb_testcases[i].rs; 
       fuif.rt = tb_testcases[i].rt; 
       fuif.reg_dest_ID_EX = tb_testcases[i].destination; 
+      fuif.opcode_ID_EX = tb_testcases[i].opcode_ID_EX; 
 
       // wait a little before checking outputs 
       #(1)

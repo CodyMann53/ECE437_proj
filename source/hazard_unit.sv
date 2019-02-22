@@ -33,12 +33,12 @@ always_comb begin: CONTROL_HAZARD_DETECTION_LOGIC
 	control_haz_flag = 1'b0; 
 
 	// if a BE and zero 
-	if ((huif.opcode_EX_MEM == BEQ) & (huif.zero_EX_MEM == 1'b1)) begin 
+	if ((huif.opcode_EX_MEM == BEQ) & (huif.zero_EX_MEM == 1)) begin 
 		// set the flag for control hazard 
 		control_haz_flag = 1'b1; 
 	end 
 	// if BNE and not zero 
-	else if ((huif.opcode_EX_MEM == BNE) & (huif.zero_EX_MEM == 1'b0)) begin 
+	else if ((huif.opcode_EX_MEM == BNE) & (huif.zero_EX_MEM == 0)) begin 
 		// set the flag for control hazard 
 		control_haz_flag = 1'b1; 
 	end 
@@ -49,7 +49,7 @@ always_comb begin: DATA_HAZARD_DETECTION_LOGIC
 	load_data_haz_flag = 1'b0; 
 
 	// If there is an occurance where loading value into register and then trying to use that value on next instruction
-	if (((huif.Rt_ID_EX == huif.Rs_IF_ID) | (huif.Rt_ID_EX == huif.Rt_IF_ID)) & (huif.dREN_ID_EX == 1'b1)) begin 
+	if (((huif.Rt_ID_EX == huif.Rs_IF_ID) | (huif.Rt_ID_EX == huif.Rt_IF_ID)) & (huif.dREN_ID_EX == 1)) begin 
 		// flag the load data hazard flag 
 		load_data_haz_flag = 1'b1; 
 	end 
@@ -69,7 +69,7 @@ always_comb begin: PCSRC_ENABLE_AND_FLUSH_LOGIC
 	huif.enable_pc = 1'b1; 
 
 	// if there is a load data hazard 
-	if ( load_data_haz_flag == 1'b1) begin 
+	if ( (load_data_haz_flag == 1'b1) & (huif.ihit == 1)) begin 
 		// hold the program counter 
 		huif.enable_pc = 1'b0; 
 
@@ -80,7 +80,7 @@ always_comb begin: PCSRC_ENABLE_AND_FLUSH_LOGIC
 		huif.enable_IF_ID = 1'b0; 
 	end 
 	// if there is a control hazard 
-	else if (control_haz_flag == 1'b1) begin 
+	else if ((control_haz_flag == 1'b1) & (huif.ihit == 1)) begin 
 		// insert 3 nops into the IF/ID, ID/EX, and EX/MEM registers 
 		huif.flush_IF_ID = 1'b1; 
 		huif.flush_ID_EX = 1'b1;

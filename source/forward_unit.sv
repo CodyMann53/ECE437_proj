@@ -12,11 +12,11 @@ module forward_unit
 
 always_comb
 begin
-   if(fuif.rs == fuif.reg_wr_mem) 
+   if((fuif.rs == fuif.reg_wr_mem) & (fuif.rs != 0)) 
    begin
       fuif.porta_sel = 2'b01;
    end
-   else if(fuif.rs == fuif.reg_wr_wb)
+   else if((fuif.rs == fuif.reg_wr_wb) & (fuif.rs != 0))
    begin
       fuif.porta_sel = 2'b10;
    end
@@ -28,11 +28,11 @@ end
 
 always_comb
 begin
-   if ((fuif.rt == fuif.reg_wr_mem) & (fuif.reg_dest_ID_EX != SEL_RT) & (fuif.opcode_ID_EX != SW)) // and rt is not thhe result location for ID/EX register
+   if ((fuif.rt == fuif.reg_wr_mem) & (fuif.reg_dest_ID_EX != SEL_RT) & (fuif.opcode_ID_EX != SW) & (fuif.rt != 0)) // and rt is not thhe result location for ID/EX register
    begin
       fuif.portb_sel = 2'b01;
    end
-   else if ((fuif.rt == fuif.reg_wr_wb) & (fuif.reg_dest_ID_EX != SEL_RT)) // and rt is not the result location for ID/EX register 
+   else if ((fuif.rt == fuif.reg_wr_wb) & (fuif.reg_dest_ID_EX != SEL_RT) & (fuif.rt != 0)) // and rt is not the result location for ID/EX register 
    begin
       fuif.portb_sel = 2'b10;
    end
@@ -44,11 +44,11 @@ end
 
 always_comb
 begin
-   if ((fuif.rt == fuif.reg_wr_mem)  & (fuif.reg_dest_ID_EX != SEL_RT)) // and rt is not thhe result location for ID/EX register
+   if ((fuif.rt == fuif.reg_wr_mem)  & (fuif.reg_dest_ID_EX != SEL_RT) & (fuif.rt != 0)) // and rt is not thhe result location for ID/EX register
    begin
       fuif.mux6_sel = 2'b01;
    end
-   else if ((fuif.rt == fuif.reg_wr_wb) & (fuif.reg_dest_ID_EX != SEL_RT)) // and rt is not the result location for ID/EX register 
+   else if ((fuif.rt == fuif.reg_wr_wb) & (fuif.reg_dest_ID_EX != SEL_RT) & (fuif.rt != 0)) // and rt is not the result location for ID/EX register 
    begin
       fuif.mux6_sel = 2'b10;
    end

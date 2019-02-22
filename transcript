@@ -1,6 +1,3 @@
-# vsim -coverage -c -do "run -all; exit;" -L altera_mf_ver -L altera_ver -L cycloneive_ver -wlf system_tb.wlf work.system_tb 
-# Start time: 00:35:29 on Feb 22,2019
-# ** Warning: (vsim-8891) All optimizations are turned off because the -novopt switch is in effect. This will cause your simulation to run very slowly. If you are using this switch to preserve visibility for Debug or PLI features please see the User's Manual section on Preserving Object Visibility with vopt.
 # //  Questa Sim-64
 # //  Version 10.3b linux_x86_64 May 29 2014
 # //
@@ -11,65 +8,23 @@
 # //  WHICH IS THE PROPERTY OF MENTOR GRAPHICS CORPORATION OR ITS
 # //  LICENSORS AND IS SUBJECT TO LICENSE TERMS.
 # //
+# vsim -coverage -do "view objects; do scripts/forward_unit.do; run -all;" -onfinish stop -L altera_mf_ver -L altera_ver -L cycloneive_ver -wlf forward_unit_tb.wlf work.forward_unit_tb 
+# Start time: 09:00:31 on Feb 22,2019
+# ** Warning: (vsim-8891) All optimizations are turned off because the -novopt switch is in effect. This will cause your simulation to run very slowly. If you are using this switch to preserve visibility for Debug or PLI features please see the User's Manual section on Preserving Object Visibility with vopt.
 # Loading sv_std.std
-# Loading work.cpu_types_pkg
-# Loading work.system_tb_sv_unit
-# Loading work.system_tb
-# Loading work.system_if
-# Loading work.test
-# Loading work.system
-# Loading work.cpu_ram_if
-# Loading work.pipeline
-# Loading work.datapath_cache_if
-# Loading work.caches_if
-# Loading work.cache_control_if
 # Loading work.data_path_muxs_pkg
-# Loading work.datapath_sv_unit
-# Loading work.datapath
-# Loading work.alu_if
-# Loading work.alu_sv_unit
-# Loading work.alu
-# Loading work.control_unit_if
-# Loading work.control_unit_sv_unit
-# Loading work.control_unit
-# Loading work.register_file_if
-# Loading work.register_file
-# Loading work.pc_if
-# Loading work.pc_sv_unit
-# Loading work.pc
-# Loading work.if_id_reg_if
-# Loading work.if_id_reg_sv_unit
-# Loading work.if_id_reg
-# Loading work.id_ex_reg_if
-# Loading work.id_ex_reg_sv_unit
-# Loading work.id_ex_reg
-# Loading work.ex_mem_reg_if
-# Loading work.ex_mem_reg_sv_unit
-# Loading work.ex_mem_reg
-# Loading work.mem_wb_reg_if
-# Loading work.mem_wb_reg_sv_unit
-# Loading work.mem_wb_reg
-# Loading work.hazard_unit_sv_unit
-# Loading work.hazard_unit_if
-# Loading work.hazard_unit
-# Loading work.forward_unit_sv_unit
+# Loading work.cpu_types_pkg
+# Loading work.forward_unit_tb_sv_unit
+# Loading work.forward_unit_tb
 # Loading work.forward_unit_if
+# Loading work.forward_unit_sv_unit
 # Loading work.forward_unit
-# Loading work.caches_sv_unit
-# Loading work.caches
-# Loading work.memory_control
-# Loading work.ram
-# Loading altera_mf_ver.altsyncram
-# Loading work.cpu_tracker_sv_unit
-# Loading work.cpu_tracker
-# Loading altera_mf_ver.altsyncram_body
-# Loading altera_mf_ver.ALTERA_DEVICE_FAMILIES
-# Loading altera_mf_ver.ALTERA_MF_MEMORY_INITIALIZATION
-# run -all
-# Starting Processor.
-# Break key hit
-# Break in Module id_ex_reg at source/id_ex_reg.sv line 82
-# Stopped at source/id_ex_reg.sv line 82
-#  exit
-# End time: 00:36:32 on Feb 22,2019, Elapsed time: 0:01:03
+# Loading work.test
+# view objects
+# .main_pane.objects.interior.cs.body.tree
+#  do scripts/forward_unit.do
+#  run -all
+# Simulation stop requested.
+# 
+# End time: 09:00:42 on Feb 22,2019, Elapsed time: 0:00:11
 # Errors: 0, Warnings: 1
