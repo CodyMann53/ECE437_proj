@@ -39,7 +39,8 @@ module forward_unit_tb;
     .\fuif.rt (fuif.rt), 
     .\fuif.opcode_ID_EX (fuif.opcode_ID_EX),
     .\fuif.porta_sel (fuif.porta_sel), 
-    .\fuif.portb_sel (fuif.portb_sel)
+    .\fuif.portb_sel (fuif.portb_sel),
+    .\fuif.mux6_sel (fuif.mux6_sel)
     );
   `endif
   /***************Assign statements ********************/
@@ -75,7 +76,8 @@ program test
     opcode_t    opcode_ID_EX; 
     reg_dest_mux_selection destination; 
     logic [1:0] exp_porta_sel,  
-                exp_portb_sel; 
+                exp_portb_sel,
+                exp_mux6_sel; 
   } tb_testcase_vector; 
 
   tb_testcase_vector tb_testcases []; 
@@ -91,7 +93,8 @@ program test
                       reg_wr_mem, 
                       reg_wr_wb;
     input logic [1:0] exp_porta_sel, 
-                      exp_portb_sel;  
+                      exp_portb_sel, 
+                      exp_mux6_sel;  
     input reg_dest_mux_selection destination;
     input opcode_t opcode_ID_EX;  
     begin 
@@ -102,6 +105,7 @@ program test
       tb_testcases[test_num].reg_wr_wb = reg_wr_wb; 
       tb_testcases[test_num].exp_porta_sel = exp_porta_sel; 
       tb_testcases[test_num].exp_portb_sel = exp_portb_sel; 
+      tb_testcases[test_num].exp_mux6_sel = exp_mux6_sel; 
       tb_testcases[test_num].destination = destination; 
       tb_testcases[test_num].opcode_ID_EX = opcode_ID_EX; 
     end 
@@ -111,7 +115,8 @@ program test
   task check_outputs; 
     input string test_description; 
     input logic [1:0] exp_porta_sel, 
-                      exp_portb_sel; 
+                      exp_portb_sel, 
+                      exp_mux6_sel; 
     begin 
       // checking porta
       if ( exp_porta_sel != fuif.porta_sel) begin 
@@ -125,6 +130,13 @@ program test
         // throw an error flag to the display 
         $display("Time: %00g ns Incorrect portb_sel for test case: %s", $time, test_description); 
         $display("Expected portb_sel: %d Actual portb_sel: %d", exp_portb_sel, fuif.portb_sel); 
+      end
+
+      // checking portb
+      if ( exp_mux6_sel != fuif.mux6_sel) begin 
+        // throw an error flag to the display 
+        $display("Time: %00g ns Incorrect mux6_sel for test case: %s", $time, test_description); 
+        $display("Expected mux6_sel: %d Actual mux6_sel: %d", exp_mux6_sel, fuif.mux6_sel); 
       end
     end 
   endtask 
@@ -143,6 +155,7 @@ program test
                 5'd4, // reg_wr_wb
                 2'd1, // exp_porta_sel 
                 2'd0, // exp_portb_sel 
+                2'd0, // exp_mux6_sel 
                 SEL_RD, // destination
                 ADDI // opcode_ID_EX
                 );  
@@ -155,6 +168,7 @@ program test
                 5'd4, // reg_wr_wb
                 2'd0, // exp_porta_sel 
                 2'd1, // exp_portb_sel 
+                2'd1, // exp_mux6_sel 
                 SEL_RD, // destination 
                 ADDI // opcode_ID_EX
                 );  
@@ -167,6 +181,7 @@ program test
                 5'd2, // reg_wr_wb
                 2'd2, // exp_porta_sel 
                 2'd0, // exp_portb_sel 
+                2'd0, // exp_mux6_sel 
                 SEL_RD, // destination
                 ADDI // opcode_ID_EX
                 );  
@@ -179,6 +194,7 @@ program test
                 5'd4, // reg_wr_wb
                 2'd0, // exp_porta_sel 
                 2'd2, // exp_portb_sel 
+                2'd2, // exp_mux6_sel 
                 SEL_RD, // destination
                 ADDI // opcode_ID_EX
                 );  
@@ -191,6 +207,7 @@ program test
                 5'd6, // reg_wr_wb
                 2'd0, // exp_porta_sel 
                 2'd0, // exp_portb_sel 
+                2'd0, // exp_mux6_sel 
                 SEL_RD, // destination
                 ADDI // opcode_ID_EX
                 );  
@@ -203,6 +220,7 @@ program test
                 5'd6, // reg_wr_wb
                 2'd0, // exp_porta_sel 
                 2'd0, // exp_portb_sel 
+                2'd0, // exp_mux6_sel 
                 SEL_RD, // destination
                 ADDI // opcode_ID_EX  
                 );  
@@ -215,7 +233,9 @@ program test
                 5'd0, // reg_wr_wb
                 2'd1, // exp_porta_sel 
                 2'd1, // exp_portb_sel 
-                SEL_RD // destination 
+                2'd1, // exp_mux6_sel 
+                SEL_RD, // destination 
+                ADDI // opcode_ID_EX  
                 );  
 
     add_testcase(7, // test_num
@@ -226,7 +246,9 @@ program test
                 5'd4, // reg_wr_wb
                 2'd2, // exp_porta_sel 
                 2'd2, // exp_portb_sel 
-                SEL_RD // destination
+                2'd2, // exp_mux6_sel 
+                SEL_RD, // destination
+                ADDI // opcode_ID_EX  
                 );  
     add_testcase(8, // test_num
                 "Testing to make sure that the a forward does not occur when the Rt value matches but is the destination register in mem statge", // test_description
@@ -236,7 +258,9 @@ program test
                 5'd0, // reg_wr_wb
                 2'd0, // exp_porta_sel 
                 2'd0, // exp_portb_sel 
-                SEL_RT // destination
+                2'd0, // exp_mux6_sel 
+                SEL_RT, // destination
+                ADDI // opcode_ID_EX  
                 );  
     add_testcase(9, // test_num
                 "Testing to make sure that the a forward does not occur when the Rt value matches but is the destination register in wb statge", // test_description
@@ -246,7 +270,9 @@ program test
                 5'd5, // reg_wr_wb
                 2'd0, // exp_porta_sel 
                 2'd0, // exp_portb_sel 
-                SEL_RT // destination
+                2'd0, // exp_mux6_sel 
+                SEL_RT, // destination
+                ADDI // opcode_ID_EX  
                 );  
 
 /******************* Running through test cases*************************************************/
@@ -264,12 +290,13 @@ program test
       fuif.reg_wr_mem = tb_testcases[i].reg_wr_mem; 
       fuif.reg_wr_wb = tb_testcases[i].reg_wr_wb; 
       fuif.rs = tb_testcases[i].rs; 
-      fuif.rt = tb_testcases[i].rt; 
+      fuif.rt = tb_testcases[i].rt;
+      fuif.opcode_ID_EX = tb_testcases[i].opcode_ID_EX;  
       fuif.reg_dest_ID_EX = tb_testcases[i].destination; 
 
       // wait a little before checking outputs 
       #(1)
-      check_outputs(test_description, tb_testcases[i].exp_porta_sel, tb_testcases[i].exp_portb_sel);
+      check_outputs(test_description, tb_testcases[i].exp_porta_sel, tb_testcases[i].exp_portb_sel, tb_testcases[i].exp_mux6_sel);
     end 
   end
 endprogram
