@@ -90,13 +90,20 @@ always_comb begin: NXT_LOGIC
 	rdat1_nxt = rdat1_reg; 
 	rs_nxt = rs_reg; 
 
+	if (mem_wb_regif.dhit == 1)begin 
+		dmemload_nxt = mem_wb_regif.dmemload;
+	end  
+
+	if ( WEN_reg == 1'b1) begin 
+		WEN_nxt = 1'b0; 
+	end 
+
 	if ((mem_wb_regif.enable_MEM_WB == 1'b1) & (mem_wb_regif.flush_MEM_WB == 1'b0)) begin 
 		WEN_nxt = mem_wb_regif.WEN_EX_MEM; 
 		result_nxt = mem_wb_regif.result_EX_MEM; 
 		reg_dest_nxt = mem_wb_regif.reg_dest_EX_MEM; 
 		rt_nxt = mem_wb_regif.Rt_EX_MEM; 
 		rd_nxt = mem_wb_regif.Rd_EX_MEM; 
-		dmemload_nxt = mem_wb_regif.dmemload; 
 		halt_nxt = mem_wb_regif.halt_EX_MEM; 
 		mem_to_reg_nxt = mem_wb_regif.mem_to_reg_EX_MEM; 
 
@@ -113,13 +120,12 @@ always_comb begin: NXT_LOGIC
 		rs_nxt = mem_wb_regif.Rs_EX_MEM; 
 	end 
 	else if (mem_wb_regif.flush_MEM_WB == 1'b1) begin 
-		WEN_nxt = 1'b0; 
 		result_nxt = 32'd0; 
 		reg_dest_nxt = SEL_RD; 
 		//rt_nxt = 5'd0; 
 		//rd_nxt = 5'd0; 
-		dmemload_nxt = 32'd0; 
 		halt_nxt = 1'b0; 
+		dmemload_nxt = 32'd0; 
 		mem_to_reg_nxt = SEL_RESULT; 
 
 		// cpu tracker signals 

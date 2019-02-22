@@ -171,6 +171,7 @@ assign ex_mem_regif.imm16_ext_ID_EX = id_ex_regif.imm16_ext_ID_EX;
 assign ex_mem_regif.next_imemaddr_ID_EX = id_ex_regif.next_imemaddr_ID_EX; 
 assign ex_mem_regif.Rs_ID_EX = id_ex_regif.Rs_ID_EX;
 assign ex_mem_regif.zero = aluif.zero;  
+assign ex_mem_regif.dhit = dpif.dhit; 
 
 // MEM state
 // data_path to cache signals 
@@ -193,6 +194,7 @@ assign mem_wb_regif.Rd_EX_MEM = ex_mem_regif.Rd_EX_MEM;
 assign mem_wb_regif.dmemload = dpif.dmemload; 
 assign mem_wb_regif.halt_EX_MEM = ex_mem_regif.halt_EX_MEM; 
 assign mem_wb_regif.mem_to_reg_EX_MEM = ex_mem_regif.mem_to_reg_EX_MEM; 
+assign mem_wb_regif.dhit = dpif.dhit; 
 
 // MEM/WB register inputs for cpu tracker signals 
 assign mem_wb_regif.imemaddr_EX_MEM = ex_mem_regif.imemaddr_EX_MEM; 

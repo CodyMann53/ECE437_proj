@@ -18,7 +18,7 @@ interface ex_mem_reg_if;
   import data_path_muxs_pkg::*; 
 
   // inputs 
-  logic WEN_ID_EX, enable_EX_MEM, flush_EX_MEM, iREN_ID_EX, dREN_ID_EX, dWEN_ID_EX, halt_ID_EX, zero; 
+  logic WEN_ID_EX, enable_EX_MEM, flush_EX_MEM, iREN_ID_EX, dREN_ID_EX, dWEN_ID_EX, halt_ID_EX, zero, dhit; 
   reg_dest_mux_selection reg_dest_ID_EX; 
   aluop_t alu_op_ID_EX; 
   regbits_t Rt_ID_EX, Rd_ID_EX; 
@@ -58,7 +58,7 @@ interface ex_mem_reg_if;
   modport ex_mem_reg (
     input WEN_ID_EX, reg_dest_ID_EX, alu_op_ID_EX, Rt_ID_EX, Rd_ID_EX, result, enable_EX_MEM, flush_EX_MEM, data_store, imemaddr_ID_EX, opcode_ID_EX, func_ID_EX, instruction_ID_EX, imm16_ID_EX, imm16_ext_ID_EX, 
     next_imemaddr_ID_EX, rdat1_ID_EX, Rs_ID_EX, mem_to_reg_ID_EX,
-    branch_addr, zero, 
+    branch_addr, zero, dhit, 
     output dmemaddr_EX_MEM, dmemstore_EX_MEM, result_EX_MEM, WEN_EX_MEM, reg_dest_EX_MEM, Rt_EX_MEM, Rd_EX_MEM, dREN_ID_EX, dWEN_ID_EX, iREN_ID_EX, halt_ID_EX, 
     imemaddr_EX_MEM, opcode_EX_MEM, func_EX_MEM, instruction_EX_MEM, imm16_EX_MEM, imm16_ext_EX_MEM, next_imemaddr_EX_MEM, rdat1_EX_MEM, Rs_EX_MEM, mem_to_reg_EX_MEM, 
     branch_addr_EX_MEM, zero_EX_MEM

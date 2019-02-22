@@ -160,7 +160,7 @@ always_comb begin: NXT_LOGIC
 		instruction_nxt = 32'd0; 
 		imm16_nxt = 16'd0; 
 		next_imemaddr_nxt = 32'd0; 
-		rs_nxt <= 5'd0; 
+		rs_nxt = 5'd0; 
 	end 
 end 
 

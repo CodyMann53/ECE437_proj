@@ -105,11 +105,17 @@ always_comb begin: NXT_LOGIC
 	next_imemaddr_nxt = next_imemaddr_reg; 
 	rdat1_nxt = rdat1_reg;
 	rs_nxt = rs_reg;  
-
-	
 	WEN_nxt = WEN_reg; 
 	instruction_nxt = instruction_reg; 
-  
+
+	if (ex_mem_regif.enable_EX_MEM == 1) begin 
+		dREN_nxt = ex_mem_regif.dREN_ID_EX; 
+		dWEN_nxt = ex_mem_regif.dWEN_ID_EX; 
+	end 
+	else if (ex_mem_regif.dhit == 1) begin 
+		dREN_nxt = 1'b0; 
+		dWEN_nxt = 1'b0;
+	end 
 
 	if ((ex_mem_regif.enable_EX_MEM == 1'b1) & (ex_mem_regif.flush_EX_MEM == 1'b0)) begin 
 		WEN_nxt = ex_mem_regif.WEN_ID_EX; 
@@ -121,8 +127,6 @@ always_comb begin: NXT_LOGIC
 		data_store_nxt = ex_mem_regif.data_store; 
 		halt_nxt = ex_mem_regif.halt_ID_EX; 
 		iREN_nxt = ex_mem_regif.iREN_ID_EX; 
-		dREN_nxt = ex_mem_regif.dREN_ID_EX; 
-		dWEN_nxt = ex_mem_regif.dWEN_ID_EX; 
 		mem_to_reg_nxt = ex_mem_regif.mem_to_reg_ID_EX; 
 		branch_addr_nxt = ex_mem_regif.branch_addr; 
 		zero_nxt = ex_mem_regif.zero; 
@@ -149,8 +153,6 @@ always_comb begin: NXT_LOGIC
 		data_store_nxt = 32'd0;
 		halt_nxt = 1'b0; 
 		iREN_nxt = 1'b1; 
-		dREN_nxt = 1'b0; 
-		dWEN_nxt = 1'b0;
 		mem_to_reg_nxt = SEL_RESULT; 
 		branch_addr_nxt = 32'd0; 
 		zero_nxt = 1'b0; 
