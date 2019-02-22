@@ -1864,3 +1864,225 @@ processing file asmFiles/test.ldst1.asm (2 of 5)
 processing file asmFiles/test.ldst2.asm (3 of 5)
 processing file asmFiles/test.loadstore.asm (4 of 5)
 processing file asmFiles/test.rtype.asm (5 of 5)
+processing file asmFiles/mergesort.asm (1 of 1)
+processing file asmFiles/fib.asm (1 of 1)
+--- memsim.hex	2019-02-21 20:48:31.683632267 -0500
++++ memcpu.hex	2019-02-21 20:48:31.640631013 -0500
+@@ -12,27 +12,16 @@
+ :04000B0015E0FFF904
+ :04000C00FFFFFFFFF4
+ :0400210000000001DA
+-:0400220000000001D9
+-:0400230000000002D7
+-:0400240000000003D5
+-:0400250000000005D2
+-:0400260000000008CE
+-:040027000000000DC8
+-:0400280000000015BF
+-:0400290000000022B1
+-:04002A00000000379B
+-:04002B000000005978
+-:04002C000000009040
+-:04002D00000000E9E6
+-:04002E000000017954
+-:04002F000000026269
+-:04003000000003DBEE
+-:040031000000063D88
+-:0400320000000A18A8
+-:040033000000105564
+-:0400340000001A6D41
+-:0400350000002AC2DB
+-:040036000000452F52
+-:0400370000006FF165
++:0400230000000001D8
++:0400250000000001D6
++:0400270000000001D4
++:0400290000000001D2
++:04002B0000000001D0
++:04002D0000000001CE
++:04002F0000000001CC
++:0400310000000001CA
++:0400330000000001C8
++:0400350000000001C6
++:0400370000000001C4
+ :0403C0000000001623
+ :00000001FF
+processing file asmFiles/unitTest_branchInstructions.asm (1 of 6)
+processing file asmFiles/unitTest_control_hazard.asm (2 of 6)
+processing file asmFiles/unitTest_halt.asm (3 of 6)
+processing file asmFiles/unitTest_jumpInstructions.asm (4 of 6)
+processing file asmFiles/unitTest_raw_hazard_nsolv.asm (5 of 6)
+processing file asmFiles/unitTest_raw_hazard_solv.asm (6 of 6)
+processing file asmFiles/test.branchjump1.asm (1 of 5)
+processing file asmFiles/test.ldst1.asm (2 of 5)
+processing file asmFiles/test.ldst2.asm (3 of 5)
+processing file asmFiles/test.loadstore.asm (4 of 5)
+processing file asmFiles/test.rtype.asm (5 of 5)
+processing file asmFiles/test.branchjump1.asm (1 of 5)
+processing file asmFiles/test.ldst1.asm (2 of 5)
+processing file asmFiles/test.branchjump1.asm (1 of 5)
+processing file asmFiles/test.ldst1.asm (2 of 5)
+processing file asmFiles/test.ldst2.asm (3 of 5)
+processing file asmFiles/test.loadstore.asm (4 of 5)
+processing file asmFiles/test.rtype.asm (5 of 5)
+processing file asmFiles/fib.asm (1 of 1)
+--- memsim.hex	2019-02-21 21:21:50.463213868 -0500
++++ memcpu.hex	2019-02-21 21:21:50.407212220 -0500
+@@ -12,27 +12,27 @@
+ :04000B0015E0FFF904
+ :04000C00FFFFFFFFF4
+ :0400210000000001DA
+-:0400220000000001D9
+-:0400230000000002D7
+-:0400240000000003D5
+-:0400250000000005D2
+-:0400260000000008CE
+-:040027000000000DC8
+-:0400280000000015BF
+-:0400290000000022B1
+-:04002A00000000379B
+-:04002B000000005978
+-:04002C000000009040
+-:04002D00000000E9E6
+-:04002E000000017954
+-:04002F000000026269
+-:04003000000003DBEE
+-:040031000000063D88
+-:0400320000000A18A8
+-:040033000000105564
+-:0400340000001A6D41
+-:0400350000002AC2DB
+-:040036000000452F52
+-:0400370000006FF165
++:040022003421000184
++:040023003421000282
++:04002400684200022C
++:04002500684200032A
++:040026009C630003D4
++:040027009C630004D2
++:04002800D08400047C
++:04002900D08400057A
++:04002A0004A5000524
++:04002B0004A5000622
++:04002C0038C60006CC
++:04002D0038C60007CA
++:04002E006CE7000774
++:04002F006CE7000872
++:04003000A10800081B
++:04003100A108000919
++:04003200D5290009C3
++:04003300D529000AC1
++:04003400094A000A6B
++:04003500094A000B69
++:040036003D6B000B13
++:040037003D6B000C11
+ :0403C0000000001623
+ :00000001FF
+processing file asmFiles/unitTest_branchInstructions.asm (1 of 7)
+processing file asmFiles/unitTest_control_hazard.asm (2 of 7)
+processing file asmFiles/unitTest_forward_solv2.sv (3 of 7)
+processing file asmFiles/unitTest_branchInstructions.asm (1 of 7)
+processing file asmFiles/unitTest_control_hazard.asm (2 of 7)
+processing file asmFiles/unitTest_forward_solv2.sv (3 of 7)
+processing file asmFiles/unitTest_halt.asm (4 of 7)
+processing file asmFiles/unitTest_jumpInstructions.asm (5 of 7)
+processing file asmFiles/unitTest_raw_hazard_nsolv.asm (6 of 7)
+processing file asmFiles/unitTest_raw_hazard_solv.asm (7 of 7)
+processing file asmFiles/unitTest_branchInstructions.asm (1 of 7)
+processing file asmFiles/unitTest_control_hazard.asm (2 of 7)
+processing file asmFiles/unitTest_forward_solv2.sv (3 of 7)
+--- memsim.hex	2019-02-21 21:29:24.267552395 -0500
++++ memcpu.hex	2019-02-21 21:29:24.222551072 -0500
+@@ -7,5 +7,5 @@
+ :0400060001E1782379
+ :04000700FFFFFFFFF9
+ :0400210000000001DA
+-:0400220000000001D9
++:040022008C4300000B
+ :00000001FF
+processing file asmFiles/unitTest_halt.asm (4 of 7)
+processing file asmFiles/unitTest_jumpInstructions.asm (5 of 7)
+processing file asmFiles/unitTest_raw_hazard_nsolv.asm (6 of 7)
+processing file asmFiles/unitTest_raw_hazard_solv.asm (7 of 7)
+processing file asmFiles/unitTest_forward_solv2.sv (1 of 1)
+--- memsim.hex	2019-02-21 21:31:34.152368536 -0500
++++ memcpu.hex	2019-02-21 21:31:34.104367150 -0500
+@@ -7,5 +7,5 @@
+ :0400060001E1782379
+ :04000700FFFFFFFFF9
+ :0400210000000001DA
+-:0400220000000001D9
++:040022008C4300000B
+ :00000001FF
+processing file asmFiles/unitTest_dumb.sv (1 of 1)
+--- memsim.hex	2019-02-21 21:33:24.982624329 -0500
++++ memcpu.hex	2019-02-21 21:33:24.937623015 -0500
+@@ -7,5 +7,5 @@
+ :0400060001E1782379
+ :04000700FFFFFFFFF9
+ :0400210000000001DA
+-:0400220000000001D9
++:040022008C4300000B
+ :00000001FF
+processing file asmFiles/unitTest_dumb.sv (1 of 1)
+processing file asmFiles/unitTest_dumb.sv (1 of 1)
+--- memsim.hex	2019-02-21 22:37:55.695235149 -0500
++++ memcpu.hex	2019-02-21 22:37:55.599232286 -0500
+@@ -7,5 +7,5 @@
+ :0400060001E1782379
+ :04000700FFFFFFFFF9
+ :0400210000000001DA
+-:0400220000000001D9
++:040022008C4300000B
+ :00000001FF
+processing file asmFiles/unitTest_dumb.sv (1 of 1)
+--- memsim.hex	2019-02-21 22:40:16.151422033 -0500
++++ memcpu.hex	2019-02-21 22:40:16.098420453 -0500
+@@ -7,5 +7,5 @@
+ :0400060001E1782379
+ :04000700FFFFFFFFF9
+ :0400210000000001DA
+-:0400220000000001D9
++:040022008C4300000B
+ :00000001FF
+processing file asmFiles/unitTest_dumb.sv (1 of 1)
+--- memsim.hex	2019-02-21 22:40:36.874039645 -0500
++++ memcpu.hex	2019-02-21 22:40:36.816037916 -0500
+@@ -7,5 +7,5 @@
+ :0400060001E1782379
+ :04000700FFFFFFFFF9
+ :0400210000000001DA
+-:0400220000000001D9
++:040022008C4300000B
+ :00000001FF
+processing file asmFiles/unitTest_dumb.sv (1 of 1)
+--- memsim.hex	2019-02-21 23:15:47.053812259 -0500
++++ memcpu.hex	2019-02-21 23:15:47.004810799 -0500
+@@ -7,5 +7,5 @@
+ :0400060001E1782379
+ :04000700FFFFFFFFF9
+ :0400210000000001DA
+-:0400220000000001D9
++:040022008C4300000B
+ :00000001FF
+processing file asmFiles/unitTest_dumb.sv (1 of 1)
+processing file asmFiles/fib.asm (1 of 1)
+processing file asmFiles/mergesort.asm (1 of 1)
+processing file asmFiles/count_days.asm (1 of 19)
+processing file asmFiles/mult.asm (1 of 2)
+processing file asmFiles/search.asm (1 of 1)
+processing file asmFiles/mult_procedure.asm (1 of 1)
+processing file asmFiles/unitTest_branchInstructions.asm (1 of 8)
+processing file asmFiles/unitTest_control_hazard.asm (2 of 8)
+processing file asmFiles/unitTest_dumb.sv (3 of 8)
+processing file asmFiles/unitTest_forward_solv2.sv (4 of 8)
+processing file asmFiles/unitTest_halt.asm (5 of 8)
+processing file asmFiles/unitTest_jumpInstructions.asm (6 of 8)
+processing file asmFiles/unitTest_raw_hazard_nsolv.asm (7 of 8)
+processing file asmFiles/unitTest_raw_hazard_solv.asm (8 of 8)
+processing file asmFiles/mult.asm (1 of 2)
+processing file asmFiles/mult.asm (1 of 2)
+processing file asmFiles/mult.asm (1 of 2)
+processing file asmFiles/mult.asm (1 of 2)
+processing file asmFiles/mult.asm (1 of 2)
+processing file asmFiles/mergesort.asm (1 of 1)

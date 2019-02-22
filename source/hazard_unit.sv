@@ -59,21 +59,23 @@ always_comb begin: PCSRC_ENABLE_AND_FLUSH_LOGIC
 	// assign default values 
 	huif.PCSrc = SEL_LOAD_NXT_INSTR; 
 	huif.enable_IF_ID = huif.ihit; 
-	huif.enable_ID_EX = huif.ihit; 
+	huif.enable_ID_EX = ((huif.ihit == 1'b1) | ((huif.dhit == 1'b1) & (load_data_haz_flag == 1'b1))); 
 	huif.enable_EX_MEM = (huif.ihit | huif.dhit); 
 	huif.enable_MEM_WB = (huif.ihit | huif.dhit); 
 	huif.flush_IF_ID = 1'b0; 
 	huif.flush_ID_EX = 1'b0; 
-	huif.flush_EX_MEM = huif.dhit; 
+	huif.flush_EX_MEM = ((huif.dhit == 1'b1) & (load_data_haz_flag == 1'b0)); 
 	huif.flush_MEM_WB = 1'b0; 
 	huif.enable_pc = 1'b1; 
 
 	// if there is a load data hazard 
-	if (load_data_haz_flag == 1'b1) begin 
+	if ( load_data_haz_flag == 1'b1) begin 
 		// hold the program counter 
 		huif.enable_pc = 1'b0; 
+
 		// insert a nop into the ID/EX register 
 		huif.flush_ID_EX = 1'b1; 
+		
 		// hold the IF/ID register 
 		huif.enable_IF_ID = 1'b0; 
 	end 
@@ -91,14 +93,26 @@ always_comb begin: PCSRC_ENABLE_AND_FLUSH_LOGIC
 	if (((huif.opcode_IF_ID == JAL) | (huif.opcode_IF_ID == J)) & (control_haz_flag != 1'b1)) begin 
 		// tell the program to go to the jump address in the next instruction
 		huif.PCSrc = SEL_LOAD_JMP_ADDR; 
-		huif.flush_IF_ID = 1'b1; 
-		// insert three stalls 
+		if (huif.dhit == 1'b0) begin 
+			huif.flush_IF_ID = 1'b1;
+		end 
+		else begin 
+			huif.flush_IF_ID = 1'b0; 
+			huif.enable_IF_ID = 1'b0; 
+		end  
 	end 
 	// If a JR instruction in the IF/ID
 	else if (huif.opcode_IF_ID == RTYPE && huif.func_IF_ID == JR & (control_haz_flag != 1'b1)) begin 
 		// tell the program counter to go to the return address which comes from the register 31 from register file 
 		huif.PCSrc = SEL_LOAD_JR_ADDR; 
-		huif.flush_IF_ID = 1'b1; 
+
+		if (huif.dhit == 1'b0) begin 
+			huif.flush_IF_ID = 1'b1;
+		end 
+		else begin 
+			huif.flush_IF_ID = 1'b0; 
+			huif.enable_IF_ID = 1'b0; 
+		end  
 	end 
 end
 endmodule
