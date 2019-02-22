@@ -1,15 +1,17 @@
 `include "cpu_types_pkg.vh"
 `include "forward_unit_if.vh"
+`include "data_path_muxs_pkg.vh"
 
+import cpu_types_pkg::*; 
+import data_path_muxs_pkg::*; 
 module forward_unit 
-   import cpu_types_pkg::*; 
    (
      forward_unit_if.fu fuif
    );
 
 always_comb
 begin
-   if(fuif.rs == fuif.reg_wr_mem)
+   if(fuif.rs == fuif.reg_wr_mem) 
    begin
       fuif.porta_sel = 2'b01;
    end
@@ -25,11 +27,11 @@ end
 
 always_comb
 begin
-   if(fuif.rt == fuif.reg_wr_mem)
+   if ((fuif.rt == fuif.reg_wr_mem) & (fuif.reg_dest_ID_EX != SEL_RT)) // and rt is not thhe result location for ID/EX register
    begin
       fuif.portb_sel = 2'b01;
    end
-   else if(fuif.rt == fuif.reg_wr_wb)
+   else if ((fuif.rt == fuif.reg_wr_wb) & (fuif.reg_dest_ID_EX != SEL_RT)) // and rt is not the result location for ID/EX register 
    begin
       fuif.portb_sel = 2'b10;
    end
@@ -38,5 +40,4 @@ begin
       fuif.portb_sel = 2'b00;
    end
 end
-
 endmodule
