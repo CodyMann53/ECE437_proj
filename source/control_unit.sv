@@ -46,6 +46,7 @@ always_comb begin: MUX_MEM_TO_REG
 	
 	// assign default values to prevent latches
 	cuif.mem_to_reg = SEL_RESULT;
+	
 	// if opcode is instruction that requires data from memroy to load 
 	if (cuif.opcode_IF_ID == LW) begin 
 		cuif.mem_to_reg = SEL_DLOAD; 
