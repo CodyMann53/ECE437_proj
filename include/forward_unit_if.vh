@@ -12,17 +12,17 @@ interface forward_unit_if;
 
    regbits_t reg_wr_mem, reg_wr_wb, rs, rt;
    opcode_t opcode_ID_EX;
-   logic [1:0] porta_sel, portb_sel;
+   logic [1:0] porta_sel, portb_sel, mux6_sel;
    reg_dest_mux_selection reg_dest_ID_EX; 
 
    modport fu (
       input reg_wr_mem, reg_wr_wb, rs, rt, opcode_ID_EX, reg_dest_ID_EX, 
-      output porta_sel, portb_sel
+      output porta_sel, portb_sel, mux6_sel
    );
 
    modport tb (
       output reg_wr_mem, reg_wr_wb, rs, rt, opcode_ID_EX, reg_dest_ID_EX, 
-      input porta_sel, portb_sel  
+      input porta_sel, portb_sel, mux6_sel 
    );
 
 endinterface

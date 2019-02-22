@@ -82,21 +82,23 @@ always_comb begin: PCSRC_ENABLE_AND_FLUSH_LOGIC
 		// insert 3 nops into the IF/ID, ID/EX, and EX/MEM registers 
 		huif.flush_IF_ID = 1'b1; 
 		huif.flush_ID_EX = 1'b1;
-		huif.flush_EX_MEM = 1'b0; 
+		huif.flush_EX_MEM = 1'b1; 
 		// Tell the program counter to choose the branch address 
 		huif.PCSrc = SEL_LOAD_BR_ADDR; 
 	end 
 
 	// if a JAL or J instruction in IF/ID 
-	if ((huif.opcode_IF_ID == JAL) | (huif.opcode_IF_ID == J)) begin 
+	if (((huif.opcode_IF_ID == JAL) | (huif.opcode_IF_ID == J)) & (control_haz_flag != 1'b1)) begin 
 		// tell the program to go to the jump address in the next instruction
 		huif.PCSrc = SEL_LOAD_JMP_ADDR; 
+		huif.flush_IF_ID = 1'b1; 
 		// insert three stalls 
 	end 
 	// If a JR instruction in the IF/ID
-	else if (huif.opcode_IF_ID == RTYPE && huif.func_IF_ID == JR) begin 
+	else if (huif.opcode_IF_ID == RTYPE && huif.func_IF_ID == JR & (control_haz_flag != 1'b1)) begin 
 		// tell the program counter to go to the return address which comes from the register 31 from register file 
 		huif.PCSrc = SEL_LOAD_JR_ADDR; 
+		huif.flush_IF_ID = 1'b1; 
 	end 
 end
 endmodule

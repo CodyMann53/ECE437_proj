@@ -161,7 +161,6 @@ assign ex_mem_regif.mem_to_reg_ID_EX = id_ex_regif.mem_to_reg_ID_EX;
 assign ex_mem_regif.data_store = d_s; 
 assign ex_mem_regif.branch_addr = branch_addr; 
 
-
 // EX/MEM register inputs for cpu tracker 
 assign ex_mem_regif.imemaddr_ID_EX = id_ex_regif.imemaddr_ID_EX; 
 assign ex_mem_regif.opcode_ID_EX = id_ex_regif.opcode_ID_EX; 
@@ -170,7 +169,8 @@ assign ex_mem_regif.instruction_ID_EX = id_ex_regif.instruction_ID_EX;
 assign ex_mem_regif.imm16_ID_EX = id_ex_regif.imm16_ID_EX; 
 assign ex_mem_regif.imm16_ext_ID_EX = id_ex_regif.imm16_ext_ID_EX; 
 assign ex_mem_regif.next_imemaddr_ID_EX = id_ex_regif.next_imemaddr_ID_EX; 
-assign ex_mem_regif.Rs_ID_EX = id_ex_regif.Rs_ID_EX; 
+assign ex_mem_regif.Rs_ID_EX = id_ex_regif.Rs_ID_EX;
+assign ex_mem_regif.zero = aluif.zero;  
 
 // MEM state
 // data_path to cache signals 
@@ -212,10 +212,20 @@ assign fuif.rt = id_ex_regif.Rt_ID_EX;
 assign fuif.reg_wr_mem = fu_reg_dest_EX_MEM;
 assign fuif.reg_wr_wb = fu_reg_dest_MEM_WB;
 assign fuif.reg_dest_ID_EX = id_ex_regif.reg_dest_ID_EX; 
+assign fuif.opcode_ID_EX = id_ex_regif.opcode_ID_EX; 
 
 // pipeline controller inputs 
 assign huif.dhit = dpif.dhit; 
 assign huif.ihit = dpif.ihit; 
+assign huif.zero_EX_MEM = ex_mem_regif.zero_EX_MEM; 
+assign huif.func_EX_MEM = funct_t'(ex_mem_regif.func_EX_MEM); //' 
+assign huif.dREN_ID_EX = id_ex_regif.dREN_ID_EX; 
+assign huif.Rt_ID_EX = id_ex_regif.Rt_ID_EX; 
+assign huif.Rs_IF_ID = if_id_regif.Rs_IF_ID; 
+assign huif.Rt_IF_ID = if_id_regif.Rt_IF_ID; 
+assign huif.func_IF_ID = if_id_regif.func_IF_ID; 
+assign huif.opcode_IF_ID = if_id_regif.opcode_IF_ID; 
+assign huif.opcode_EX_MEM = opcode_t'(ex_mem_regif.opcode_EX_MEM); //' 
 
 /************************** shift left logic ***************************/
 
@@ -293,7 +303,7 @@ always_comb begin: MUX_6
   // default value
   d_s = data_store; 
 
-  casez(fuif.portb_sel) 
+  casez(fuif.mux6_sel) 
     2'd1: d_s = ex_mem_regif.result_EX_MEM; 
     2'd2: d_s = wdat; 
   endcase
