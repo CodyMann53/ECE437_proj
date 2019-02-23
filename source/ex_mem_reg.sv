@@ -156,6 +156,8 @@ always_comb begin: NXT_LOGIC
 		mem_to_reg_nxt = SEL_RESULT; 
 		branch_addr_nxt = 32'd0; 
 		zero_nxt = 1'b0; 
+		dREN_nxt = 1'b0; 
+		dWEN_nxt = 1'b0;
 
 		// cpu tracker signals 
 		imemaddr_nxt = 32'd0; 
@@ -166,6 +168,7 @@ always_comb begin: NXT_LOGIC
 		imm16_ext_nxt = 32'd0; 
 		next_imemaddr_nxt = 32'd0; 
 		rdat1_nxt = 32'd0; 
+
 		//rs_nxt = 5'd0; 
 	end 
 end 
