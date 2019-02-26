@@ -32,7 +32,7 @@ begin
    begin
       fuif.portb_sel = 2'b01;
    end
-   else if ((fuif.rt == fuif.reg_wr_wb) & (fuif.reg_dest_ID_EX != SEL_RT) & (fuif.rt != 0)) // and rt is not the result location for ID/EX register 
+   else if ((fuif.rt == fuif.reg_wr_wb) & (fuif.reg_dest_ID_EX != SEL_RT) & (fuif.opcode_ID_EX != SW) & (fuif.rt != 0)) // and rt is not the result location for ID/EX register 
    begin
       fuif.portb_sel = 2'b10;
    end
