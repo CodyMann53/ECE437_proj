@@ -172,6 +172,7 @@ assign ex_mem_regif.next_imemaddr_ID_EX = id_ex_regif.next_imemaddr_ID_EX;
 assign ex_mem_regif.Rs_ID_EX = id_ex_regif.Rs_ID_EX;
 assign ex_mem_regif.zero = aluif.zero;  
 assign ex_mem_regif.dhit = dpif.dhit; 
+assign ex_mem_regif.dmemload = dpif.dmemload; 
 
 // MEM state
 // data_path to cache signals 
@@ -191,7 +192,7 @@ assign mem_wb_regif.WEN_EX_MEM = ex_mem_regif.WEN_EX_MEM;
 assign mem_wb_regif.reg_dest_EX_MEM = ex_mem_regif.reg_dest_EX_MEM; 
 assign mem_wb_regif.Rt_EX_MEM = ex_mem_regif.Rt_EX_MEM; 
 assign mem_wb_regif.Rd_EX_MEM = ex_mem_regif.Rd_EX_MEM; 
-assign mem_wb_regif.dmemload = dpif.dmemload; 
+assign mem_wb_regif.dmemload_EX_MEM = ex_mem_regif.dmemload_EX_MEM;  
 assign mem_wb_regif.halt_EX_MEM = ex_mem_regif.halt_EX_MEM; 
 assign mem_wb_regif.mem_to_reg_EX_MEM = ex_mem_regif.mem_to_reg_EX_MEM; 
 assign mem_wb_regif.dhit = dpif.dhit; 

@@ -18,7 +18,7 @@ interface mem_wb_reg_if;
   import data_path_muxs_pkg::*; 
 
   // inputs
-  word_t result_EX_MEM, dmemload; 
+  word_t result_EX_MEM, dmemload_EX_MEM; 
   logic WEN_EX_MEM, enable_MEM_WB, flush_MEM_WB, halt_EX_MEM, dhit; 
   reg_dest_mux_selection reg_dest_EX_MEM; 
   regbits_t Rt_EX_MEM, Rd_EX_MEM;
@@ -55,7 +55,7 @@ interface mem_wb_reg_if;
 
   // EX_MEM register module ports 
   modport ex_mem_reg (
-    input result_EX_MEM, dmemload, WEN_EX_MEM, reg_dest_EX_MEM, Rt_EX_MEM, Rd_EX_MEM, enable_MEM_WB, flush_MEM_WB, halt_EX_MEM, imemaddr_EX_MEM, opcode_EX_MEM, func_EX_MEM, instruction_EX_MEM,
+    input result_EX_MEM, dmemload_EX_MEM, WEN_EX_MEM, reg_dest_EX_MEM, Rt_EX_MEM, Rd_EX_MEM, enable_MEM_WB, flush_MEM_WB, halt_EX_MEM, imemaddr_EX_MEM, opcode_EX_MEM, func_EX_MEM, instruction_EX_MEM,
     imm16_EX_MEM, imm16_ext_EX_MEM, dmemstore_EX_MEM, next_imemaddr_EX_MEM, rdat1_EX_MEM, Rs_EX_MEM, mem_to_reg_EX_MEM, dhit, 
     output WEN_MEM_WB, reg_dest_MEM_WB, mem_data_MEM_WB, Rt_MEM_WB, Rd_MEM_WB, halt, imemaddr_MEM_WB, opcode_MEM_WB, func_MEM_WB, instruction_MEM_WB, 
     imm16_MEM_WB, imm16_ext_MEM_WB, dmemstore_MEM_WB, next_imemaddr_MEM_WB, rdat1_MEM_WB, result_MEM_WB, Rs_MEM_WB, mem_to_reg_MEM_WB
