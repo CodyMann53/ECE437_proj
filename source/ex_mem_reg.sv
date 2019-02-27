@@ -129,7 +129,7 @@ always_comb begin: NXT_LOGIC
 		iREN_nxt = ex_mem_regif.iREN_ID_EX; 
 		mem_to_reg_nxt = ex_mem_regif.mem_to_reg_ID_EX; 
 		branch_addr_nxt = ex_mem_regif.branch_addr; 
-		zero_nxt = ex_mem_regif.zero; 
+		zero_nxt = ex_mem_regif.zero;  
 
 		// cpu tracker signals 
 		imemaddr_nxt = ex_mem_regif.imemaddr_ID_EX; 
