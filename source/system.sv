@@ -13,8 +13,6 @@
 // types
 `include "cpu_types_pkg.vh"
 
-// types
-`include "cpu_types_pkg.vh"
 
 module system (input logic CLK, nRST, system_if.sys syif);
 

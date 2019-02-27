@@ -40,11 +40,11 @@ always_comb begin
 end
 
 always_comb begin
-   if ((fuif.rt == fuif.reg_wr_mem)  & (fuif.reg_dest_ID_EX != SEL_RT) & (fuif.rt != 0) ) // and rt is not thhe result location for ID/EX register
+   if ((fuif.rt == fuif.reg_wr_mem)  & (fuif.reg_dest_ID_EX != SEL_RT) & (fuif.rt != 0) & (fuif.WEN_EX_MEM == 1) ) // and rt is not thhe result location for ID/EX register
    begin
       fuif.mux6_sel = 2'b01;
    end
-   else if ((fuif.rt == fuif.reg_wr_wb) & (fuif.reg_dest_ID_EX != SEL_RT) & (fuif.rt != 0) ) // and rt is not the result location for ID/EX register 
+   else if ((fuif.rt == fuif.reg_wr_wb) & (fuif.reg_dest_ID_EX != SEL_RT) & (fuif.rt != 0) & ( (fuif.WEN_MEM_WB == 1) | (fuif.opcode_EX_MEM == LW) ) ) // and rt is not the result location for ID/EX register 
    begin
       fuif.mux6_sel = 2'b10;
    end

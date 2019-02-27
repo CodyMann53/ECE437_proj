@@ -41,7 +41,7 @@ module system_tb;
   // to the write back stage and sampled in the WRITEBACK stage.
   // This means more signals that would normally be necessary
   // for correct execution must be passed along to help with debugging.
-  /*cpu_tracker                         cpu_track0 (
+  cpu_tracker                         cpu_track0 (
     // No need to change this
     .CLK(DUT.CPU.DP.CLK),
     // This is the enable signal for the write back stage
@@ -62,7 +62,7 @@ module system_tb;
     .pc(DUT.CPU.DP.mem_wb_regif.imemaddr_MEM_WB),
     // Connect the next PC value (the next registered value) here
     .next_pc_val(DUT.CPU.DP.mem_wb_regif.next_imemaddr_MEM_WB),
-    // The final imm/shamt signals
+    // The final imm/shamt signalsa
     // This means it should already be extended 
     .imm(DUT.CPU.DP.mem_wb_regif.imm16_ext_MEM_WB),
     .shamt(DUT.CPU.DP.mem_wb_regif.Rt_MEM_WB),                       
@@ -76,7 +76,7 @@ module system_tb;
     .store_dat(DUT.CPU.DP.mem_wb_regif.dmemstore_MEM_WB),                       
     // The value selected to be written into register during WB stage
     .reg_dat(DUT.CPU.DP.wdat)
-  );*/
+  );
   
 `else
   system                              DUT (,,,,//for altera debug ports
