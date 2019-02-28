@@ -133,6 +133,9 @@ assign id_ex_regif.opcode_IF_ID = if_id_regif.opcode_IF_ID;
 assign id_ex_regif.func_IF_ID = funct_t'(if_id_regif.func_IF_ID); //'
 assign id_ex_regif.instruction_IF_ID = if_id_regif.instruction_IF_ID; 
 assign id_ex_regif.imm16_IF_ID = if_id_regif.imm16_IF_ID; 
+
+
+
 assign id_ex_regif.next_imemaddr_IF_ID = if_id_regif.next_imemaddr_IF_ID; 
 assign id_ex_regif.Rs_IF_ID = if_id_regif.Rs_IF_ID; 
 assign id_ex_regif.extend = cuif.extend; 
@@ -302,7 +305,8 @@ always_comb begin: MUX_5
     SEL_LOAD_JMP_ADDR: next_pc = jmp_addr;  
     SEL_LOAD_JR_ADDR: next_pc = jmp_return_addr; 
     SEL_LOAD_NXT_INSTR: next_pc = next_imemaddr; 
-    SEL_LOAD_BR_ADDR: next_pc = ex_mem_regif.branch_addr_EX_MEM; 
+    SEL_LOAD_BR_ADDR: next_pc = branch_addr; 
+    SEL_LOAD_NXT_PC_EX_MEM: next_pc = ex_mem_regif.next_imemaddr_EX_MEM;  
   endcase
 end
 
@@ -356,12 +360,12 @@ assign jmp_addr = {next_imemaddr[31:28], jmp_addr_shifted};
 
 /************************** Shift logic ***************************/
 assign jmp_addr_shifted = {if_id_regif.instruction_IF_ID[25:0], 2'b00}; 
-assign br_imm = id_ex_regif.imm16_ext_ID_EX << 2; 
+assign br_imm = imm16_ext << 2; 
 
 
 /************************* Adder logic ***************************/
 assign next_imemaddr = pcif.imemaddr + 32'd4; 
-assign branch_addr = id_ex_regif.next_imemaddr_ID_EX + br_imm; 
+assign branch_addr = if_id_regif.next_imemaddr_IF_ID + br_imm; 
 
 /************************ Jump Return ****************************/ 
 always_comb begin: RETURN_ADDR_LOGIC

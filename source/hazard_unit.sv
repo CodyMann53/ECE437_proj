@@ -33,12 +33,12 @@ always_comb begin: CONTROL_HAZARD_DETECTION_LOGIC
 	control_haz_flag = 1'b0; 
 
 	// if a BE and zero 
-	if ((huif.opcode_EX_MEM == BEQ) & (huif.zero_EX_MEM == 1)) begin 
+	if ((huif.opcode_EX_MEM == BEQ) & (huif.zero_EX_MEM == 0)) begin 
 		// set the flag for control hazard 
 		control_haz_flag = 1'b1; 
 	end 
 	// if BNE and not zero 
-	else if ((huif.opcode_EX_MEM == BNE) & (huif.zero_EX_MEM == 0)) begin 
+	else if ((huif.opcode_EX_MEM == BNE) & (huif.zero_EX_MEM == 1)) begin 
 		// set the flag for control hazard 
 		control_haz_flag = 1'b1; 
 	end 
@@ -68,8 +68,13 @@ always_comb begin: PCSRC_ENABLE_AND_FLUSH_LOGIC
 	huif.flush_MEM_WB = 1'b0; 
 	huif.enable_pc = 1'b1; 
 
-	if ( (control_haz_flag == 1'b1) & (huif.ihit == 1)) begin 
+	if (((huif.opcode_IF_ID == BEQ) | (huif.opcode_IF_ID == BNE)) & (huif.ihit == 1)) begin 
 		huif.PCSrc = SEL_LOAD_BR_ADDR; 
+		huif.flush_IF_ID = 1'b1; 
+	end
+
+	if ( (control_haz_flag == 1'b1) & (huif.ihit == 1)) begin 
+		huif.PCSrc = SEL_LOAD_NXT_PC_EX_MEM; 
 		huif.flush_IF_ID = 1'b1; 
 		huif.flush_ID_EX = 1'b1; 
 		huif.flush_EX_MEM = 1'b1; 
@@ -83,8 +88,6 @@ always_comb begin: PCSRC_ENABLE_AND_FLUSH_LOGIC
 		// hold IF/ID
 		huif.enable_IF_ID = 1'b0; 
 	end 
-
-
 
 		// if a JAL or J instruction in IF/ID 
 	if (((huif.opcode_IF_ID == JAL) | (huif.opcode_IF_ID == J)) & (control_haz_flag != 1'b1) & (huif.ihit == 1)) begin 
