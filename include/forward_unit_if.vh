@@ -17,12 +17,12 @@ interface forward_unit_if;
    reg_dest_mux_selection reg_dest_ID_EX; 
 
    modport fu (
-      input reg_wr_mem, reg_wr_wb, rs, rt, opcode_ID_EX, reg_dest_ID_EX, WEN_EX_MEM, WEN_MEM_WB, opcode_EX_MEM, opcode_MEM_WB, 
+      input reg_wr_mem, reg_wr_wb, rs, rt, opcode_ID_EX, reg_dest_ID_EX, WEN_EX_MEM, WEN_MEM_WB, opcode_EX_MEM,
       output porta_sel, portb_sel, mux6_sel
    );
 
    modport tb (
-      output reg_wr_mem, reg_wr_wb, rs, rt, opcode_ID_EX, reg_dest_ID_EX, WEN_EX_MEM, WEN_MEM_WB, opcode_EX_MEM, opcode_MEM_WB,
+      output reg_wr_mem, reg_wr_wb, rs, rt, opcode_ID_EX, reg_dest_ID_EX, WEN_EX_MEM, WEN_MEM_WB, opcode_EX_MEM,
       input porta_sel, portb_sel, mux6_sel 
    );
 

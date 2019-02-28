@@ -9,6 +9,7 @@ module forward_unit
      forward_unit_if.fu fuif
    );
 
+// alu port a forwarding logic 
 always_comb begin
    if ( (fuif.rs == fuif.reg_wr_mem) & (fuif.rs != 0) & (fuif.WEN_EX_MEM == 1)) 
    begin
@@ -24,6 +25,7 @@ always_comb begin
    end
 end
 
+// alu port b forwarding logic 
 always_comb begin
    if ((fuif.rt == fuif.reg_wr_mem) & (fuif.reg_dest_ID_EX != SEL_RT) & (fuif.opcode_ID_EX != SW) & (fuif.rt != 0) & (fuif.WEN_EX_MEM == 1)) // and rt is not thhe result location for ID/EX register
    begin
@@ -39,6 +41,7 @@ always_comb begin
    end
 end
 
+// mux 6 forwarding logic 
 always_comb begin
    if ((fuif.rt == fuif.reg_wr_mem)  & (fuif.reg_dest_ID_EX != SEL_RT) & (fuif.rt != 0) & (fuif.WEN_EX_MEM == 1) ) // and rt is not thhe result location for ID/EX register
    begin
