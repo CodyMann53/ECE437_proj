@@ -21,3 +21,8 @@ braR:
 jmpR:
   bne   $ra, $3, end
   halt
+
+  or    $3, $zero, $ra
+  sw    $ra, 8($2)
+  jal   jmpR
+  sw    $1, 12($2)
