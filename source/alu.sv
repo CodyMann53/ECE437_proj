@@ -8,9 +8,9 @@
 `include "cpu_types_pkg.vh"
 `include "alu_if.vh"
 
-module alu 
-	import cpu_types_pkg::*;
-	(alu_if aluif); 
+module alu (alu_if.alu aluif); 
+
+import cpu_types_pkg::*;
 
 /********** variable declarations **************/
 // assign negative flag to second to last bit of result overflow 

@@ -14,7 +14,7 @@
 
 module control_unit
 	(
- 	control_unit_if cuif
+ 	control_unit_if.cu cuif
  	); 
 
 /********** Local type definitions ***************************/
