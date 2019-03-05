@@ -30,35 +30,33 @@ module icache (
     LOAD = 2'd2
   }state; 
 
+  parameter NUM_BLOCKS = 16
+
 /********** Local variable definitions ***************************/
-word_t [15:0] cache_mem_nxt, cache_mem_reg; 
-logic [25:0] [15:0] tags_nxt, tags_reg; 
-logic [15:0] vbits_nxt, vbits_reg; 
-logic [3:0] index; 
-logic [25:0] tag; 
+icache_frame [NUM_BLOCKS-1:0] cache_mem_nxt, cache_mem_reg;  
+logic [IIDX_W-1:0] index; 
+logic [ITAG_W-1:0] tag; 
 logic wen; 
 state state_reg, state_nxt; 
 logic hit; 
 
 /********** Assign statements ***************************/
-assign tag = dcif.imemaddr[31:6]; 
-assign index = dcif.imemaddr[5:2]; 
+assign tag = dcif.imemaddr[ITAG_W-1+IIDX_W+IBLK_W+IBYT_W-1:IIDX_W+IBLK_W+IBYT_W]; 
+assign index = dcif.imemaddr[IIDX_W-1:IBYT_W+IBLK_W]; 
 assign dcif.ihit = hit; 
-assign dcif.imemload = cache_mem_reg[index]; 
+assign dcif.imemload = cache_mem_reg.data; 
 assign cif.iaddr = dcif.imemaddr; 
 
 /********** Combinational Logic ***************************/
 always_comb begin: CACHE_MEMORY_NEXT_STATE
   // set default value 
   cache_mem_nxt = cache_mem_reg; 
-  tags_nxt = tags_reg; 
-  vbits_nxt = vbits_reg; 
 
   // if writing
   if (wen == 1'b1) begin 
-    cache_mem_nxt[index] = cif.iload; 
-    tags_nxt[index] = tag; 
-    vbits_nxt[index] = 1'b1; 
+    cache_mem_nxt[index].data = cif.iload; 
+    cache_mem_nxt[index].tag = tag; 
+    cache_mem_nxt[index].valid = 1'b1; 
   end 
 end 
 
@@ -70,7 +68,7 @@ always_comb begin: CACHE_MEMORY_OUTPUT_LOGIC
   if (wen = 1'b0) begin 
 
     // if the tags are the same and data block is valid 
-    if ((tag == tags_reg[index]) & (vbits_reg[index] == 1'b1)) begin 
+    if ((tag == cache_mem_reg[index].tag) & (cache_mem_reg[index].valid == 1'b1)) begin 
       // set hit to 1
       hit = 1'b1; 
     end 
@@ -121,15 +119,11 @@ always_ff @(posedge CLK, negedge nRST) begin: CACHE_MEMORY_REGISTER
   if (nRST == 1'b0) begin 
     // set tags, valid bits, and data back to zero
     cache_mem_reg <= 'b0; 
-    tags_reg <= 'b0; 
-    vbits_reg <= 'b0; 
   end 
   // no reset was applied 
   else begin 
     // update data, tags, and valid bits 
     cache_mem_reg <= cache_mem_nxt
-    tags_reg <= tags_nxt; 
-    vbits_reg <= vbits_nxt; 
   end 
 end
 
