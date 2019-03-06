@@ -139,26 +139,90 @@ program test(
   string test_description = "Initializing"; 
 
   // data variables 
-  dcachef_t byte_address;
-  word_t data;  
+  dcachef_t [31:0] byte_address;
+  word_t [31:0] data;  
 
   // parameter definitions  
   parameter PERIOD = 10;
 
 /******************* TEST VECTORS ********************/
-  // expected values vector
-  typedef struct {
-    string      test_description; 
-    logic wren; 
-    dcachef_t byte_address; 
-    
- 
-  } tb_testcase_vector; 
-
-  tb_testcase_vector tb_testcases []; 
 
 /******************* TEST TASK DEFINITIONS ********************/
-  
+
+  // task to read or write data from the cache
+  task access_cache;
+    input logic wren; 
+    input dcachef_t byte_address; 
+    input word_t data; 
+    input word_t exp_read_data; 
+    begin
+      // check whether a read or write
+      if (wren == 1'b1) begin 
+        // get away from the negative edge of clock 
+        @(negedge ClK); 
+        // apply propper inputs to cache for a write
+        dcif.halt = 1'b0; 
+        dcif.dmemREN = 1'b0; 
+        dcif.dmemWEN = 1'b1; 
+        dcif.dmemstore = data; 
+        dcif.dmemaddr = byte_address; 
+
+        // wait a little to allow inputs to settle 
+        #(10)
+        // wait unitl dcache gives back a dhit 
+        while(dcif.dhit == 0); 
+
+        // get away from the negative edge of clock cycle
+        @(negedge CLK); 
+        dcif.halt = 1'b0; 
+        dcif.dmemREN = 1'b0; 
+        dcif.dmemWEN = 1'b0; 
+        dcif.dmemstore = 32'd0; 
+        dcif.dmemaddr = 32'd0; 
+      end 
+      // else it is a read 
+      else begin  
+        // get away from the negative edge of clock 
+        @(negedge ClK); 
+
+        // apply propper inputs to cache for a write
+        dcif.halt = 1'b0; 
+        dcif.dmemREN = 1'b1; 
+        dcif.dmemWEN = 1'b0; 
+        dcif.dmemstore = 32'd0; 
+        dcif.dmemaddr = byte_address; 
+
+        // wait a little to allow inputs to settle 
+        #(10)
+
+        // wait unitl dcache gives back a dhit 
+        while(dcif.dhit == 0);
+        #(10)
+        // check the read data 
+        check_read_data(exp_read_data, byte_address); 
+
+        // get away from the negative edge of clock cycle
+        @(negedge CLK); 
+        dcif.halt = 1'b0; 
+        dcif.dmemREN = 1'b0; 
+        dcif.dmemWEN = 1'b0; 
+        dcif.dmemstore = 32'd0; 
+        dcif.dmemaddr = 32'd0; 
+      end 
+    end 
+  endtask
+
+  task check_read_data; 
+    input word_t exp_data; 
+    input dcachef_t addr; 
+    begin 
+      // check to see if the data load from cache is waht is expected.
+      if (dcif.dmemload != exp_data) begin 
+        $display("Time: %00gns Incorrect data from cache when requesting address 0x%f0h.")
+      end 
+    end 
+  endtask
+
   // resets the whole system 
   task reset_dut; 
     begin 
@@ -228,11 +292,9 @@ program test(
 /******************* TEST INITIAL BLOCK ********************/
   initial begin
 
-    /******************* TEST CASE DEFINITIONS ********************/
+    /******************* TEST CASES CREATION ********************/
 
-
-    // initialize local variables 
-
+    /******************* START RUNNING THROUGH TEST CASES ********************/
     // initialize all inputs 
     dcif.halt = 1'b0; 
     dcif.dmemREN = 1'b0; 
@@ -240,13 +302,15 @@ program test(
     dcif.dmemstore = 32'b0;
     dcif.dmemaddr = 32'd0; 
 
-
-
-    test_description = "Testing asynchronous reset";
-    // reset the register file 
+    /************************************
+    *
+    *       Test case 1: testing toggle coverage on dcache table
+    *
+    ************************************/
+    test_description = "Testing toggle coverage on Dcache table.";
     reset_dut(); 
 
-    // dump the memory into memcpu.hex 
+    // dump the memory into memcpu.hex after testbench is finished 
     dump_memory(); 
   end 
 endprogram
