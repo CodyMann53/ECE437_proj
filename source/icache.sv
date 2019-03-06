@@ -30,22 +30,22 @@ module icache (
     LOAD = 2'd2
   }state; 
 
+/********** PARAMETERS ***************************/
   parameter NUM_BLOCKS = 16
 
 /********** Local variable definitions ***************************/
 icache_frame [NUM_BLOCKS-1:0] cache_mem_nxt, cache_mem_reg;  
-logic [IIDX_W-1:0] index; 
-logic [ITAG_W-1:0] tag; 
+icachef_t frame; 
 logic wen; 
 state state_reg, state_nxt; 
 logic hit; 
 
 /********** Assign statements ***************************/
-assign tag = dcif.imemaddr[ITAG_W-1+IIDX_W+IBLK_W+IBYT_W-1:IIDX_W+IBLK_W+IBYT_W]; 
-assign index = dcif.imemaddr[IIDX_W-1:IBYT_W+IBLK_W]; 
+assign tag = dcif.imemaddr 
 assign dcif.ihit = hit; 
 assign dcif.imemload = cache_mem_reg.data; 
 assign cif.iaddr = dcif.imemaddr; 
+assign frame = icachef_t'(dcif.imemaddr); //'
 
 /********** Combinational Logic ***************************/
 always_comb begin: CACHE_MEMORY_NEXT_STATE
@@ -54,9 +54,9 @@ always_comb begin: CACHE_MEMORY_NEXT_STATE
 
   // if writing
   if (wen == 1'b1) begin 
-    cache_mem_nxt[index].data = cif.iload; 
-    cache_mem_nxt[index].tag = tag; 
-    cache_mem_nxt[index].valid = 1'b1; 
+    cache_mem_nxt[frame.idx].data = cif.iload; 
+    cache_mem_nxt[frame.idx].tag = frame.tag; 
+    cache_mem_nxt[frame.idx].valid = 1'b1; 
   end 
 end 
 
@@ -68,7 +68,7 @@ always_comb begin: CACHE_MEMORY_OUTPUT_LOGIC
   if (wen = 1'b0) begin 
 
     // if the tags are the same and data block is valid 
-    if ((tag == cache_mem_reg[index].tag) & (cache_mem_reg[index].valid == 1'b1)) begin 
+    if ((tag == cache_mem_reg[frame.idx].tag) & (cache_mem_reg[frame.idx].valid == 1'b1)) begin 
       // set hit to 1
       hit = 1'b1; 
     end 
