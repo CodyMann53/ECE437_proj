@@ -119,7 +119,8 @@ module dcache_tb;
   test PROG ( 
     .CLK(CLK),
     .nRST(nRST),
-    dcif
+    dcif, 
+    ccif
     ); 
 
 endmodule
@@ -128,98 +129,161 @@ endmodule
 program test(
   input logic CLK,
   output logic nRST, 
-  datapath_cache_if dcif
+  datapath_cache_if dcif, 
+  cache_control_if ccif
   ); 
 
   // import statements 
   import cpu_types_pkg::*; 
 
 /******************* TEST VARIABLE DECLARATIONS ********************/
+  // parameter definitions  
+  parameter PERIOD = 10;
+
+  // test information 
   int test_case_num = 0; 
   string test_description = "Initializing"; 
 
-  // data variables 
-  dcachef_t [31:0] byte_address;
+  // Data and address testbench variables 
+  dcachef_t [4:0] address_stream;
   word_t [31:0] data;  
-
-  // parameter definitions  
-  parameter PERIOD = 10;
 
 /******************* TEST VECTORS ********************/
 
 /******************* TEST TASK DEFINITIONS ********************/
-
-  // task to read or write data from the cache
-  task access_cache;
-    input logic wren; 
+  // task to check the dhit signal 
+  task check_hit; 
     input dcachef_t byte_address; 
-    input word_t data; 
-    input word_t exp_read_data; 
     begin
-      // check whether a read or write
-      if (wren == 1'b1) begin 
-        // get away from the negative edge of clock 
-        @(negedge ClK); 
-        // apply propper inputs to cache for a write
-        dcif.halt = 1'b0; 
-        dcif.dmemREN = 1'b0; 
-        dcif.dmemWEN = 1'b1; 
-        dcif.dmemstore = data; 
-        dcif.dmemaddr = byte_address; 
-
-        // wait a little to allow inputs to settle 
-        #(10)
-        // wait unitl dcache gives back a dhit 
-        while(dcif.dhit == 0); 
-
-        // get away from the negative edge of clock cycle
-        @(negedge CLK); 
-        dcif.halt = 1'b0; 
-        dcif.dmemREN = 1'b0; 
-        dcif.dmemWEN = 1'b0; 
-        dcif.dmemstore = 32'd0; 
-        dcif.dmemaddr = 32'd0; 
-      end 
-      // else it is a read 
-      else begin  
-        // get away from the negative edge of clock 
-        @(negedge ClK); 
-
-        // apply propper inputs to cache for a write
-        dcif.halt = 1'b0; 
-        dcif.dmemREN = 1'b1; 
-        dcif.dmemWEN = 1'b0; 
-        dcif.dmemstore = 32'd0; 
-        dcif.dmemaddr = byte_address; 
-
-        // wait a little to allow inputs to settle 
-        #(10)
-
-        // wait unitl dcache gives back a dhit 
-        while(dcif.dhit == 0);
-        #(10)
-        // check the read data 
-        check_read_data(exp_read_data, byte_address); 
-
-        // get away from the negative edge of clock cycle
-        @(negedge CLK); 
-        dcif.halt = 1'b0; 
-        dcif.dmemREN = 1'b0; 
-        dcif.dmemWEN = 1'b0; 
-        dcif.dmemstore = 32'd0; 
-        dcif.dmemaddr = 32'd0; 
-      end 
+      // if no hit signal was given 
+      if (dcif.dhit == 0) begin 
+        $display("Time: %00gns Expecting a hit from byte_address: 0x%h", byte_address); 
+      end  
     end 
   endtask
 
-  task check_read_data; 
+  // checks the read data from dcache
+  task check_data_read; 
+    input dcachef_t byte_address; 
     input word_t exp_data; 
-    input dcachef_t addr; 
     begin 
-      // check to see if the data load from cache is waht is expected.
-      if (dcif.dmemload != exp_data) begin 
-        $display("Time: %00gns Incorrect data from cache when requesting address 0x%f0h.")
+      // if the data output from dcache is not the same as expected
+      if (dcif.dload != exp_data) begin
+        // raise an error 
+        $display("Time: %00gns Expecting %0d to be read from byte_address 0x%0h and not %0d.", exp_data, byte_address, dcif.dload); 
       end 
+    end 
+  endtask 
+
+  // task to wait for a request to cache to complete and then checks for a valid dhit
+  task complete_transaction
+    input dcachef_t byte_address; 
+    input logic block_present; 
+    begin
+      // wait a little to allow inputs to settle 
+      #(10)
+      int count = 0; 
+      // wait as long as the memory controller says to
+      while(dcif.dwait == 1) begin 
+        @(posedge CLK); 
+        count++; 
+      end  
+
+      // wait a little to allow outputs to settle
+      #(10)
+      // check to make sure that there was a hit 
+      check_hit(byte_address); 
+      // If block was expected to be present in the dcache 
+      if (block_present == 1) begin 
+        // if dhit was not given back in same clock cycle 
+        if (count != 0) begin
+          $display("Dhit was not given back in same clock cycle for byte_address: 0x%0h that was expected to be in cache.", byte_address); 
+        end 
+      end
+    end 
+  endtask
+
+  // requests a read from the dcache
+  task request_read; 
+    input dcachef_t byte_address; 
+    begin 
+      // get away from the negative edge of clock 
+      @(negedge ClK); 
+      // apply propper inputs to cache for a read
+      dcif.halt = 1'b0; 
+      dcif.dmemREN = 1'b1; 
+      dcif.dmemWEN = 1'b0; 
+      dcif.dmemstore = 32'd0; 
+      dcif.dmemaddr = byte_address; 
+    end 
+  end 
+
+  // requests a write to the dcache
+  task request_write; 
+    input dcachef_t byte_address; 
+    input word_t data; 
+    begin 
+      // get away from the negative edge of clock 
+      @(negedge ClK); 
+      // apply propper inputs to cache for a write
+      dcif.halt = 1'b0; 
+      dcif.dmemREN = 1'b0; 
+      dcif.dmemWEN = 1'b1; 
+      dcif.dmemstore = data; 
+      dcif.dmemaddr = byte_address; 
+    end 
+  end
+
+  // clears the inputs to the dcache
+  task remove_dcache_inputs; 
+    begin 
+      // get away from the negative edge of clock cycle
+      @(negedge CLK); 
+      dcif.halt = 1'b0; 
+      dcif.dmemREN = 1'b0; 
+      dcif.dmemWEN = 1'b0; 
+      dcif.dmemstore = 32'd0; 
+      dcif.dmemaddr = 32'd0; 
+    end 
+  endtask
+
+  // task to read from the dcache
+  task read_dcache
+    input dcachef_t byte_address;
+    input logic block_present;  
+    input word_t exp_data; 
+    input logic check_data; 
+    begin
+      // request a read from the dcache
+      request_read(byte_address); 
+      // Wait for the transaction to complete
+      complete_transaction(byte_address, block_present); 
+
+      // wait a little for data to settle 
+      #(10)
+      // if supposed to check the data for validity
+      if (check_data == 1) begin 
+        // check data read 
+        check_data_read(byte_address, exp_data); 
+      end 
+
+      // remove the inputs away from the dcache
+      remove_dcache_inputs();  
+    end 
+  endtask
+
+    // task to write to the dcache 
+  task write_dcache;
+    input dcachef_t byte_address; 
+    input block_present; 
+    input word_t data; 
+    begin
+      // request a write from the dcache 
+      request_write(byte_address, data); 
+      // wait for the transaction to complete and check for valid dhit 
+      complete_transaction(byte_address, block_present); 
+      // remove the dcache inputs 
+      remove_dcache_inputs(); 
     end 
   endtask
 
@@ -292,23 +356,23 @@ program test(
 /******************* TEST INITIAL BLOCK ********************/
   initial begin
 
-    /******************* TEST CASES CREATION ********************/
 
     /******************* START RUNNING THROUGH TEST CASES ********************/
     // initialize all inputs 
-    dcif.halt = 1'b0; 
-    dcif.dmemREN = 1'b0; 
-    dcif.dmemWEN = 1'b0; 
-    dcif.dmemstore = 32'b0;
-    dcif.dmemaddr = 32'd0; 
+    remove_dcache_inputs
+    // reset the system
+    reset_dut();
 
     /************************************
     *
-    *       Test case 1: testing toggle coverage on dcache table
+    *       Test case 1: Testing simple reads back to back from same block location.
     *
     ************************************/
-    test_description = "Testing toggle coverage on Dcache table.";
-    reset_dut(); 
+    test_description = "Testing simple reads back to back from same block location.";
+
+    // reads
+    read_dcache(32'd0, 0, 0); 
+    read_dcache(32'd0, 1, 0); 
 
     // dump the memory into memcpu.hex after testbench is finished 
     dump_memory(); 
