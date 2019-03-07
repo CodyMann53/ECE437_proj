@@ -184,7 +184,7 @@ program test(
       #(10)
       int count = 0; 
       // wait as long as the memory controller says to
-      while(dcif.dwait == 1) begin 
+      while(dcif.dhit == 0) begin 
         @(posedge CLK); 
         count++; 
       end  

@@ -24,10 +24,9 @@ module icache (
 
 /********** Type definitions ***************************/
   // States for icache controller
-  typedef enum logic [1:0] {
-    IDLE = 2'd0, 
-    REQUEST = 2'd1, 
-    LOAD = 2'd2
+  typedef enum logic{
+    IDLE = 1'b0, 
+    REQUEST = 1'b1, 
   }state; 
 
 /********** PARAMETERS ***************************/
@@ -91,8 +90,7 @@ always_comb begin: CONTROLLER_FSM_NXT_STATE_LOGIC
               state_nxt = REQUEST; 
             end 
           end 
-    REQUEST: (dcif.iwait == 1) ? state_nxt = REQUEST : state_nxt = LOAD; 
-    LOAD: state_nxt = IDLE; 
+    REQUEST: (dcif.iwait == 1) ? state_nxt = REQUEST : state_nxt = IDLE; 
   endcase 
 end 
 
@@ -104,11 +102,8 @@ always_comb begin: CONTROLLER_OUTPUT_LOGIC
   casez(state_reg) 
     REQUEST:  begin 
                 cif.iREN = 1'b1;
+                wen = ~cif.dwait; 
               end  
-    LOAD: begin 
-            cif.iREN = 1'b1
-            wen = 1'b1; 
-          end 
   endcase
 end 
 
