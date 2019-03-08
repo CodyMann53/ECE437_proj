@@ -120,7 +120,7 @@ begin
       begin
          if(dcif.halt == 1)
          begin
-            next_state = HALT;
+            next_state = DIRTY;
          end
          else if(hit == 0)
          begin
