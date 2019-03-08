@@ -87,7 +87,7 @@ always_comb begin: CONTROLLER_FSM_NXT_STATE_LOGIC
               state_nxt = REQUEST; 
             end 
           end 
-    REQUEST: state_nxt = (dcif.iwait == 1'b1) ? REQUEST : IDLE; 
+    REQUEST: state_nxt = (cif.iwait == 1'b1) ? REQUEST : IDLE; 
   endcase 
 end 
 
@@ -99,7 +99,7 @@ always_comb begin: CONTROLLER_OUTPUT_LOGIC
   casez(state_reg) 
     REQUEST:  begin 
                 cif.iREN = 1'b1;
-                wen = ~cif.dwait; 
+                wen = ~cif.iwait; 
               end  
   endcase
 end 

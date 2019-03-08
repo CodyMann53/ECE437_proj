@@ -7,7 +7,7 @@ import cpu_types_pkg::*;
 module dcache (
    input logic CLK, nRST,
 
-   datapath_cache_if.dcache dcif, 
+   datapath_cache_if.dcache dcif,
    caches_if.dcache cif
 );
 
@@ -69,7 +69,7 @@ begin
    else
    begin
       cbl[cache_index].left_tag <= next_left_tag;
-      cbl[cache_index].right_tag <= next_right_tag;      
+      cbl[cache_index].right_tag <= next_right_tag;
       cbl[cache_index].left_dat0 <= next_left_dat0;
       cbl[cache_index].right_dat0 <= next_right_dat0;
       cbl[cache_index].left_dat1 <= next_left_dat1;
@@ -203,7 +203,7 @@ begin
          else
          begin
             next_state = COUNT;
-         end      
+         end
          next_old_cache_row = cache_row;
          next_cache_row = cache_row + 1;
       end
@@ -227,7 +227,7 @@ begin
    cif.dstore = 0;
 
    next_left_tag = cbl[cache_index].left_tag;
-   next_right_tag = cbl[cache_index].right_tag;      
+   next_right_tag = cbl[cache_index].right_tag;
    next_left_dat0 = cbl[cache_index].left_dat0;
    next_right_dat0 = cbl[cache_index].right_dat0;
    next_left_dat1 = cbl[cache_index].left_dat1;
@@ -241,7 +241,7 @@ begin
    dcif.dhit = 0;
    dcif.dmemload = 0;
    dcif.flushed = 0;
-   
+
    next_hit_count = hit_count;
    for(j = 0; j < 8; j++)
    begin
@@ -254,7 +254,7 @@ begin
       begin
          if(dcif.dmemREN == 1)
          begin
-            if((tag == cbl[cache_index].left_tag) && cbl[cache_index].left_valid)
+            if((tag == cbl[cache_index].left_tag) && cbl[cache_index].left_valid == 1)
             begin
                dcif.dhit = 1;
                hit = 1;
@@ -269,7 +269,7 @@ begin
                   dcif.dmemload = cbl[cache_index].left_dat1;
                end
             end
-            else if((tag == cbl[cache_index].right_tag) && cbl[cache_index].right_valid)
+            else if((tag == cbl[cache_index].right_tag) && cbl[cache_index].right_valid == 1)
             begin
                dcif.dhit = 1;
                hit = 1;
@@ -291,7 +291,7 @@ begin
          end
          else if(dcif.dmemWEN == 1)
          begin
-            if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid)
+            if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1)
             begin
                dcif.dhit = 1;
                hit = 1;
@@ -307,7 +307,7 @@ begin
                   next_left_dat1 = dcif.dmemstore;
                end
             end
-            else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid)
+            else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1)
             begin
                dcif.dhit = 1;
                hit = 1;
@@ -326,7 +326,7 @@ begin
             else
             begin
                next_hit_count = hit_count - 1;
-            end            
+            end
          end
       end
       WB1 :
@@ -401,13 +401,13 @@ begin
       begin
          if(old_cache_row < 8)
          begin
-            cif.dWEN = 1'b1; 
+            cif.dWEN = 1'b1;
             cif.daddr = {cbl[old_cache_row].left_tag, old_cache_row, 3'b000};
             cif.dstore = cbl[old_cache_row].left_dat0;
          end
          else
          begin
-            cif.dWEN = 1'b1; 
+            cif.dWEN = 1'b1;
             cif.daddr = {cbl[old_cache_row - 8].right_tag, old_cache_row - 8, 3'b000};
             cif.dstore = cbl[old_cache_row - 8].right_dat0;
          end
@@ -416,26 +416,26 @@ begin
       begin
          if(old_cache_row < 8)
          begin
-            cif.dWEN = 1'b1; 
+            cif.dWEN = 1'b1;
             cif.daddr = {cbl[old_cache_row].left_tag, old_cache_row, 3'b100};
             cif.dstore = cbl[old_cache_row].left_dat1;
          end
          else
          begin
-            cif.dWEN = 1'b1; 
+            cif.dWEN = 1'b1;
             cif.daddr = {cbl[old_cache_row - 8].right_tag, old_cache_row - 8, 3'b100};
             cif.dstore = cbl[old_cache_row - 8].right_dat1;
          end
       end
       COUNT :
       begin
-         cif.daddr = 32'h00003100;  
+         cif.daddr = 32'h00003100;
          cif.dWEN = 1;
          cif.dstore = hit_count;
-         dcif.flushed = 1'b1; 
+         dcif.flushed = 1'b1;
       end
-      HALT:dcif.flushed = 1'b1; 
-   endcase      
+      HALT:dcif.flushed = 1'b1;
+   endcase
 end
 
 endmodule
