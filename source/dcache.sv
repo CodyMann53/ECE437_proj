@@ -6,16 +6,8 @@ import cpu_types_pkg::*;
 
 module dcache (
    input logic CLK, nRST,
-<<<<<<< HEAD
-<<<<<<< HEAD
-   datapath_cache_if.dcache dcif, 
-=======
-   datapath_cache_if.dcache dcif,
->>>>>>> e041ab618dc0042ecb97ab2beb4c91876edf0661
-=======
-   datapath_cache_if.dcache dcif,
 
->>>>>>> 3b2c02da376e6ded14d59eb6a61f982c5bf1f0aa
+   datapath_cache_if.dcache dcif, 
    caches_if.dcache cif
 );
 
@@ -125,7 +117,7 @@ begin
          begin
             next_state = DIRTY;
          end
-         else if(hit == 0)
+         else if(hit == 0 && (dcif.dmemREN == 1 || dcif.dmemWEN == 1))
          begin
             if(last_used[cache_index] == 0)
             begin
@@ -260,7 +252,7 @@ begin
    casez(state)
       IDLE :
       begin
-         if(dcif.dmemREN)
+         if(dcif.dmemREN == 1)
          begin
             if((tag == cbl[cache_index].left_tag) && cbl[cache_index].left_valid)
             begin

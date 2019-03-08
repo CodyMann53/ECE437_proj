@@ -176,7 +176,6 @@ program test(
       // wait a little to allow inputs to settle 
       #(10)
       count = 0; 
-      
       // wait for transaction to complete between dcache and memory or just move on because tag is already in the cache and no write dirty contents to memory should occur. 
       while(dcif.dhit == 0) begin 
         @(posedge CLK); 
@@ -188,9 +187,12 @@ program test(
         // if dhit was not given back in same clock cycle 
         if (count != 0) begin
           // flag an error message 
-          $display("Dhit was not given back in same clock cycle for byte_address: 0x%0h that was expected to be in cache.", byte_address); 
+          $display("Time: %00gns Dhit was not given back in same clock cycle for byte_address: 0x%0h that was expected to be in cache.", $time, byte_address); 
         end 
       end
+
+      // remove the dcache inputs 
+      remove_dcache_inputs(); 
     end 
   endtask
 
@@ -257,9 +259,6 @@ program test(
         // check data read 
         check_data_read(byte_address, exp_data); 
       end 
-
-      // remove the inputs away from the dcache
-      remove_dcache_inputs();  
     end 
   endtask
 
@@ -273,8 +272,6 @@ program test(
       request_write(byte_address, data); 
       // wait for the transaction to complete and check for valid dhit 
       complete_transaction(byte_address, block_present); 
-      // remove the dcache inputs 
-      remove_dcache_inputs(); 
     end 
   endtask
 
@@ -354,16 +351,17 @@ program test(
 
     /************************************
     *
-    *       Test case 1: Testing simple reads back to back from same block location.
+    *       Test case 1: Testing for a compulsory miss
     *
     ************************************/
-    test_description = "Testing simple reads back to back from same block location.";
+    test_description = "Testing for compulsory misses.";
 
     // reads
     read_dcache(32'd0, 0, 0, 0); 
     read_dcache(32'd0, 1, 0, 0); 
+    read_dcache(32'd0, 1, 0, 0);
 
     // dump the memory into memcpu.hex after testbench is finished 
-    dump_memory(); 
+    //dump_memory(); 
   end 
 endprogram
