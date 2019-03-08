@@ -46,7 +46,7 @@ logic next_left_dirty, next_left_valid, next_right_dirty, next_right_valid;
 
 state_t state, next_state;
 
-logic[3:0] cache_row, next_cache_row, old_cache_row, next_old_cache_row;
+logic[4:0] cache_row, next_cache_row, old_cache_row, next_old_cache_row;
 
 always_ff @(posedge CLK or negedge nRST)
 begin
@@ -107,11 +107,13 @@ end
 always_comb
 begin
    next_state = state;
+   next_cache_row = cache_row;
    casez(state)
       IDLE :
       begin
          if(dcif.halt == 1)
          begin
+            next_cache_row = 0;
             next_state = DIRTY;
          end
          else if(hit == 0 && (dcif.dmemREN == 1 || dcif.dmemWEN == 1))
@@ -234,6 +236,7 @@ begin
    next_right_dirty = cbl[cache_index].right_dirty;
    next_left_valid = cbl[cache_index].left_valid;
    next_right_valid = cbl[cache_index].right_valid;
+
 
    dcif.dhit = 0;
    dcif.dmemload = 0;
@@ -398,11 +401,13 @@ begin
       begin
          if(old_cache_row < 8)
          begin
+            cif.dWEN = 1'b1; 
             cif.daddr = {cbl[old_cache_row].left_tag, old_cache_row, 3'b000};
             cif.dstore = cbl[old_cache_row].left_dat0;
          end
          else
          begin
+            cif.dWEN = 1'b1; 
             cif.daddr = {cbl[old_cache_row - 8].right_tag, old_cache_row - 8, 3'b000};
             cif.dstore = cbl[old_cache_row - 8].right_dat0;
          end
@@ -411,11 +416,13 @@ begin
       begin
          if(old_cache_row < 8)
          begin
+            cif.dWEN = 1'b1; 
             cif.daddr = {cbl[old_cache_row].left_tag, old_cache_row, 3'b100};
             cif.dstore = cbl[old_cache_row].left_dat1;
          end
          else
          begin
+            cif.dWEN = 1'b1; 
             cif.daddr = {cbl[old_cache_row - 8].right_tag, old_cache_row - 8, 3'b100};
             cif.dstore = cbl[old_cache_row - 8].right_dat1;
          end

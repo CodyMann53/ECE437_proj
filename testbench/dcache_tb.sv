@@ -204,7 +204,7 @@ program test(
     input word_t data; 
     begin 
       // get away from the negative edge of clock 
-      @(negedge CLK); 
+      @(posedge CLK); 
       // apply propper inputs to cache for a write
       dcif.halt = 1'b0; 
       dcif.dmemREN = 1'b0; 
@@ -307,7 +307,7 @@ program test(
       // wait a little to allow inputs to settle 
       count = 0; 
       // wait for flushed signal to be asserted or max clock cycles have been reached
-      while((count >= 64) | (dcif.flushed == 0)) begin 
+      while((count < 64) | (dcif.flushed == 0)) begin 
         @(posedge CLK); 
         count = count + 1; 
       end  
@@ -324,11 +324,11 @@ program test(
     input word_t data;
     begin 
       // variable for looping through cache
-      int index; 
+      logic [2:0] index; 
       index = 3'd0; 
 
       // loop through an address sequence that will touch every block in cache 
-      for (int i = 0; i < 8; i++) 
+      for (int i = 0; i < 8; i++) begin
         // set the address bits 
         address.tag = 26'd0; 
         address.idx = index; 
@@ -363,8 +363,9 @@ program test(
         read_dcache(address3, 1, data, 1); 
         read_dcache(address4, 1, data, 1); 
 
-        // update index
         index = index + 3'd1; 
+      end 
+
     end 
   endtask
 
@@ -539,8 +540,6 @@ program test(
     read_dcache(address, 1, data, 1); 
     read_dcache(address2, 1, data, 1); 
 
-
-
     /************************************
     *
     *       Test case 6: Testing capacity misses
@@ -597,6 +596,8 @@ program test(
     reset_dut(); 
 
 
+
+
     /************************************
     *
     *       Test case 8: Testing writeback specification
@@ -605,6 +606,31 @@ program test(
     test_case_num = test_case_num + 1; ; 
     test_description = "Testing writeback specification.";
     reset_dut(); 
+
+    // set the desired addresss and data 
+    address.tag = 26'd600; 
+    address.idx = 3'd4; 
+    address.blkoff = 1'b0; 
+    address.bytoff = 2'b00; 
+    data = 32'hF0F0F0F0; 
+
+    // Write to address
+    write_dcache(address, 0, data); 
+    // change tag but not index 
+    address.tag = 26'd601; 
+    // write to new cache block 
+    write_dcache(address, 0, data); 
+
+    // Note: At this point both of set0's blocks should be filled with dirty data 
+    // change tag again but keep index the same, while also changing the data. 
+    data = 32'hF0F0F0FF; 
+    address.tag = 26'd602; 
+    // write to new cache block, but this should cause a write back and then read
+    write_dcache(address, 0, data); 
+
+    // now try to read back the last block, because it should be in the cache block 
+      read_dcache(address, 1, data, 1); 
+
 
     /************************************
     *
@@ -619,6 +645,19 @@ program test(
     toggle(32'hFFFFFFFF); 
     toggle(32'h0); 
     toggle(32'hFFFFFFFF); 
+
+    /************************************
+    *
+    *       Test case 10: Writing data to every cache block and then halt to make sure that data is stored back correctly with a memory dump
+    *
+    ************************************/
+    test_case_num = test_case_num + 1;  
+    test_description = "Writing data to every cache block and then halt to make sure that data is stored back correctly with a memory dump";
+    reset_dut(); 
+
+    toggle(32'hFFFFFFFF); 
+
+    halt; 
  
     // dump the memory into memcpu.hex after testbench is finished 
     dump_memory(); 
