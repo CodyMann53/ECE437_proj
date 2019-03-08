@@ -151,16 +151,6 @@ program test(
 /******************* TEST VECTORS ********************/
 
 /******************* TEST TASK DEFINITIONS ********************/
-  // task to check the dhit signal 
-  task check_hit; 
-    input dcachef_t byte_address; 
-    begin
-      // if no hit signal was given 
-      if (dcif.dhit == 0) begin 
-        $display("Time: %00gns Expecting a hit from byte_address: 0x%h", byte_address); 
-      end  
-    end 
-  endtask
 
   // checks the read data from dcache
   task check_data_read; 
@@ -183,20 +173,18 @@ program test(
       // wait a little to allow inputs to settle 
       #(10)
       int count = 0; 
-      // wait as long as the memory controller says to
+      
+      // wait for transaction to complete between dcache and memory or just move on because tag is already in the cache and no write dirty contents to memory should occur. 
       while(dcif.dhit == 0) begin 
         @(posedge CLK); 
         count++; 
       end  
 
-      // wait a little to allow outputs to settle
-      #(10)
-      // check to make sure that there was a hit 
-      check_hit(byte_address); 
       // If block was expected to be present in the dcache 
       if (block_present == 1) begin 
         // if dhit was not given back in same clock cycle 
         if (count != 0) begin
+          // flag an error message 
           $display("Dhit was not given back in same clock cycle for byte_address: 0x%0h that was expected to be in cache.", byte_address); 
         end 
       end
@@ -328,8 +316,6 @@ program test(
       int chksum = 0;
       bit [7:0][7:0] values;
       string ihex;
-
-
 
       cif0.daddr = i << 2;
       cif0.dREN = 1;
