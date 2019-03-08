@@ -105,16 +105,6 @@ module dcache_tb;
   assign ccif.ramload = ramif.ramload;
   assign ccif.ramstate = ramif.ramstate;
 
-  //assign dcache -> memory control 
-  //assign ccif.dREN = cif0.dREN; 
-  //assign ccif.dWEN = cif0.dWEN; 
-  //assign ccif.daddr = cif0.daddr; 
-  //assign ccif.dstore = cif0.dstore; 
-
-  // assign memory control -> dcache 
-  //assign cif0.dwait = ccif.dwait; 
-  //assign cif0.dload = ccif.dload; 
-
 
   // test program
   test PROG ( 
@@ -122,7 +112,6 @@ module dcache_tb;
     .nRST(nRST),
     .dcif(dcif), 
     .ccif(ccif)
-
     ); 
 
 endmodule
@@ -147,8 +136,9 @@ program test(
   string test_description = "Initializing"; 
 
   // Data and address testbench variables 
-  dcachef_t [4:0] address_stream;
+  dcachef_t address, address2;
   word_t [31:0] data;  
+  logic [2:0] index; 
 
 /******************* TEST VECTORS ********************/
 
@@ -197,8 +187,7 @@ program test(
   task request_read; 
     input dcachef_t byte_address; 
     begin 
-      // get away from the negative edge of clock 
-      @(negedge CLK); 
+      @(posedge CLK); 
       // apply propper inputs to cache for a read
       dcif.halt = 1'b0; 
       dcif.dmemREN = 1'b1; 
@@ -227,8 +216,7 @@ program test(
   // clears the inputs to the dcache
   task remove_dcache_inputs; 
     begin 
-      // get away from the negative edge of clock cycle
-      @(negedge CLK); 
+      @(posedge CLK); 
       dcif.halt = 1'b0; 
       dcif.dmemREN = 1'b0; 
       dcif.dmemWEN = 1'b0; 
@@ -256,7 +244,7 @@ program test(
         // check data read 
         check_data_read(byte_address, exp_data); 
       end 
-      
+
       // remove the dcache inputs 
       remove_dcache_inputs(); 
     end 
@@ -348,8 +336,6 @@ program test(
     /******************* START RUNNING THROUGH TEST CASES ********************/
     // initialize all inputs 
     remove_dcache_inputs;
-    // reset the system
-    reset_dut();
 
     /************************************
     *
@@ -357,17 +343,31 @@ program test(
     *
     ************************************/
     reset_dut(); 
-    test_description = "Testing for compulsory misses from block zero.";
+    test_description = "Testing for compulsory misses from all blocks.";
 
-    // reads byte_address, block_present, exp_data, check_data
-    read_dcache(32'd0, 0, 0, 0); 
-    read_dcache(32'd0, 1, 0, 0); 
+    // variable for assigning index 
+
+    index = 3'd0; 
+    // loop through an address sequence that will touch every block in cache 
+    for (int i = 0; i < 8; i++) 
+      // set the address bits 
+      address.tag = 26'd0; 
+      address.idx = index; 
+      address.blkoff = 1'b0; 
+      address.bytoff = 2'b00; 
+      read_dcache(address, 0, 0, 0); 
+      read_dcache(address, 1, 0, 0); 
+
+      // update index
+      index = index + 3'd0; 
+    
 
     /************************************
     *
-    *       Test case 1: Testing for a compulsory miss
+    *       Test case 2: Testing write then read from same block
     *
     ************************************/
+    test_case_num = test_case_num + 1; ; 
     test_description = "Performing a write then a read from same block.";
     reset_dut(); 
 
@@ -377,7 +377,99 @@ program test(
     // read same value back
     read_dcache(32'd0, 1, 32'd45, 1);
 
+    /************************************
+    *
+    *       Test case 3: Testing associativity
+    *
+    ************************************/
+    test_case_num = test_case_num + 1; ; 
+    test_description = "Testing associativity.";
+    reset_dut(); 
+
+    // set the desired addresss and data 
+    address.tag = 26'd600; 
+    address.idx = 3'd4; 
+    address.blkoff = 1'b0; 
+    address.bytoff = 2'b00; 
+    address2.tag = 26'd601; 
+    address2.idx = address.idx; 
+    address2.blkoff = address.blkoff;
+    address2.bytoff = address.bytoff;  
+    data = 32'd50; 
+
+
+    // Write to two blocks within the same set but different tags 
+    write_dcache(address, 0, data); 
+    write_dcache(address2, 0, data);
+
+    // now try to read those blocks back 
+    read_dcache(address, 1, data, 1); 
+    read_dcache(address2, 1, data, 1); 
+
+    /************************************
+    *
+    *       Test case 4: Testing flushing 
+    *
+    ************************************/
+    test_case_num = test_case_num + 1; ; 
+    test_description = "Testing flushing.";
+    reset_dut(); 
+
+    /************************************
+    *
+    *       Test case 5: Testing read and writes to same tag different blocks.
+    *
+    ************************************/
+    test_case_num = test_case_num + 1; ; 
+    test_description = "Testing read and writes to same tag different blocks.";
+    reset_dut(); 
+
+    /************************************
+    *
+    *       Test case 6: Testing capacity misses
+    *
+    ************************************/
+    test_case_num = test_case_num + 1; ; 
+    test_description = "Testing capacity misses.";
+    reset_dut(); 
+
+    /************************************
+    *
+    *       Test case 7: Testing conflict misses.
+    *
+    ************************************/
+    test_case_num = test_case_num + 1; ; 
+    test_description = "Testing conflict misses.";
+    reset_dut(); 
+
+    /************************************
+    *
+    *       Test case 8: Testing compulsory misses
+    *
+    ************************************/
+    test_case_num = test_case_num + 1; ; 
+    test_description = "Testing compulsory misses.";
+    reset_dut();
+
+    /************************************
+    *
+    *       Test case 9: Testing writeback specification
+    *
+    ************************************/
+    test_case_num = test_case_num + 1; ; 
+    test_description = "Testing writeback specification.";
+    reset_dut(); 
+
+    /************************************
+    *
+    *       Test case 10: Testing toggle coverage on dcache table.
+    *
+    ************************************/
+    test_case_num = test_case_num + 1; ; 
+    test_description = "Testing toggle coverage on dcache table.";
+    reset_dut(); 
+ 
     // dump the memory into memcpu.hex after testbench is finished 
-    //dump_memory(); 
+    dump_memory(); 
   end 
 endprogram

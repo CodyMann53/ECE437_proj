@@ -12,7 +12,7 @@ module dcache (
 );
 
 typedef struct packed {
-   logic [24:0] left_tag, right_tag;
+   logic [25:0] left_tag, right_tag;
    word_t left_dat0, right_dat0;
    word_t left_dat1, right_dat1;
    logic left_dirty, right_dirty;
@@ -96,10 +96,7 @@ begin
    end
    else
    begin
-      for(i = 0; i < 8; i++)
-      begin
-         last_used[i] <= next_last_used;
-      end
+      last_used[cache_index] <= next_last_used[cache_index];
       state <= next_state;
       hit_count <= next_hit_count;
       cache_row <= next_cache_row;
@@ -258,7 +255,7 @@ begin
             begin
                dcif.dhit = 1;
                hit = 1;
-               next_last_used = 0;
+               next_last_used[cache_index] = 0;
                next_hit_count = hit_count + 1;
                if(data_index[2] == 0)
                begin
@@ -273,7 +270,7 @@ begin
             begin
                dcif.dhit = 1;
                hit = 1;
-               next_last_used = 1;
+               next_last_used[cache_index] = 1;
                next_hit_count = hit_count + 1;
                if(data_index[2] == 0)
                begin
@@ -296,7 +293,7 @@ begin
                dcif.dhit = 1;
                hit = 1;
                next_left_dirty = 1;
-               next_last_used = 0;
+               next_last_used[cache_index] = 0;
                next_hit_count = hit_count + 1;
                if(data_index[2] == 0)
                begin
@@ -312,7 +309,7 @@ begin
                dcif.dhit = 1;
                hit = 1;
                next_right_dirty = 1;
-               next_last_used = 1;
+               next_last_used[cache_index] = 1;
                next_hit_count = hit_count + 1;
                if(data_index[2] == 0)
                begin
@@ -377,13 +374,22 @@ begin
             next_right_dat1 = cif.dload;
             next_right_dirty = 0;
             next_right_valid = 1;
-            next_right_tag = tag;
+            if(cif.dwait == 0)
+            begin
+               next_right_tag = tag;
+               next_last_used[cache_index] = 1;
+            end
          end
          else
          begin
+            next_left_dat1 = cif.dload;
             next_left_dirty = 0;
             next_left_valid = 1;
-            next_left_tag = tag;
+            if(cif.dwait == 0)
+            begin
+               next_left_tag = tag;
+               next_last_used[cache_index] = 1;
+            end
          end
          cif.dREN = 1;
          cif.daddr = {tag, cache_index, 3'b100};
