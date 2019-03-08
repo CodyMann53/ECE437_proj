@@ -6,7 +6,11 @@ import cpu_types_pkg::*;
 
 module dcache (
    input logic CLK, nRST,
+<<<<<<< HEAD
    datapath_cache_if.dcache dcif, 
+=======
+   datapath_cache_if.dcache dcif,
+>>>>>>> e041ab618dc0042ecb97ab2beb4c91876edf0661
    caches_if.dcache cif
 );
 
@@ -19,16 +23,7 @@ typedef struct packed {
 } dcache_block_t;
 
 typedef enum logic[3:0] {
-   IDLE = 4'd0;
-   WB1 = 4'd1;
-   WB2 = 4'd2;
-   READ1 = 4'd3;
-   READ2 = 4'd4;
-   HALT = 4'd5;
-   FLUSH1 = 4'd6;
-   FLUSH2 = 4'd7;
-   DIRTY = 4'd8;
-   COUNT = 4'd9;
+   IDLE, WB1, WB2, READ1, READ2, HALT, FLUSH1, FLUSH2, DIRTY, COUNT
 } state_t;
 
 logic [25:0] tag;
@@ -46,7 +41,7 @@ word_t hit_count, next_hit_count;
 
 integer i;
 
-dcache_block_t dbl[7:0];
+dcache_block_t cbl[7:0];
 
 logic[25:0] next_left_tag, next_right_tag;
 word_t next_left_dat0, next_left_dat1, next_right_dat0, next_right_dat1;
@@ -62,29 +57,30 @@ begin
    begin
       for(i = 0; i < 8; i++)
       begin
-         dbl[i].left_tag <= 0;
-         dbl[i].right_tag <= 0;
-         dbl[i].left_dat0 <= 0;
-         dbl[i].right_dat0 <= 0;
-         dbl[i].left_dat1 <= 0;
-         dbl[i].right_dat1 <= 0;
-         dbl[i].left_dirty <= 0;
-         dbl[i].right_dirty <= 0;
-         dbl[i].left_valid <= 0;
-         dbl[i].right_valid <= 0;
+         cbl[i].left_tag <= 0;
+         cbl[i].right_tag <= 0;
+         cbl[i].left_dat0 <= 0;
+         cbl[i].right_dat0 <= 0;
+         cbl[i].left_dat1 <= 0;
+         cbl[i].right_dat1 <= 0;
+         cbl[i].left_dirty <= 0;
+         cbl[i].right_dirty <= 0;
+         cbl[i].left_valid <= 0;
+         cbl[i].right_valid <= 0;
       end
+   end
    else
    begin
-      dbl[cache_index].left_tag <= next_left_tag;
-      dbl[cache_index].right_tag <= next_right_tag;      
-      dbl[cache_index].left_dat0 <= next_left_dat0;
-      dbl[cache_index].right_dat0 <= next_right_dat0;
-      dbl[cache_index].left_dat1 <= next_left_dat1;
-      dbl[cache_index].right_dat1 <= next_right_dat1;
-      dbl[cache_index].left_dirty <= next_left_dirty;
-      dbl[cache_index].right_dirty <= next_right_dirty;
-      dbl[cache_index].left_valid <= next_left_valid;
-      dbl[cache_index].right_valid <= next_right_valid;
+      cbl[cache_index].left_tag <= next_left_tag;
+      cbl[cache_index].right_tag <= next_right_tag;      
+      cbl[cache_index].left_dat0 <= next_left_dat0;
+      cbl[cache_index].right_dat0 <= next_right_dat0;
+      cbl[cache_index].left_dat1 <= next_left_dat1;
+      cbl[cache_index].right_dat1 <= next_right_dat1;
+      cbl[cache_index].left_dirty <= next_left_dirty;
+      cbl[cache_index].right_dirty <= next_right_dirty;
+      cbl[cache_index].left_valid <= next_left_valid;
+      cbl[cache_index].right_valid <= next_right_valid;
    end
 end
 
@@ -200,6 +196,7 @@ begin
             begin
                next_state = FLUSH1;
             end
+         end
          else if(cache_row < 16)
          begin
             if(cbl[cache_row - 8].right_dirty == 1)
@@ -224,6 +221,8 @@ begin
    endcase
 end
 
+integer j;
+
 always_comb
 begin
    cif.dREN = 0;
@@ -231,25 +230,25 @@ begin
    cif.daddr = 0;
    cif.dstore = 0;
 
-   next_left_tag = dbl[cache_index].left_tag;
-   next_right_tag = dbl[cache_index].right_tag;      
-   next_left_dat0 = dbl[cache_index].left_dat0;
-   next_right_dat0 = dbl[cache_index].right_dat0;
-   next_left_dat1 = dbl[cache_index].left_dat1;
-   next_right_dat1 = dbl[cache_index].right_dat1;
-   next_left_dirty = dbl[cache_index].left_dirty;
-   next_right_dirty = dbl[cache_index].right_dirty;
-   next_left_valid = dbl[cache_index].left_valid;
-   next_right_valid = dbl[cache_index].right_valid;
+   next_left_tag = cbl[cache_index].left_tag;
+   next_right_tag = cbl[cache_index].right_tag;      
+   next_left_dat0 = cbl[cache_index].left_dat0;
+   next_right_dat0 = cbl[cache_index].right_dat0;
+   next_left_dat1 = cbl[cache_index].left_dat1;
+   next_right_dat1 = cbl[cache_index].right_dat1;
+   next_left_dirty = cbl[cache_index].left_dirty;
+   next_right_dirty = cbl[cache_index].right_dirty;
+   next_left_valid = cbl[cache_index].left_valid;
+   next_right_valid = cbl[cache_index].right_valid;
 
    dcif.dhit = 0;
    dcif.dmemload = 0;
    dcif.flushed = 0;
    
    next_hit_count = hit_count;
-   for(i = 0; i < 8; i++)
+   for(j = 0; j < 8; j++)
    begin
-      next_last_used[i] = last_used[i];
+      next_last_used[j] = last_used[j];
    end
    hit = 0;
 
@@ -427,7 +426,7 @@ begin
    endcase      
 end
 
-
+endmodule
 
 
 
