@@ -425,7 +425,9 @@ begin
          cif.daddr = 32'h00003100;  
          cif.dWEN = 1;
          cif.dstore = hit_count;
+         dcif.flushed = 1'b1; 
       end
+      HALT:dcif.flushed = 1'b1; 
    endcase      
 end
 

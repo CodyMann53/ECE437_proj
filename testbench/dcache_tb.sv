@@ -269,6 +269,9 @@ program test(
   task reset_dut; 
     begin 
 
+      // get rid of all previous inputs
+      remove_dcache_inputs; 
+
       // get away from posedge of clock 
       @(negedge CLK); 
 
@@ -285,6 +288,36 @@ program test(
       nRST = 1'b1; 
     end 
   endtask
+
+  // requests a read from the dcache
+  task halt; 
+    begin 
+      int count;
+      @(posedge CLK); 
+      // apply propper inputs to cache for a halt
+      dcif.halt = 1'b1; 
+      dcif.dmemREN = 1'b0; 
+      dcif.dmemWEN = 1'b0; 
+      dcif.dmemstore = 32'd0; 
+      dcif.dmemaddr = 32'd0; 
+
+      #(10)
+
+      // wait a little to allow inputs to settle 
+      count = 0; 
+      // wait for flushed signal to be asserted or max clock cycles have been reached
+      while((count >= 64) | (dcif.flushed == 0)) begin 
+        @(posedge CLK); 
+        count = count + 1; 
+      end  
+      
+      // if the max number of clock cycles have been reached
+      if (count >= 64) begin 
+        $display("Time: %00gns The dcache never gave back a flush signal.", $time); 
+      end 
+    end 
+  endtask 
+
 
   // dumps the meory from ram at end of testbench
   task automatic dump_memory();
@@ -357,9 +390,9 @@ program test(
       address.bytoff = 2'b00; 
       read_dcache(address, 0, 0, 0); 
       read_dcache(address, 1, 0, 0); 
-
       // update index
       index = index + 3'd0; 
+
     
 
     /************************************
@@ -413,7 +446,23 @@ program test(
     ************************************/
     test_case_num = test_case_num + 1; ; 
     test_description = "Testing flushing.";
-    reset_dut(); 
+    reset_dut();
+
+    index = 3'd0; 
+    // loop through an address sequence that will touch every block in cache 
+    for (int i = 0; i < 8; i++) 
+      // set the address bits 
+      address.tag = 26'd0; 
+      address.idx = index; 
+      address.blkoff = 1'b0; 
+      address.bytoff = 2'b00; 
+      read_dcache(address, 0, 0, 0); 
+      read_dcache(address, 1, 0, 0); 
+      // update index
+      index = index + 3'd0;  
+
+    // Now tell the cache that processor is halting
+    halt; 
 
     /************************************
     *
@@ -423,6 +472,27 @@ program test(
     test_case_num = test_case_num + 1; ; 
     test_description = "Testing read and writes to same tag different blocks.";
     reset_dut(); 
+
+    // set the desired addresss and data 
+    address.tag = 26'd600; 
+    address.idx = 3'd4; 
+    address.blkoff = 1'b0; 
+    address.bytoff = 2'b00; 
+    address2.tag = address.tag; 
+    address2.idx = 3'd5; 
+    address2.blkoff = address.blkoff;
+    address2.bytoff = address.bytoff;  
+    data = 32'd50; 
+
+    // Write to two different blocks but with same tag
+    write_dcache(address, 0, data); 
+    write_dcache(address2, 0, data);
+
+    // now try to read those blocks back 
+    read_dcache(address, 1, data, 1); 
+    read_dcache(address2, 1, data, 1); 
+
+
 
     /************************************
     *
