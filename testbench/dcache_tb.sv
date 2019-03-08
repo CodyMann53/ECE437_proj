@@ -104,7 +104,7 @@ module dcache_tb;
   assign ccif.ramload = ramif.ramload;
   assign ccif.ramstate = ramif.ramstate;
 
-  // assign dcache -> memory control 
+  //assign dcache -> memory control 
   //assign ccif.dREN = cif0.dREN; 
   //assign ccif.dWEN = cif0.dWEN; 
   //assign ccif.daddr = cif0.daddr; 
