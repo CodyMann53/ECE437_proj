@@ -291,7 +291,7 @@ begin
          end
          else if(dcif.dmemWEN == 1)
          begin
-            if(tag == cbl[cache_index].left_tag)
+            if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid)
             begin
                dcif.dhit = 1;
                hit = 1;
@@ -307,7 +307,7 @@ begin
                   next_left_dat1 = dcif.dmemstore;
                end
             end
-            else if(tag == cbl[cache_index].right_tag)
+            else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid)
             begin
                dcif.dhit = 1;
                hit = 1;

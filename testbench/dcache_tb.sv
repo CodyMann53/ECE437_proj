@@ -190,9 +190,6 @@ program test(
           $display("Time: %00gns Dhit was not given back in same clock cycle for byte_address: 0x%0h that was expected to be in cache.", $time, byte_address); 
         end 
       end
-
-      // remove the dcache inputs 
-      remove_dcache_inputs(); 
     end 
   endtask
 
@@ -259,6 +256,9 @@ program test(
         // check data read 
         check_data_read(byte_address, exp_data); 
       end 
+      
+      // remove the dcache inputs 
+      remove_dcache_inputs(); 
     end 
   endtask
 
@@ -271,7 +271,9 @@ program test(
       // request a write from the dcache 
       request_write(byte_address, data); 
       // wait for the transaction to complete and check for valid dhit 
-      complete_transaction(byte_address, block_present); 
+      complete_transaction(byte_address, block_present);
+      // remove the dcache inputs 
+      remove_dcache_inputs();  
     end 
   endtask
 
@@ -354,12 +356,26 @@ program test(
     *       Test case 1: Testing for a compulsory miss
     *
     ************************************/
-    test_description = "Testing for compulsory misses.";
+    reset_dut(); 
+    test_description = "Testing for compulsory misses from block zero.";
 
-    // reads
+    // reads byte_address, block_present, exp_data, check_data
     read_dcache(32'd0, 0, 0, 0); 
     read_dcache(32'd0, 1, 0, 0); 
-    read_dcache(32'd0, 1, 0, 0);
+
+    /************************************
+    *
+    *       Test case 1: Testing for a compulsory miss
+    *
+    ************************************/
+    test_description = "Performing a write then a read from same block.";
+    reset_dut(); 
+
+    read_dcache(32'd0, 0, 0, 0); 
+    // write cache byte_address, block_present, data
+    write_dcache(32'd0, 1, 32'd45); 
+    // read same value back
+    read_dcache(32'd0, 1, 32'd45, 1);
 
     // dump the memory into memcpu.hex after testbench is finished 
     //dump_memory(); 
