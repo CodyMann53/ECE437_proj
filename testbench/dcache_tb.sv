@@ -1,6 +1,7 @@
 /*
   Cody Mann
   mann53@purdue.edu
+  
   data cache testbench
 */
 
@@ -114,12 +115,14 @@ module dcache_tb;
   //assign cif0.dwait = ccif.dwait; 
   //assign cif0.dload = ccif.dload; 
 
+
   // test program
   test PROG ( 
     .CLK(CLK),
     .nRST(nRST),
     .dcif(dcif), 
     .ccif(ccif)
+
     ); 
 
 endmodule
@@ -363,5 +366,4 @@ program test(
     // dump the memory into memcpu.hex after testbench is finished 
     dump_memory(); 
   end 
-
 endprogram
