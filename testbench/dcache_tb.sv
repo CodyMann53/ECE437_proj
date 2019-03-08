@@ -1,7 +1,7 @@
 /*
   Cody Mann
   mann53@purdue.edu
-
+  
   data cache testbench
 */
 
@@ -105,22 +105,24 @@ module dcache_tb;
   assign ccif.ramload = ramif.ramload;
   assign ccif.ramstate = ramif.ramstate;
 
-  // assign dcache -> memory control 
-  assign ccif.dREN = cif0.dREN; 
-  assign ccif.dWEN = cif0.dWEN; 
-  assign ccif.daddr = cif0.daddr; 
-  assign ccif.dstore = cif0.dstore; 
+  //assign dcache -> memory control 
+  //assign ccif.dREN = cif0.dREN; 
+  //assign ccif.dWEN = cif0.dWEN; 
+  //assign ccif.daddr = cif0.daddr; 
+  //assign ccif.dstore = cif0.dstore; 
 
   // assign memory control -> dcache 
-  assign cif0.dwait = ccif.dwait; 
-  assign cif0.dload = ccif.dload; 
+  //assign cif0.dwait = ccif.dwait; 
+  //assign cif0.dload = ccif.dload; 
+
 
   // test program
   test PROG ( 
     .CLK(CLK),
     .nRST(nRST),
-    dcif, 
-    ccif
+    .dcif(dcif), 
+    .ccif(ccif)
+
     ); 
 
 endmodule
@@ -158,26 +160,27 @@ program test(
     input word_t exp_data; 
     begin 
       // if the data output from dcache is not the same as expected
-      if (dcif.dload != exp_data) begin
+      if (dcif.dmemload != exp_data) begin
         // raise an error 
-        $display("Time: %00gns Expecting %0d to be read from byte_address 0x%0h and not %0d.", exp_data, byte_address, dcif.dload); 
+        $display("Time: %00gns Expecting %0d to be read from byte_address 0x%0h and not %0d.", $time, exp_data, byte_address, dcif.dmemload); 
       end 
     end 
   endtask 
 
   // task to wait for a request to cache to complete and then checks for a valid dhit
-  task complete_transaction
+  task complete_transaction;
     input dcachef_t byte_address; 
     input logic block_present; 
     begin
+      integer count;
       // wait a little to allow inputs to settle 
       #(10)
-      int count = 0; 
+      count = 0; 
       
       // wait for transaction to complete between dcache and memory or just move on because tag is already in the cache and no write dirty contents to memory should occur. 
       while(dcif.dhit == 0) begin 
         @(posedge CLK); 
-        count++; 
+        count += 1; 
       end  
 
       // If block was expected to be present in the dcache 
@@ -196,7 +199,7 @@ program test(
     input dcachef_t byte_address; 
     begin 
       // get away from the negative edge of clock 
-      @(negedge ClK); 
+      @(negedge CLK); 
       // apply propper inputs to cache for a read
       dcif.halt = 1'b0; 
       dcif.dmemREN = 1'b1; 
@@ -204,7 +207,7 @@ program test(
       dcif.dmemstore = 32'd0; 
       dcif.dmemaddr = byte_address; 
     end 
-  end 
+  endtask 
 
   // requests a write to the dcache
   task request_write; 
@@ -212,7 +215,7 @@ program test(
     input word_t data; 
     begin 
       // get away from the negative edge of clock 
-      @(negedge ClK); 
+      @(negedge CLK); 
       // apply propper inputs to cache for a write
       dcif.halt = 1'b0; 
       dcif.dmemREN = 1'b0; 
@@ -220,7 +223,7 @@ program test(
       dcif.dmemstore = data; 
       dcif.dmemaddr = byte_address; 
     end 
-  end
+  endtask
 
   // clears the inputs to the dcache
   task remove_dcache_inputs; 
@@ -236,7 +239,7 @@ program test(
   endtask
 
   // task to read from the dcache
-  task read_dcache
+  task read_dcache;
     input dcachef_t byte_address;
     input logic block_present;  
     input word_t exp_data; 
@@ -345,7 +348,7 @@ program test(
 
     /******************* START RUNNING THROUGH TEST CASES ********************/
     // initialize all inputs 
-    remove_dcache_inputs
+    remove_dcache_inputs;
     // reset the system
     reset_dut();
 
@@ -357,8 +360,8 @@ program test(
     test_description = "Testing simple reads back to back from same block location.";
 
     // reads
-    read_dcache(32'd0, 0, 0); 
-    read_dcache(32'd0, 1, 0); 
+    read_dcache(32'd0, 0, 0, 0); 
+    read_dcache(32'd0, 1, 0, 0); 
 
     // dump the memory into memcpu.hex after testbench is finished 
     dump_memory(); 
