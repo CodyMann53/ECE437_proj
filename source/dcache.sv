@@ -126,7 +126,7 @@ begin
          begin
             if(last_used[cache_index] == 0)
             begin
-               if(cbl[cache_index].left_dirty == 1)
+               if(cbl[cache_index].right_dirty == 1)
                begin
                   next_state = WB1;
                end
@@ -137,7 +137,7 @@ begin
             end
             else
             begin
-               if(cbl[cache_index].right_dirty == 1)
+               if(cbl[cache_index].left_dirty == 1)
                begin
                   next_state = WB1;
                end
