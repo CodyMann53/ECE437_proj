@@ -26,23 +26,20 @@ module icache (
   // States for icache controller
   typedef enum logic{
     IDLE = 1'b0, 
-    REQUEST = 1'b1, 
+    REQUEST = 1'b1
   }state; 
 
-/********** PARAMETERS ***************************/
-  parameter NUM_BLOCKS = 16
 
 /********** Local variable definitions ***************************/
-icache_frame [NUM_BLOCKS-1:0] cache_mem_nxt, cache_mem_reg;  
+icache_frame [15:0] cache_mem_nxt, cache_mem_reg;  
 icachef_t frame; 
 logic wen; 
 state state_reg, state_nxt; 
 logic hit; 
 
 /********** Assign statements ***************************/
-assign tag = dcif.imemaddr 
 assign dcif.ihit = hit; 
-assign dcif.imemload = cache_mem_reg.data; 
+assign dcif.imemload = cache_mem_reg[frame.idx].data; 
 assign cif.iaddr = dcif.imemaddr; 
 assign frame = icachef_t'(dcif.imemaddr); //'
 
@@ -64,10 +61,10 @@ always_comb begin: CACHE_MEMORY_OUTPUT_LOGIC
   hit = 1'b0; 
 
   // if reading 
-  if (wen = 1'b0) begin 
+  if (wen == 1'b0) begin 
 
     // if the tags are the same and data block is valid 
-    if ((tag == cache_mem_reg[frame.idx].tag) & (cache_mem_reg[frame.idx].valid == 1'b1)) begin 
+    if ((frame.tag == cache_mem_reg[frame.idx].tag) & (cache_mem_reg[frame.idx].valid == 1'b1)) begin 
       // set hit to 1
       hit = 1'b1; 
     end 
@@ -90,7 +87,7 @@ always_comb begin: CONTROLLER_FSM_NXT_STATE_LOGIC
               state_nxt = REQUEST; 
             end 
           end 
-    REQUEST: (dcif.iwait == 1) ? state_nxt = REQUEST : state_nxt = IDLE; 
+    REQUEST: state_nxt = (dcif.iwait == 1'b1) ? REQUEST : IDLE; 
   endcase 
 end 
 
@@ -118,7 +115,7 @@ always_ff @(posedge CLK, negedge nRST) begin: CACHE_MEMORY_REGISTER
   // no reset was applied 
   else begin 
     // update data, tags, and valid bits 
-    cache_mem_reg <= cache_mem_nxt
+    cache_mem_reg <= cache_mem_nxt; 
   end 
 end
 
