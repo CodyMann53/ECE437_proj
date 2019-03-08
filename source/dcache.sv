@@ -376,10 +376,15 @@ begin
          if(last_used[cache_index] == 0)
          begin
             next_right_dat1 = cif.dload;
+            next_right_dirty = 0;
+            next_right_valid = 1;
+            next_right_tag = tag;
          end
          else
          begin
-            next_left_dat1 = cif.dload;
+            next_left_dirty = 0;
+            next_left_valid = 1;
+            next_left_tag = tag;
          end
          cif.dREN = 1;
          cif.daddr = {tag, cache_index, 3'b100};
