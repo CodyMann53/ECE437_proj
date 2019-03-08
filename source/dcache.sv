@@ -54,7 +54,7 @@ logic next_left_dirty, next_left_valid, next_right_dirty, next_right_valid;
 
 state_t state, next_state;
 
-logig[3:0] cache_row, next_cache_row;
+logic[3:0] cache_row, next_cache_row, old_cache_row, next_old_cache_row;
 
 always_ff @(posedge CLK or negedge nRST)
 begin
@@ -99,6 +99,7 @@ begin
       state <= IDLE;
       hit_count <= 0;
       cache_row <= 0;
+      old_cache_row <= 0;
    end
    else
    begin
@@ -109,6 +110,7 @@ begin
       state <= next_state;
       hit_count <= next_hit_count;
       cache_row <= next_cache_row;
+      old_cache_row <= next_old_cache_row;
    end
 end
 
@@ -209,6 +211,7 @@ begin
          begin
             next_state = COUNT;
          end      
+         next_old_cache_row = cache_row;
          next_cache_row = cache_row + 1;
       end
       COUNT :
@@ -391,28 +394,28 @@ begin
       end
       FLUSH1 :
       begin
-         if(cache_row - 1 < 8)
+         if(old_cache_row < 8)
          begin
-            cif.daddr = {cbl[cache_row - 1].left_tag, cache_row - 1, 3'b000};
-            cif.dstore = cbl[cache_row - 1].left_dat0;
+            cif.daddr = {cbl[old_cache_row].left_tag, old_cache_row, 3'b000};
+            cif.dstore = cbl[old_cache_row].left_dat0;
          end
          else
          begin
-            cif.daddr = {cbl[cache_row - 9].right_tag, cache_row - 9, 3'b000};
-            cif.dstore = cbl[cache_row - 9].right_dat0;
+            cif.daddr = {cbl[old_cache_row - 8].right_tag, old_cache_row - 8, 3'b000};
+            cif.dstore = cbl[old_cache_row - 8].right_dat0;
          end
       end
       FLUSH2 :
       begin
-         if(cache_row - 1 < 8)
+         if(old_cache_row < 8)
          begin
-            cif.daddr = {cbl[cache_row - 1].left_tag, cache_row - 1, 3'b100};
-            cif.dstore = cbl[cache_row - 1].left_dat1;
+            cif.daddr = {cbl[old_cache_row].left_tag, old_cache_row, 3'b100};
+            cif.dstore = cbl[old_cache_row].left_dat1;
          end
          else
          begin
-            cif.daddr = {cbl[cache_row - 9].right_tag, cache_row - 9, 3'b100};
-            cif.dstore = cbl[cache_row - 9].right_dat1;
+            cif.daddr = {cbl[old_cache_row - 8].right_tag, old_cache_row - 8, 3'b100};
+            cif.dstore = cbl[old_cache_row - 8].right_dat1;
          end
       end
       COUNT :
