@@ -7,10 +7,15 @@ import cpu_types_pkg::*;
 module dcache (
    input logic CLK, nRST,
 <<<<<<< HEAD
+<<<<<<< HEAD
    datapath_cache_if.dcache dcif, 
 =======
    datapath_cache_if.dcache dcif,
 >>>>>>> e041ab618dc0042ecb97ab2beb4c91876edf0661
+=======
+   datapath_cache_if.dcache dcif,
+
+>>>>>>> 3b2c02da376e6ded14d59eb6a61f982c5bf1f0aa
    caches_if.dcache cif
 );
 
