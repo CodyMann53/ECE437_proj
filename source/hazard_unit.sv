@@ -37,7 +37,7 @@ always_comb begin: ADVANCE_LOGIC
 		move = 1'b0; 
 	end 
 	// else if there is no ihit  and dhit
-	else if ( (huif.ihit == 0) & (huif.dhit == 0)) begin 
+	else if ( huif.ihit == 0) begin 
 		// don't move pipeline along 
 		move = 1'b0; 
 	end

@@ -6,8 +6,16 @@
   org   0x0000
   ori   $2, $zero, 0xF0
   lw    $8, 8($2)
+  lw    $9, 4($2)
+  lw    $10, 0($2)
+  BEQ   $0, $0, branch 
+  sw    $10, 8($2)
+  sw    $9, 4($2)
   sw    $8, 0($2)
   halt      # that's all
+
+branch: 
+  halt
 
   org   0x00F0
   cfw   0x7337

@@ -108,6 +108,7 @@ always_comb
 begin
    next_state = state;
    next_cache_row = cache_row;
+   next_old_cache_row = old_cache_row;
    casez(state)
       IDLE :
       begin
@@ -215,6 +216,11 @@ begin
          end
       end
       HALT: next_state = HALT; 
+      default : 
+      begin 
+         next_state = state;
+         next_cache_row = cache_row;
+      end
    endcase
 end
 
@@ -226,6 +232,8 @@ begin
    cif.dWEN = 0;
    cif.daddr = 0;
    cif.dstore = 0;
+   cif.ccwrite = 0;
+   cif.cctrans = 0;
 
    next_left_tag = cbl[cache_index].left_tag;
    next_right_tag = cbl[cache_index].right_tag;
@@ -238,16 +246,16 @@ begin
    next_left_valid = cbl[cache_index].left_valid;
    next_right_valid = cbl[cache_index].right_valid;
 
-
    dcif.dhit = 0;
    dcif.dmemload = 0;
    dcif.flushed = 0;
 
    next_hit_count = hit_count;
-   for(j = 0; j < 8; j++)
-   begin
-      next_last_used[j] = last_used[j];
-   end
+
+   next_last_used = last_used;
+
+   temp_old_row = next_cache_row;
+
    hit = 0;
 
    casez(state)

@@ -17,7 +17,7 @@ import cpu_types_pkg::*;
 
 module caches (
   input logic CLK, nRST,
-  datapath_cache_if.cache dcif,
+  datapath_cache_if dcif,
   caches_if cif
 );
 
@@ -25,8 +25,8 @@ module caches (
   word_t daddr;
 
   // icache and dcache definitions
-  icache  ICACHE(CLK, nRST, dcif, cif);
-  dcache  DCACHE(CLK, nRST, dcif, cif);
+  icache  ICACHE(CLK, nRST, dcif.icache, cif.icache);
+  dcache  DCACHE(CLK, nRST, dcif.dcache, cif.dcache);
 
   // single cycle instr saver (for memory ops)
   always_ff @(posedge CLK)
