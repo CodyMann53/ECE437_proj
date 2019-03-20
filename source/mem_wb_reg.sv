@@ -98,7 +98,7 @@ always_comb begin: NXT_LOGIC
 		rd_nxt = mem_wb_regif.Rd_EX_MEM; 
 		halt_nxt = mem_wb_regif.halt_EX_MEM; 
 		mem_to_reg_nxt = mem_wb_regif.mem_to_reg_EX_MEM; 
-		dmemload_nxt = mem_wb_regif.dmemload_EX_MEM;
+		dmemload_nxt = mem_wb_regif.dmemload;
 
 		// cpu tracker signals 
 		imemaddr_nxt = mem_wb_regif.imemaddr_EX_MEM; 

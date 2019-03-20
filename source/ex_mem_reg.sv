@@ -35,7 +35,7 @@ aluop_t alu_op_reg, alu_op_nxt;
 regbits_t rt_reg, rt_nxt, 
 		  rd_reg, rd_nxt; 
 word_t result_reg, result_nxt,
-	   data_store_reg, data_store_nxt, dmemload_reg, dmemload_nxt; 
+	   data_store_reg, data_store_nxt;
 mem_to_reg_mux_selection mem_to_reg_reg, mem_to_reg_nxt; 
 word_t branch_addr_reg, branch_addr_nxt; 
 
@@ -64,7 +64,6 @@ assign ex_mem_regif.dmemREN = dREN_reg;
 assign ex_mem_regif.dmemWEN = dWEN_reg; 
 assign ex_mem_regif.halt_EX_MEM = halt_reg;
 assign ex_mem_regif.branch_addr_EX_MEM = branch_addr_reg; 
-assign ex_mem_regif.dmemload_EX_MEM = dmemload_reg; 
 
 // cpu tracker variables 
 assign ex_mem_regif.imemaddr_EX_MEM = imemaddr_reg; 
@@ -96,7 +95,6 @@ always_comb begin: NXT_LOGIC
 	mem_to_reg_nxt = mem_to_reg_reg; 
 	branch_addr_nxt = branch_addr_reg; 
 	zero_nxt = zero_reg; 
-	dmemload_nxt = dmemload_reg; 
 
 	// cpu tracker signals 
 	imemaddr_nxt = imemaddr_reg; 
@@ -109,13 +107,6 @@ always_comb begin: NXT_LOGIC
 	rs_nxt = rs_reg;  
 	WEN_nxt = WEN_reg; 
 	instruction_nxt = instruction_reg; 
-
-
-	if (ex_mem_regif.dhit == 1) begin 
-		dREN_nxt = 1'b0; 
-		dWEN_nxt = 1'b0;
-		dmemload_nxt = ex_mem_regif.dmemload; 
-	end 
 
 	if ((ex_mem_regif.enable_EX_MEM == 1'b1) & (ex_mem_regif.flush_EX_MEM == 1'b0)) begin 
 		WEN_nxt = ex_mem_regif.WEN_ID_EX; 
@@ -160,7 +151,6 @@ always_comb begin: NXT_LOGIC
 		zero_nxt = 1'b0; 
 		dREN_nxt = 1'b0; 
 		dWEN_nxt = 1'b0;
-		dmemload_nxt = 32'd0; 
 
 		// cpu tracker signals 
 		imemaddr_nxt = 32'd0; 
@@ -197,7 +187,6 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		mem_to_reg_reg <= SEL_RESULT; 
 		branch_addr_reg <= 32'd0; 
 		zero_reg <= 1'b0; 
-		dmemload_reg <= 32'd0; 
 
 		// cpu tracker signals 
 		imemaddr_reg <= 32'd0; 
@@ -228,8 +217,7 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		dWEN_reg <= dWEN_nxt;  
 		mem_to_reg_reg <= mem_to_reg_nxt; 
 		branch_addr_reg <= branch_addr_nxt; 
-		zero_reg <= zero_nxt; 
-		dmemload_reg <= dmemload_nxt; 
+		zero_reg <= zero_nxt;  
 
 		// cpu tracker signals 
 		imemaddr_reg <= imemaddr_nxt; 

@@ -46,7 +46,7 @@ logic next_left_dirty, next_left_valid, next_right_dirty, next_right_valid;
 
 state_t state, next_state;
 
-logic[4:0] cache_row, next_cache_row, old_cache_row, next_old_cache_row;
+logic[4:0] cache_row, next_cache_row, old_cache_row, next_old_cache_row, temp_old_row;
 
 always_ff @(posedge CLK or negedge nRST)
 begin
@@ -214,6 +214,7 @@ begin
             next_state = HALT;
          end
       end
+      HALT: next_state = HALT; 
    endcase
 end
 
@@ -402,13 +403,14 @@ begin
          if(old_cache_row < 8)
          begin
             cif.dWEN = 1'b1;
-            cif.daddr = {cbl[old_cache_row].left_tag, old_cache_row, 3'b000};
+            cif.daddr = {cbl[old_cache_row].left_tag, old_cache_row[2:0], 3'b000};
             cif.dstore = cbl[old_cache_row].left_dat0;
          end
          else
          begin
+            temp_old_row = old_cache_row - 8;
             cif.dWEN = 1'b1;
-            cif.daddr = {cbl[old_cache_row - 8].right_tag, old_cache_row - 8, 3'b000};
+            cif.daddr = {cbl[old_cache_row - 8].right_tag, temp_old_row[2:0], 3'b000};
             cif.dstore = cbl[old_cache_row - 8].right_dat0;
          end
       end
@@ -417,20 +419,21 @@ begin
          if(old_cache_row < 8)
          begin
             cif.dWEN = 1'b1;
-            cif.daddr = {cbl[old_cache_row].left_tag, old_cache_row, 3'b100};
+            cif.daddr = {cbl[old_cache_row].left_tag, old_cache_row[2:0], 3'b100};
             cif.dstore = cbl[old_cache_row].left_dat1;
          end
          else
          begin
+            temp_old_row = old_cache_row - 8;
             cif.dWEN = 1'b1;
-            cif.daddr = {cbl[old_cache_row - 8].right_tag, old_cache_row - 8, 3'b100};
+            cif.daddr = {cbl[old_cache_row - 8].right_tag, temp_old_row[2:0], 3'b100};
             cif.dstore = cbl[old_cache_row - 8].right_dat1;
          end
       end
       COUNT :
       begin
          cif.daddr = 32'h00003100;
-         cif.dWEN = 1;
+         cif.dWEN = 1'b1;
          cif.dstore = hit_count;
          dcif.flushed = 1'b1;
       end
