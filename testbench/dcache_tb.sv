@@ -1,6 +1,7 @@
 /*
   Cody Mann
   mann53@purdue.edu
+  
   data cache testbench
 */
 
@@ -104,15 +105,6 @@ module dcache_tb;
   assign ccif.ramload = ramif.ramload;
   assign ccif.ramstate = ramif.ramstate;
 
-  //assign dcache -> memory control 
-  //assign ccif.dREN = cif0.dREN; 
-  //assign ccif.dWEN = cif0.dWEN; 
-  //assign ccif.daddr = cif0.daddr; 
-  //assign ccif.dstore = cif0.dstore; 
-
-  // assign memory control -> dcache 
-  //assign cif0.dwait = ccif.dwait; 
-  //assign cif0.dload = ccif.dload; 
 
   // test program
   test PROG ( 
@@ -144,8 +136,10 @@ program test(
   string test_description = "Initializing"; 
 
   // Data and address testbench variables 
-  dcachef_t [4:0] address_stream;
-  word_t [31:0] data;  
+  dcachef_t address, address2, address3, address4;
+  word_t [31:0] data, data2;  
+  logic [2:0] index; 
+  logic expected; 
 
 /******************* TEST VECTORS ********************/
 
@@ -173,7 +167,6 @@ program test(
       // wait a little to allow inputs to settle 
       #(10)
       count = 0; 
-      
       // wait for transaction to complete between dcache and memory or just move on because tag is already in the cache and no write dirty contents to memory should occur. 
       while(dcif.dhit == 0) begin 
         @(posedge CLK); 
@@ -185,7 +178,7 @@ program test(
         // if dhit was not given back in same clock cycle 
         if (count != 0) begin
           // flag an error message 
-          $display("Dhit was not given back in same clock cycle for byte_address: 0x%0h that was expected to be in cache.", byte_address); 
+          $display("Time: %00gns Dhit was not given back in same clock cycle for byte_address: 0x%0h that was expected to be in cache.", $time, byte_address); 
         end 
       end
     end 
@@ -195,8 +188,7 @@ program test(
   task request_read; 
     input dcachef_t byte_address; 
     begin 
-      // get away from the negative edge of clock 
-      @(negedge CLK); 
+      @(posedge CLK); 
       // apply propper inputs to cache for a read
       dcif.halt = 1'b0; 
       dcif.dmemREN = 1'b1; 
@@ -212,7 +204,7 @@ program test(
     input word_t data; 
     begin 
       // get away from the negative edge of clock 
-      @(negedge CLK); 
+      @(posedge CLK); 
       // apply propper inputs to cache for a write
       dcif.halt = 1'b0; 
       dcif.dmemREN = 1'b0; 
@@ -225,8 +217,7 @@ program test(
   // clears the inputs to the dcache
   task remove_dcache_inputs; 
     begin 
-      // get away from the negative edge of clock cycle
-      @(negedge CLK); 
+      @(posedge CLK); 
       dcif.halt = 1'b0; 
       dcif.dmemREN = 1'b0; 
       dcif.dmemWEN = 1'b0; 
@@ -255,8 +246,8 @@ program test(
         check_data_read(byte_address, exp_data); 
       end 
 
-      // remove the inputs away from the dcache
-      remove_dcache_inputs();  
+      // remove the dcache inputs 
+      remove_dcache_inputs(); 
     end 
   endtask
 
@@ -269,15 +260,18 @@ program test(
       // request a write from the dcache 
       request_write(byte_address, data); 
       // wait for the transaction to complete and check for valid dhit 
-      complete_transaction(byte_address, block_present); 
+      complete_transaction(byte_address, block_present);
       // remove the dcache inputs 
-      remove_dcache_inputs(); 
+      remove_dcache_inputs();  
     end 
   endtask
 
   // resets the whole system 
   task reset_dut; 
     begin 
+
+      // get rid of all previous inputs
+      remove_dcache_inputs; 
 
       // get away from posedge of clock 
       @(negedge CLK); 
@@ -293,6 +287,78 @@ program test(
 
       // bring nRST back high 
       nRST = 1'b1; 
+    end 
+  endtask
+
+  // requests a read from the dcache
+  task halt; 
+    begin 
+      int count;
+      @(posedge CLK); 
+      // apply propper inputs to cache for a halt
+      dcif.halt = 1'b1; 
+      dcif.dmemREN = 1'b0; 
+      dcif.dmemWEN = 1'b0; 
+      dcif.dmemstore = 32'd0; 
+      dcif.dmemaddr = 32'd0; 
+
+      #(10)
+
+      // wait for flushed signal to be asserted or max clock cycles have been reached
+      while(dcif.flushed == 0) begin 
+        @(posedge CLK); 
+      end  
+      
+    end 
+  endtask 
+
+  // task to write a value to all blocks and then read them back
+  task toggle;
+    input word_t data;
+    begin 
+      // variable for looping through cache
+      logic [2:0] index; 
+      index = 3'd0; 
+
+      // loop through an address sequence that will touch every block in cache 
+      for (int i = 0; i < 8; i++) begin
+        // set the address bits 
+        address.tag = 26'd0; 
+        address.idx = index; 
+        address.blkoff = 1'b0; 
+        address.bytoff = 2'b00; 
+
+        address2.tag = 26'd0; 
+        address2.idx = index;
+        address2.blkoff = 1'b1; 
+        address2.bytoff = 2'b00;
+
+        address3.tag = 26'd1; 
+        address3.idx = index;
+        address3.blkoff = 1'b0; 
+        address3.bytoff = 2'b00;
+
+        address4.tag = 26'd1; 
+        address4.idx = index;
+        address4.blkoff = 1'b1; 
+        address4.bytoff = 2'b00;
+
+        // Write to two blocks within the same set but different tags 
+        write_dcache(address, 0, data); 
+        write_dcache(address2, 1, data);
+        write_dcache(address3, 0, data); 
+        write_dcache(address4, 1, data); 
+
+
+        // now try to read those blocks back 
+        read_dcache(address, 1, data, 1); 
+        read_dcache(address2, 1, data, 1); 
+        read_dcache(address3, 1, data, 1); 
+        read_dcache(address4, 1, data, 1); 
+
+        index = index + 3'd1; 
+      end 
+
     end 
   endtask
 
@@ -346,22 +412,23 @@ program test(
     /******************* START RUNNING THROUGH TEST CASES ********************/
     // initialize all inputs 
     remove_dcache_inputs;
-    // reset the system
-    reset_dut();
 
     /************************************
     *
-    *       Test case 1: Testing simple reads back to back from same block location.
+    *       Test case 1: Validate that proper cache blocks are being written back to memory
     *
     ************************************/
-    test_description = "Testing simple reads back to back from same block location.";
+    test_case_num = test_case_num + 1;  
+    test_description = "Writing nothing to cache, so nothing should be stored back.";
+    reset_dut(); 
 
-    // reads
-    read_dcache(32'd0, 0, 0, 0); 
-    read_dcache(32'd0, 1, 0, 0); 
+    // write to a block in cache to make it dirty 
+    write_dcache(32'h3C, 0, 32'hABCDEF);
 
+    // tell cache to halt
+    halt; 
+ 
     // dump the memory into memcpu.hex after testbench is finished 
     dump_memory(); 
-  end 
-
+  end
 endprogram

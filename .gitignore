@@ -12,3 +12,6 @@ README
 .deps
 *.hex
 *.ver
+.metadata
+covhtmlreport
+*~
