@@ -53,7 +53,7 @@ register_file_if rfif();
 register_file REGISTER (CLK, nRST, rfif); 
 
 pc_if pcif(); 
-pc PC (CLK, nRST, pcif); 
+pc #(.PC_INIT(PC_INIT)) PC (CLK, nRST, pcif.pc); 
 
 // pipeline registers 
 if_id_reg_if if_id_regif(); 
@@ -83,7 +83,6 @@ word_t br_imm, branch_addr, jmp_return_addr;
 word_t alu_mux_a, alu_mux_b;
 
 /************************** glue logic ***************************/
-
 // IF section 
 // program counter inputs
 assign pcif.next_pc = next_pc; 
