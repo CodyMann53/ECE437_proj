@@ -18,39 +18,60 @@ import data_path_muxs_pkg::*;
 interface hazard_unit_if;
 
   // inputs
-  logic ihit, dhit, zero_EX_MEM, dREN_ID_EX, halt; 
-  opcode_t opcode_IF_ID, opcode_EX_MEM; 
-  funct_t func_IF_ID, func_EX_MEM; 
-  regbits_t Rt_ID_EX, Rs_IF_ID, Rt_IF_ID; 
+  logic ihit, 
+        dhit, 
+        zero_EX_MEM, 
+        dREN_ID_EX, 
+        dmemREN, 
+        dmemWEN,
+        halt; 
+  opcode_t  opcode_IF_ID, 
+            opcode_EX_MEM;
+  funct_t func_IF_ID, 
+          func_EX_MEM; 
+  regbits_t Rt_ID_EX, 
+            Rs_IF_ID, 
+            Rt_IF_ID; 
 
   // outputs 
-  logic enable_IF_ID, flush_IF_ID, 
-        enable_ID_EX, flush_ID_EX, 
-        enable_EX_MEM, flush_EX_MEM, 
-        enable_MEM_WB, flush_MEM_WB, 
-        dmemREN, dmemWEN;
-
+  logic enable_IF_ID, 
+        flush_IF_ID, 
+        enable_ID_EX, 
+        flush_ID_EX, 
+        enable_EX_MEM, 
+        flush_EX_MEM, 
+        enable_MEM_WB, 
+        flush_MEM_WB, 
+        enable_pc;
   pc_mux_input_selection PCSrc; 
-  logic enable_pc;
 
   // hazard unit module ports 
-  modport hazard_unit (
-    input ihit, dhit, zero_EX_MEM, dREN_ID_EX, opcode_EX_MEM, opcode_IF_ID, func_EX_MEM, func_IF_ID, halt, 
-    Rt_ID_EX, Rs_IF_ID, Rt_IF_ID, dmemWEN, dmemREN,  
-    output enable_IF_ID, flush_IF_ID, 
-        enable_ID_EX, flush_ID_EX, 
-        enable_EX_MEM, flush_EX_MEM, 
-        enable_MEM_WB, flush_MEM_WB, PCSrc
+  modport hazard_unit(
+    input ihit, 
+          dhit, 
+          zero_EX_MEM, 
+          dREN_ID_EX, 
+          opcode_EX_MEM, 
+          opcode_IF_ID, 
+          func_EX_MEM, 
+          func_IF_ID, 
+          halt, 
+          Rt_ID_EX, 
+          Rs_IF_ID, 
+          Rt_IF_ID, 
+          dmemWEN, 
+          dmemREN,  
+    output  enable_IF_ID, 
+            flush_IF_ID, 
+            enable_ID_EX, 
+            flush_ID_EX, 
+            enable_EX_MEM, 
+            flush_EX_MEM, 
+            enable_MEM_WB, 
+            flush_MEM_WB, 
+            PCSrc, 
+            enable_pc
   );
 
-  // hazard unit module ports testbench
-  modport tb (
-    output ihit, dhit, zero_EX_MEM, dREN_ID_EX, opcode_EX_MEM, opcode_IF_ID, func_EX_MEM, func_IF_ID, halt,  
-    Rt_ID_EX, Rs_IF_ID, Rt_IF_ID, 
-    input enable_IF_ID, flush_IF_ID, 
-        enable_ID_EX, flush_ID_EX, 
-        enable_EX_MEM, flush_EX_MEM, 
-        enable_MEM_WB, flush_MEM_WB, PCSrc
-  );
 endinterface
 `endif //HAZARD_UNIT_IF_VH

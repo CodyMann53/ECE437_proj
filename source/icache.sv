@@ -36,11 +36,12 @@ icachef_t frame;
 logic wen; 
 state state_reg, state_nxt; 
 logic hit; 
+word_t iaddr_reg; 
 
 /********** Assign statements ***************************/
 assign dcif.ihit = hit; 
 assign dcif.imemload = cache_mem_reg[frame.idx].data; 
-assign cif.iaddr = dcif.imemaddr; 
+assign cif.iaddr = iaddr_reg; 
 assign frame = icachef_t'(dcif.imemaddr); //'
 
 /********** Combinational Logic ***************************/
@@ -105,6 +106,20 @@ always_comb begin: CONTROLLER_OUTPUT_LOGIC
 end 
 
 /********** Sequential Logic ***************************/
+always_ff @(posedge CLK, negedge nRST) begin: IADDR_MEMORY
+  
+  // if reset is brought low 
+  if (nRST == 1'b0) begin 
+    // set the iaddr back to zero
+    iaddr_reg <= 'b0; 
+  end 
+  // no reset was applied 
+  else begin 
+    // update the iaddr to the next iaddr 
+    iaddr_reg <= dcif.imemaddr; 
+  end 
+end
+
 always_ff @(posedge CLK, negedge nRST) begin: CACHE_MEMORY_REGISTER
   
   // if reset is brought low 
