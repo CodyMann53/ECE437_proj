@@ -87,7 +87,6 @@ word_t alu_mux_a, alu_mux_b;
 // IF section 
 // program counter inputs
 assign pcif.next_pc = next_pc; 
-assign pcif.ihit = dpif.ihit; 
 assign pcif.enable_pc = huif.enable_pc;
 
 // IF/ID register inputs 
