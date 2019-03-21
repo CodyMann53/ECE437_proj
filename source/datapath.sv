@@ -69,7 +69,7 @@ mem_wb_reg_if mem_wb_regif();
 mem_wb_reg MEM_WB(CLK, nRST, mem_wb_regif);  
 
 hazard_unit_if huif(); 
-hazard_unit HAZ_UNIT(huif); 
+hazard_unit HAZ_UNIT(huif.hu); 
 
 forward_unit_if fuif();
 forward_unit FU(fuif);
@@ -133,8 +133,6 @@ assign id_ex_regif.opcode_IF_ID = if_id_regif.opcode_IF_ID;
 assign id_ex_regif.func_IF_ID = funct_t'(if_id_regif.func_IF_ID); //'
 assign id_ex_regif.instruction_IF_ID = if_id_regif.instruction_IF_ID; 
 assign id_ex_regif.imm16_IF_ID = if_id_regif.imm16_IF_ID; 
-
-
 
 assign id_ex_regif.next_imemaddr_IF_ID = if_id_regif.next_imemaddr_IF_ID; 
 assign id_ex_regif.Rs_IF_ID = if_id_regif.Rs_IF_ID; 
@@ -223,12 +221,10 @@ assign fuif.opcode_MEM_WB = mem_wb_regif.opcode_MEM_WB;
 assign fuif.WEN_EX_MEM = ex_mem_regif.WEN_EX_MEM; 
 assign fuif.WEN_MEM_WB = mem_wb_regif.WEN_MEM_WB; 
 
-
 // pipeline controller inputs 
 assign huif.dhit = dpif.dhit; 
 assign huif.ihit = dpif.ihit; 
 assign huif.zero_EX_MEM = ex_mem_regif.zero_EX_MEM; 
-assign huif.func_EX_MEM = funct_t'(ex_mem_regif.func_EX_MEM); //' 
 assign huif.dREN_ID_EX = id_ex_regif.dREN_ID_EX; 
 assign huif.Rt_ID_EX = id_ex_regif.Rt_ID_EX; 
 assign huif.Rs_IF_ID = if_id_regif.Rs_IF_ID; 
@@ -239,9 +235,6 @@ assign huif.opcode_EX_MEM = opcode_t'(ex_mem_regif.opcode_EX_MEM); //'
 assign huif.dmemWEN = ex_mem_regif.dmemWEN; 
 assign huif.dmemREN = ex_mem_regif.dmemREN; 
 assign huif.halt = mem_wb_regif.halt; 
-
-/************************** shift left logic ***************************/
-
 
 /************************** Mux logic ***************************/
 

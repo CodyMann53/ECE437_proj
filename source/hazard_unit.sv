@@ -17,14 +17,9 @@ module hazard_unit
 	(
  	hazard_unit_if huif 
  	); 
-
-/********** Local type definitions ***************************/
   
 /********** Local variable definitions ***************************/	
 logic load_data_haz_flag, control_haz_flag, move; 
-
-/********** Assign statements ***************************/
-
 
 /********** Combinational Logic ***************************/
 always_comb begin: ADVANCE_LOGIC

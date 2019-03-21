@@ -27,8 +27,7 @@ interface hazard_unit_if;
         halt; 
   opcode_t  opcode_IF_ID, 
             opcode_EX_MEM;
-  funct_t func_IF_ID, 
-          func_EX_MEM; 
+  funct_t func_IF_ID; 
   regbits_t Rt_ID_EX, 
             Rs_IF_ID, 
             Rt_IF_ID; 
@@ -46,14 +45,13 @@ interface hazard_unit_if;
   pc_mux_input_selection PCSrc; 
 
   // hazard unit module ports 
-  modport hazard_unit(
+  modport hu(
     input ihit, 
           dhit, 
           zero_EX_MEM, 
           dREN_ID_EX, 
           opcode_EX_MEM, 
-          opcode_IF_ID, 
-          func_EX_MEM, 
+          opcode_IF_ID,  
           func_IF_ID, 
           halt, 
           Rt_ID_EX, 
@@ -73,5 +71,31 @@ interface hazard_unit_if;
             enable_pc
   );
 
+  // testbench unit module ports 
+  modport tb(
+    output  enable_IF_ID, 
+            flush_IF_ID, 
+            enable_ID_EX, 
+            flush_ID_EX, 
+            enable_EX_MEM, 
+            flush_EX_MEM, 
+            enable_MEM_WB, 
+            flush_MEM_WB, 
+            PCSrc, 
+            enable_pc,
+    input ihit, 
+          dhit, 
+          zero_EX_MEM, 
+          dREN_ID_EX, 
+          opcode_EX_MEM, 
+          opcode_IF_ID, 
+          func_IF_ID, 
+          halt, 
+          Rt_ID_EX, 
+          Rs_IF_ID, 
+          Rt_IF_ID, 
+          dmemWEN, 
+          dmemREN  
+  );
 endinterface
 `endif //HAZARD_UNIT_IF_VH
