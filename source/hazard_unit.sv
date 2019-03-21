@@ -36,6 +36,9 @@ always_comb begin: ADVANCE_LOGIC
 		// don't move pipeline along 
 		move = 1'b0; 
 	end
+	else if ((huif.ihit == 1) & (huif.dhit == 1)) begin 
+		move = 1'b0; 
+	end 
 	// else if a halt is present in wb stage
 	else if (huif.halt == 1) begin 
 		move = 1'b0; 

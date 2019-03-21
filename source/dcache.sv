@@ -32,7 +32,10 @@ assign cache_index = dcif.dmemaddr[5:3];
 logic [2:0] data_index;
 assign data_index = dcif.dmemaddr[2:0];
 
-logic hit;
+logic [31:0] last_address, next_last_address;
+assign next_last_address = dcif.dmemaddr;
+
+logic hit, hit_track;
 logic[7:0] last_used, next_last_used;
 word_t hit_count, next_hit_count;
 
@@ -44,7 +47,7 @@ logic[25:0] next_left_tag, next_right_tag;
 word_t next_left_dat0, next_left_dat1, next_right_dat0, next_right_dat1;
 logic next_left_dirty, next_left_valid, next_right_dirty, next_right_valid;
 
-state_t state, next_state;
+state_t state, next_state, prev_state, next_prev_state;
 
 logic[4:0] cache_row, next_cache_row, old_cache_row, next_old_cache_row, temp_old_row;
 
@@ -64,6 +67,7 @@ begin
          cbl[i].right_dirty <= 0;
          cbl[i].left_valid <= 0;
          cbl[i].right_valid <= 0;
+         last_address <= 0;
       end
    end
    else
@@ -78,6 +82,7 @@ begin
       cbl[cache_index].right_dirty <= next_right_dirty;
       cbl[cache_index].left_valid <= next_left_valid;
       cbl[cache_index].right_valid <= next_right_valid;
+      last_address <= next_last_address;
    end
 end
 
@@ -90,7 +95,9 @@ begin
          last_used[i] <= 0;
       end
       state <= IDLE;
+      prev_state <= IDLE;
       hit_count <= 0;
+      hit_track <= 0;
       cache_row <= 0;
       old_cache_row <= 0;
    end
@@ -98,7 +105,9 @@ begin
    begin
       last_used[cache_index] <= next_last_used[cache_index];
       state <= next_state;
+      prev_state <= next_prev_state;
       hit_count <= next_hit_count;
+      hit_track <= hit;
       cache_row <= next_cache_row;
       old_cache_row <= next_old_cache_row;
    end
@@ -107,6 +116,7 @@ end
 always_comb
 begin
    next_state = state;
+   next_prev_state = state;
    next_cache_row = cache_row;
    next_old_cache_row = old_cache_row;
    casez(state)
@@ -294,9 +304,7 @@ begin
                end
             end
             else
-            begin
                next_hit_count = hit_count - 1;
-            end
          end
          else if(dcif.dmemWEN == 1)
          begin
@@ -443,7 +451,6 @@ begin
          cif.daddr = 32'h00003100;
          cif.dWEN = 1'b1;
          cif.dstore = hit_count;
-         dcif.flushed = 1'b1;
       end
       HALT:dcif.flushed = 1'b1;
    endcase

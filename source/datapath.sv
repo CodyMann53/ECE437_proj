@@ -81,6 +81,7 @@ word_t next_imemaddr, jmp_addr, next_pc;
 logic [27:0] jmp_addr_shifted;
 word_t br_imm, branch_addr, jmp_return_addr; 
 word_t alu_mux_a, alu_mux_b;
+word_t dmemload_reg; 
 
 /************************** glue logic ***************************/
 // IF section 
@@ -172,6 +173,8 @@ assign ex_mem_regif.Rs_ID_EX = id_ex_regif.Rs_ID_EX;
 assign ex_mem_regif.zero = aluif.zero;  
 assign ex_mem_regif.dhit = dpif.dhit; 
 
+
+
 // MEM state
 // data_path to cache signals 
 assign dpif.imemaddr = pcif.imemaddr; 
@@ -190,7 +193,7 @@ assign mem_wb_regif.WEN_EX_MEM = ex_mem_regif.WEN_EX_MEM;
 assign mem_wb_regif.reg_dest_EX_MEM = ex_mem_regif.reg_dest_EX_MEM; 
 assign mem_wb_regif.Rt_EX_MEM = ex_mem_regif.Rt_EX_MEM; 
 assign mem_wb_regif.Rd_EX_MEM = ex_mem_regif.Rd_EX_MEM; 
-assign mem_wb_regif.dmemload = dpif.dmemload;  
+assign mem_wb_regif.dmemload = dmemload_reg;  
 assign mem_wb_regif.halt_EX_MEM = ex_mem_regif.halt_EX_MEM; 
 assign mem_wb_regif.mem_to_reg_EX_MEM = ex_mem_regif.mem_to_reg_EX_MEM; 
 assign mem_wb_regif.dhit = dpif.dhit; 
@@ -434,5 +437,25 @@ always_comb begin: FU_SIGS
       SEL_RETURN_REGISTER: fu_reg_dest_MEM_WB = 5'b11111;
    endcase
 end
+
+
+/****************** Sequential logic **********************/ 
+always_ff @(posedge CLK, negedge nRST) begin: IADDR_MEMORY
+  
+  // if reset is brought low 
+  if (nRST == 1'b0) begin 
+    dmemload_reg <= 'b0; 
+  end 
+  // no reset was applied 
+  else begin 
+    if (dpif.dhit == 1) begin 
+      dmemload_reg <= dpif.dmemload;
+    end 
+    else begin 
+      dmemload_reg <= dmemload_reg; 
+    end  
+  end 
+end
+
 
 endmodule
