@@ -21,12 +21,11 @@ module caches (
   //icache  ICACHE(dcif, cif);
   // dcache
   //dcache  DCACHE(dcif, cif);
->>>>>>> 456a6a46de76982722efd2e635bb3f64bb1adcdd
 
 // cpu types
 `include "cpu_types_pkg.vh"
 
-<<<<<<< HEAD
+
 import cpu_types_pkg::*; 
 
 module caches (
@@ -57,7 +56,7 @@ module caches (
       daddr <= dcif.dmemaddr;
     end
   end
-=======
+  
   //singlecycle
   assign dcif.ihit = (dcif.imemREN) ? ~cif.iwait : 0;
   assign dcif.dhit = (dcif.dmemREN|dcif.dmemWEN) ? ~cif.dwait : 0;
@@ -72,5 +71,4 @@ module caches (
   assign cif.iaddr = dcif.imemaddr;
   assign cif.daddr = dcif.dmemaddr;
 
->>>>>>> 456a6a46de76982722efd2e635bb3f64bb1adcdd
 endmodule
