@@ -145,24 +145,101 @@ program test
     end 
   endtask
 
-  // performs the whole process of a memory request from one of the caces 
-  task perform_memory_request; 
+  //Checks for correct snoop addresses and ccinv signals sent from one processor 
+  // to the memory controller and then out to the non-requesting cache
+  task check_coherence_signals; 
   begin 
-      input logic processor0,
+    input logic processor_num; 
+    input word_t daddr; 
+    input logic dWEN; 
+    input string test_case_description; 
+    begin
+      // if checking signals sent to cache1
+      if (processor_num == 0) begin 
+        // if the snoop address and daddr do not match 
+        if (cif1.ccsnoopaddr != daddr) begin 
+          $display("Time %00g The snoopaddres is not correct from 
+                    cache1 for test case: %s"$time, test_description)
+          $display("Expected snoop address: 0x%h. Given snoop address: 0x%h", 
+                    daddr, cif1.ccsnoopaddr); 
+        end 
+
+        // if the invalidate signal is not correct 
+        if (cif1.ccinv != dWEN) begin 
+          $display("Time %00g The invalidate signal is not correct from 
+                    cache1 for test case: %s"$time, test_description)
+          $display("Expected ccinv: %d. Given ccinv: %d", 
+                    dWEN, cif1.ccinv); 
+        end 
+      end 
+      // else checking signals that were sent to cache0
+      else begin 
+        // if the snoop address and daddr do not match 
+        if (cif0.ccsnoopaddr != daddr) begin 
+          $display("Time %00g The snoopaddres is not correct from 
+                    cache0 for test case: %s"$time, test_description)
+          $display("Expected snoop address: 0x%h. Given snoop address: 0x%h", 
+                    daddr, cif0.ccsnoopaddr); 
+        end 
+
+        // if the invalidate signal is not correct 
+        if (cif0.ccinv != dWEN) begin 
+          $display("Time %00g The invalidate signal is not correct from 
+                    cache0 for test case: %s"$time, test_description)
+          $display("Expected ccinv: %d. Given ccinv: %d", 
+                    dWEN, cif0.ccinv); 
+      end 
+    end 
+  endtask
+
+  // Will wait for the snoop address and ccinv signal to be sent from controller.
+  // The task will check to make sure that the requestors daddr and dWEN match up with
+  // the snoop address and ccinv signals provided by the controller. 
+  task perform_cache_coherence; 
+  begin 
+    input logic processor0,
                 dWEN0, 
-                dREN0, 
+                dREN0,
                 processor1,
                 dWEN1, 
-                dREN1; 
-      begin
-        // apply the propper signals to request memory from controller=
-        trigger_memory_request(processor0, 
-                               dWEN0, 
-                               dREN0, 
-                               processor1
-                               dWEN1, 
-                               dREN1); 
-      end 
+                dREN1;
+    input word_t daddr0, 
+                 daddr1; 
+    input string test_case_description; 
+    begin 
+          // if processor 0 is requestor or both processors request at the same time
+          if (processor0 == 1) begin 
+            // at the next posedge of clock, let the memory controller 
+            // know that the non-requesting cache is performing coherence operations
+            @(posedge CLK); 
+            cif1.cctrans = 1'b1; 
+
+            // check the snoopaddr and the ccinv 
+            #(1)
+            check_coherence_signals(0, daddr0,dWEN0, test_case_description);
+
+            // On the next posedge of the clock cycle tell the memory controller 
+            // that the non-requesting cache is done with its coherence operations.
+            @(posedge CLK); 
+            cif1.cctrans = 1'b0; 
+          end
+          // if processor 1 is the requestor 
+          else if (processor1 == 1) begin 
+            // at the next posedge of clock, let the memory controller 
+            // know that the non-requesting cache is performing coherence operations
+            @(posedge CLK); 
+            cif0.cctrans = 1'b1; 
+
+            // check the snoopaddr and the ccinv 
+            #(1)
+            check_coherence_signals(1, daddr1,dWEN1, test_case_description);
+
+            // On the next posedge of the clock cycle tell the memory controller 
+            // that the non-requesting cache is done with its coherence operations.
+            @(posedge CLK); 
+            cif0.cctrans = 1'b0; 
+          end    
+    end 
   endtask
 
   // applies signals to request memory from controller
@@ -170,7 +247,7 @@ program test
   begin 
     input logic processor0,
                 dWEN0, 
-                dREN0, 
+                dREN0,  
                 processor1,
                 dWEN1, 
                 dREN1; 
@@ -185,6 +262,63 @@ program test
       cif1.dREN = processor1 & dREN1; 
     end
     end 
+  endtask
+
+  task relinquish_request
+  begin 
+    begin
+      // wait unitl the ccwait goes back down
+      // which means the memory controller is granting the cache to 
+      // go off and service request from its processor
+      wait((cif0.ccwait == 0) & (cif1.ccwait == 0));  
+    end 
+  endtask
+
+  // performs the whole process of a memory request from one of the caches
+  task perform_memory_request; 
+  begin 
+    input logic processor0,
+                dWEN0, 
+                dREN0, 
+                processor1,
+                dWEN1, 
+                dREN1;
+    input word_t daddr0, 
+                 daddr1;  
+    input string test_case_description; 
+      begin
+        // apply the propper signals to request memory from controller=
+        trigger_memory_request(processor0, 
+                               dWEN0, 
+                               dREN0, 
+                               processor1
+                               dWEN1, 
+                               dREN1); 
+        #(5)
+
+        // wait for a ccwait signal to both processors so that their cpus are 
+        // halted during a coherence update
+        wait((cif0.ccwait == 1) & (cif1.ccwait == 1)); 
+
+        // check to make sure that propper snooping anc coherence signals are sent 
+        // from one cache to the other
+        perform_cache_coherence(processor0, 
+                                dWEN0, 
+                                dREN0, 
+                                processor1, 
+                                dWEN1, 
+                                dWEN1, 
+                                daddr0, 
+                                daddr1, 
+                                test_description); 
+
+        // Process data block 
+        process_block(); 
+
+        // wait for memory controller to relinquish the memory request 
+        relinquish_request; 
+
+      end 
   endtask
 
   // used to dump the contents of ram back inot memcpu.hex
