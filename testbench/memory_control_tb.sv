@@ -145,17 +145,17 @@ program test
     end 
   endtask
 
-  //Checks for correct snoop addresses and ccinv signals sent from one processor 
+  //Checks for correct snoop addresses and ccinv signals sent from requesting cache
   // to the memory controller and then out to the non-requesting cache
   task check_coherence_signals; 
   begin 
-    input logic processor_num; 
+    input logic cache_requestor; 
     input word_t daddr; 
     input logic dWEN; 
     input string test_case_description; 
     begin
-      // if checking signals sent to cache1
-      if (processor_num == 0) begin 
+      // if cache0 was the requestor
+      if (cache_requestor == 0) begin 
         // if the snoop address and daddr do not match 
         if (cif1.ccsnoopaddr != daddr) begin 
           $display("Time %00g The snoopaddres is not correct from 
@@ -172,7 +172,7 @@ program test
                     dWEN, cif1.ccinv); 
         end 
       end 
-      // else checking signals that were sent to cache0
+      // else cache1 was the requestor
       else begin 
         // if the snoop address and daddr do not match 
         if (cif0.ccsnoopaddr != daddr) begin 
@@ -197,18 +197,18 @@ program test
   // the snoop address and ccinv signals provided by the controller. 
   task perform_cache_coherence; 
   begin 
-    input logic processor0,
+    input logic cache0,
                 dWEN0, 
                 dREN0,
-                processor1,
+                cache1,
                 dWEN1, 
                 dREN1;
     input word_t daddr0, 
                  daddr1; 
     input string test_case_description; 
     begin 
-          // if processor 0 is requestor or both processors request at the same time
-          if (processor0 == 1) begin 
+          // if cache 0 is requestor or both caches request at the same time
+          if (cache0 == 1) begin 
             // at the next posedge of clock, let the memory controller 
             // know that the non-requesting cache is performing coherence operations
             @(posedge CLK); 
@@ -223,8 +223,8 @@ program test
             @(posedge CLK); 
             cif1.cctrans = 1'b0; 
           end
-          // if processor 1 is the requestor 
-          else if (processor1 == 1) begin 
+          // if cache 1 is the requestor 
+          else if (cache1 == 1) begin 
             // at the next posedge of clock, let the memory controller 
             // know that the non-requesting cache is performing coherence operations
             @(posedge CLK); 
@@ -245,25 +245,27 @@ program test
   // applies signals to request memory from controller
   task trigger_memory_request; 
   begin 
-    input logic processor0,
+    input logic cache0,
                 dWEN0, 
                 dREN0,  
-                processor1,
+                cache1,
                 dWEN1, 
                 dREN1; 
     begin
       // at posedge of the clock 
       @(posedge CLK);
-      // apply inputs to process a request from processor0 
-      cif0.dWEN = processor0 & dWEN0; 
-      cif0.dREN = processor0 & dREN0; 
-      // apply inputs to process a request from processor1
-      cif1.dWEN = processor1 & dWEN1; 
-      cif1.dREN = processor1 & dREN1; 
+      // apply inputs to process a request from cache0 
+      cif0.dWEN = cache0 & dWEN0; 
+      cif0.dREN = cache0 & dREN0; 
+      // apply inputs to process a request from cache1
+      cif1.dWEN = cache1 & dWEN1; 
+      cif1.dREN = cache1 & dREN1; 
     end
     end 
   endtask
 
+  // Basically all this task does is waits to make sure that the memory controller
+  // allows the caches to go back and do normal operations
   task relinquish_request
   begin 
     begin
@@ -274,38 +276,59 @@ program test
     end 
   endtask
 
+  // Will Either supply the memory controller with a write back from non-requesting cache
+  // or will tell memory controller to go off to memory. In the case of a write back 
+  // then will check to make sure that the memory controller supplies wb to both the requesting cache and ram. 
+  // If non-requesting cache has no wb, then will make sure that the memory controller sucessfully sends block to the
+  // requesting cache.
+  task process_block; 
+  begin 
+    input logic cache0, 
+                cache1, 
+                write_back; 
+    begin 
+      // if cache0 is the requestor or both requested at the same time 
+      if (cache0 == 1) begin 
+      end   
+      // else cache 1 is the requestor
+      else begin 
+      end  
+    end 
+  endtask
+
+
   // performs the whole process of a memory request from one of the caches
   task perform_memory_request; 
   begin 
-    input logic processor0,
+    input logic cache0,
                 dWEN0, 
                 dREN0, 
-                processor1,
+                cache1,
                 dWEN1, 
                 dREN1;
     input word_t daddr0, 
                  daddr1;  
     input string test_case_description; 
       begin
-        // apply the propper signals to request memory from controller=
-        trigger_memory_request(processor0, 
+        // apply the propper signals to request memory from controller
+        trigger_memory_request(cache0, 
                                dWEN0, 
                                dREN0, 
-                               processor1
+                               cache1
                                dWEN1, 
                                dREN1); 
         #(5)
 
-        // wait for a ccwait signal to both processors so that their cpus are 
+        // wait for a ccwait signal to both caches so that their cpus are 
         // halted during a coherence update
         wait((cif0.ccwait == 1) & (cif1.ccwait == 1)); 
 
         // check to make sure that propper snooping anc coherence signals are sent 
         // from one cache to the other
-        perform_cache_coherence(processor0, 
+        perform_cache_coherence(cache0, 
                                 dWEN0, 
                                 dREN0, 
-                                processor1, 
+                                cache1, 
                                 dWEN1, 
                                 dWEN1, 
                                 daddr0, 
