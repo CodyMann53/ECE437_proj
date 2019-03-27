@@ -388,8 +388,6 @@ program test
     end
   endtask
 
-
-
 /*********************** Initial Block *************************/
   initial begin
 
