@@ -21,8 +21,16 @@ module memory_control (
   // number of cpus for cc
   parameter CPUS = 1;
 
-/**************************** comb blocks ***********************************/  
+  typedef enum logic[3:0] {
+   IDLE, GRANT_D, GRANT_I, RAM_WB1, RAM_WB2, CACHE_WB1, CACHE_WB2, WB1_RAM, WB2_RAM
+  } state_t;
 
+  state_t state, next_state;
+
+  logic bus_access, next_bus_access;
+
+/**************************** comb blocks ***********************************/  
+/*
   always_comb begin:  OUTPUT_LOGIC
 
     // set default outputs
@@ -93,4 +101,435 @@ module memory_control (
 
 
   end 
+*/
+
+  always_ff @(posedge CLK or negedge nRST)
+  begin
+     if(nRST == 0)
+     begin
+        state <= IDLE;
+        bus_access <= 0;
+     end
+     else
+     begin
+        state <= next_state;
+        bus_access <= next_bus_access;
+     end
+  end
+
+  always_comb begin: BUS_CONTROLLER_FSM
+    next_state = state;
+    next_bus_access = bus_access;
+    casez(state)
+      IDLE : 
+      begin
+        if(ccif.dWEN[0] == 1 || ccif.dWEN[1] == 1)
+        begin
+          next_state = WB1_RAM;
+          if(ccif.dWEN[0] == 1 && ccif.dWEN[1] == 1)
+          begin
+            if(bus_access == 0)
+            begin
+              next_bus_access = 1;
+            end
+            else
+            begin
+              next_bus_access = 0;
+            end
+          end
+          else if(ccif.dWEN[0] == 1)
+          begin
+            next_bus_access = 0;
+          end
+          else
+          begin
+            next_bus_access = 1;
+          end
+        end
+        else if(ccif.dREN[0] == 1 || ccif.dREN[1] == 1)
+        begin
+          next_state = GRANT_D;
+          if(ccif.dREN[0] == 1 && ccif.dREN[1] == 1)
+          begin
+            if(bus_access == 0)
+            begin
+              next_bus_access = 1;
+            end
+            else
+            begin
+              next_bus_access = 0;
+            end
+          end
+          else if(ccif.dREN[0] == 1)
+          begin
+            next_bus_access = 0;
+          end
+          else
+          begin
+            next_bus_access = 1;
+          end
+        end
+        else if(ccif.iREN[0] == 1 || ccif.iREN[1] == 1)
+        begin
+          next_state = GRANT_I;
+          if(ccif.iREN[0] == 1 && ccif.iREN[1] == 1)
+          begin
+            if(bus_access == 0)
+            begin
+              next_bus_access = 1;
+            end
+            else
+            begin
+              next_bus_access = 0;
+            end
+          end
+          else if(ccif.iREN[0] == 1)
+          begin
+            next_bus_access = 0;
+          end
+          else
+          begin
+            next_bus_access = 1;
+          end
+        end
+      end
+      GRANT_D : 
+      begin
+        if(bus_access == 0)
+        begin
+          if(ccif.cctrans[1] == 1 && ccif.ccwrite[1] == 1)
+          begin
+            next_state = CACHE_WB1;
+          end
+          else if(ccif.cctrans[1] == 1 && ccif.ccwrite[1] == 0)
+          begin
+            next_state = RAM_WB1;
+          end
+        end
+        else
+        begin
+          if(ccif.cctrans[0] == 1 && ccif.ccwrite[0] == 1)
+          begin
+            next_state = CACHE_WB1;
+          end
+          else if(ccif.cctrans[0] == 1 && ccif.ccwrite[0] == 0)
+          begin
+            next_state = RAM_WB1;
+          end
+        end
+      end
+      GRANT_I : 
+      begin
+        if(ccif.ramstate == ACCESS) 
+        begin
+          next_state = IDLE;
+        end
+      end
+      RAM_WB1 : 
+      begin
+        if(ccif.ramstate == ACCESS) 
+        begin
+          next_state = RAM_WB2;
+        end        
+      end
+      RAM_WB2 : 
+      begin
+        if(ccif.ramstate == ACCESS) 
+        begin
+          next_state = IDLE;
+        end 
+      end
+      CACHE_WB1 : 
+      begin
+        if(ccif.ramstate == ACCESS) 
+        begin
+          next_state = CACHE_WB2;
+        end 
+      end
+      CACHE_WB2 : 
+      begin
+        if(ccif.ramstate == ACCESS) 
+        begin
+          next_state = IDLE;
+        end 
+      end
+      WB1_RAM : 
+      begin
+        if(ccif.ramstate == ACCESS) 
+        begin
+          next_state = WB2_RAM;
+        end 
+      end
+      WB2_RAN :
+      begin
+        if(ccif.ramstate == ACCESS) 
+        begin
+          next_state = IDLE;
+        end 
+      end
+    endcase
+  end
+
+  always_comb : OUTPUT_LOGIC
+  begin
+    ccif.iwait[0]       = 1;
+    ccif.iwait[1]       = 1;
+    ccif.dwait[0]       = 1;
+    ccif.dwait[1]       = 1;
+    ccif.iload[0]       = 0;
+    ccif.iload[1]       = 0;
+    ccif.dload[0]       = 0;
+    ccif.dload[1]       = 0;
+    ccif.ramstore       = 0;
+    ccif.ramaddr        = 0;
+    ccif.ramWEN         = 0;
+    ccif.ramREN         = 0;
+    ccif.ccwait[0]      = 0;
+    ccif.ccwait[1]      = 0;
+    ccif.ccinv[0]       = 0;
+    ccif.ccinv[1]       = 0;
+    ccif.ccsnoopaddr[0] = 0;
+    ccif.ccsnoopaddr[1] = 0;
+
+    casez(state)
+      GRANT_D : 
+      begin
+        if(bus_access == 0)
+        begin
+          ccif.ccwait[1] = 1;
+          ccif.ccsnoopaddr[1] = ccif.daddr[0];
+          ccif.ccinv[1] = ccif.ccwrite[0];
+        end
+        else
+        begin
+          ccif.ccwait[0] = 1;
+          ccif.ccsnoopaddr[0] = ccif.daddr[1];
+          ccif.ccinv[0] = ccif.ccwrite[1];
+        end
+      end
+      GRANT_I : 
+      begin
+        ccif.ramREN = 1;
+        if(bus_access == 0)
+        begin
+          ccif.ramaddr = ccif.iaddr[0];
+          ccif.iload[0] = ccif.ramload;
+          if(ccif.ramstate == ACCESS)
+          begin
+            ccif.iwait[0] = 0;
+          end
+          else
+          begin
+            ccif.iwait[0] = 1;
+          end
+        end
+        else
+        begin
+          ccif.ramaddr = ccif.iaddr[1];
+          ccif.iload[1] = ccif.ramload;
+          if(ccif.ramstate == ACCESS)
+          begin
+            ccif.iwait[1] = 0;
+          end
+          else
+          begin
+            ccif.iwait[1] = 1;
+          end
+        end      
+      end
+      RAM_WB1 : 
+      begin
+        ccif.ramREN = 1
+        if(bus_access == 0)
+        begin
+          ccif.ccwait[1] = 1;
+          ccif.ramaddr = ccif.daddr[0];
+          ccif.dload[0] = ccif.ramload;
+          if(ccif.ramstate == ACCESS)
+          begin
+            ccif.dwait[0] = 0;
+          end
+          else
+          begin
+            ccif.dwait[0] = 1;
+          end
+        end
+        else
+        begin
+          ccif.ccwait[0] = 1;
+          ccif.ramaddr = ccif.daddr[1];
+          ccif.dload[1] = ccif.ramload;
+          if(ccif.ramstate == ACCESS)
+          begin
+            ccif.dwait[1] = 0;
+          end
+          else
+          begin
+            ccif.dwait[1] = 1;
+          end
+        end      
+      end
+      RAM_WB2 : 
+      begin
+        ccif.ramREN = 1
+        if(bus_access == 0)
+        begin
+          ccif.ccwait[1] = 1;
+          ccif.ramaddr = ccif.daddr[0];
+          ccif.dload[0] = ccif.ramload;
+          if(ccif.ramstate == ACCESS)
+          begin
+            ccif.dwait[0] = 0;
+          end
+          else
+          begin
+            ccif.dwait[0] = 1;
+          end
+        end
+        else
+        begin
+          ccif.ccwait[0] = 1;
+          ccif.ramaddr = ccif.daddr[1];
+          ccif.dload[1] = ccif.ramload;
+          if(ccif.ramstate == ACCESS)
+          begin
+            ccif.dwait[1] = 0;
+          end
+          else
+          begin
+            ccif.dwait[1] = 1;
+          end
+        end         
+      end
+      CACHE_WB1 : 
+      begin
+        ccif.ramWEN = 1;
+        if(bus_access == 0)
+        begin
+          ccif.ccwait[1] = 1;
+          ccif.dload[0] = ccif.dstore[1];
+          ccif.raddr = ccif.daddr[1];
+          ccif.ramstore = ccif.dstore[1];
+          if(ccif.ramstate == ACCESS)
+          begin
+            ccif.dwait[0] = 0;
+          end
+          else
+          begin
+            ccif.dwait[0] = 1;
+          end        
+        end
+        else
+        begin
+          ccif.ccwait[0] = 1;
+          ccif.dload[1] = ccif.dstore[0];
+          ccif.raddr = ccif.daddr[0];
+          ccif.ramstore = ccif.dstore[0];
+          if(ccif.ramstate == ACCESS)
+          begin
+            ccif.dwait[1] = 0;
+          end
+          else
+          begin
+            ccif.dwait[1] = 1;
+          end  
+        end
+      end
+      CACHE_WB2 : 
+      begin
+        ccif.ramWEN = 1;
+        if(bus_access == 0)
+        begin
+          ccif.ccwait[1] = 1;
+          ccif.dload[0] = ccif.dstore[1];
+          ccif.raddr = ccif.daddr[1];
+          ccif.ramstore = ccif.dstore[1];
+          if(ccif.ramstate == ACCESS)
+          begin
+            ccif.dwait[0] = 0;
+          end
+          else
+          begin
+            ccif.dwait[0] = 1;
+          end        
+        end
+        else
+        begin
+          ccif.ccwait[0] = 1;
+          ccif.dload[1] = ccif.dstore[0];
+          ccif.raddr = ccif.daddr[0];
+          ccif.ramstore = ccif.dstore[0];
+          if(ccif.ramstate == ACCESS)
+          begin
+            ccif.dwait[1] = 0;
+          end
+          else
+          begin
+            ccif.dwait[1] = 1;
+          end  
+        end      
+      end
+      WB1_RAM : 
+      begin
+        ccif.ramWEN = 1;
+        if(bus_access == 0)
+        begin
+          ccif.ramaddr = ccif.iaddr[0];
+          ccif.iload[0] = ccif.ramload;
+          if(ccif.ramstate == ACCESS)
+          begin
+            ccif.iwait[0] = 0;
+          end
+          else
+          begin
+            ccif.iwait[0] = 1;
+          end  
+        end
+        else
+        begin
+          ccif.ramaddr = ccif.iaddr[1];
+          ccif.iload[1] = ccif.ramload;
+          if(ccif.ramstate == ACCESS)
+          begin
+            ccif.iwait[1] = 0;
+          end
+          else
+          begin
+            ccif.iwait[1] = 1;
+          end     
+        end
+      end
+      WB2_RAM : 
+      begin
+        ccif.ramWEN = 1;
+        if(bus_access == 0)
+        begin
+          ccif.ramaddr = ccif.iaddr[0];
+          ccif.iload[0] = ccif.ramload;
+          if(ccif.ramstate == ACCESS)
+          begin
+            ccif.iwait[0] = 0;
+          end
+          else
+          begin
+            ccif.iwait[0] = 1;
+          end  
+        end
+        else
+        begin
+          ccif.ramaddr = ccif.iaddr[1];
+          ccif.iload[1] = ccif.ramload;
+          if(ccif.ramstate == ACCESS)
+          begin
+            ccif.iwait[1] = 0;
+          end
+          else
+          begin
+            ccif.iwait[1] = 1;
+          end     
+        end      
+      end
+    endcase
+  end 
+
 endmodule
