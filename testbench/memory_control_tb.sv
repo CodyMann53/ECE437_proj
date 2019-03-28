@@ -181,8 +181,7 @@ program test
   begin 
     input logic cache_num;
     input logic write; 
-    input word_t address, 
-          data; 
+    input word_t address; 
     begin 
       // wait for next clock cycle before applying inputs 
       @(posedge CLK); 
@@ -192,14 +191,14 @@ program test
         cif0.dWEN = write;
         cif0.dREN = ~write;  
         cif0.daddr = address;
-        cif0.dstore = data;  
+        cif0.dstore = 32'habcdef;  
       end 
       // else cache1 is making a request
       else begin
         cif1.dWEN = write; 
         cif1.dREN = ~write; 
         cif1.daddr = address;
-        cif1.dstore = data;  
+        cif1.dstore = 32'habcdef;  
       end 
   endtask
 
@@ -231,15 +230,14 @@ program test
                 cache1_request;
     input request_type cache0_request_type, 
                        cache1_request_type; 
-    input word_t address, 
-                 data; 
+    input word_t address; 
     begin 
       // if cache0 is to perform a request 
       if (cache0_request == 1) begin 
         // determine what type of request cache0 is to make 
         casez (cache0_request_type) 
-          DATA_READ: cache_data_memory_request(0, 0, address, data); 
-          DATA_WRITE: cache_data_memory_request(0, 1, address, data); 
+          DATA_READ: cache_data_memory_request(0, 0, address); 
+          DATA_WRITE: cache_data_memory_request(0, 1, address); 
           INSTRUCTION_READ: cache_instruction_memory_request(0,address); 
         endcase
       end 
@@ -248,25 +246,103 @@ program test
       if (cache1_request == 1) begin 
         // determine what type of request cache1 is to make 
         casez (cache1_request_type) 
-          DATA_READ: cache_data_memory_request(1, 0, address, data); 
-          DATA_WRITE: cache_data_memory_request(1, 1, address, data); 
+          DATA_READ: cache_data_memory_request(1, 0, address); 
+          DATA_WRITE: cache_data_memory_request(1, 1, address); 
           INSTRUCTION_READ: cache_instruction_memory_request(0,address); 
         endcase
       end
     end 
   endtask 
 
-  // runs through a cache 0 request
-  task run_cache0_request; 
+  // runs through a data_write_process
+  task data_write_process; 
   begin 
+    input logic cache_num; 
+    input word_t address; 
     begin 
+    // if cache0 was the requestor
+    if (cache_num == 0) begin 
+      // wait for cache0 dwait to go low 
+      wait(cif0.dwait == 0); 
+      // increment the address to next block but just keep data the same
+      cif0.daddr = address + 4; 
+      // wait a little to allow knew address to settle 
+      #(1)
+      // wait for last dwait to go low
+      wait (cif0.dwait == 0); 
+    end
+    // else cache1 was the requestor
+    else begin 
+      // wait for cache1 dwait to go low 
+      wait(cif1.dwait == 0); 
+      //increment the address to next block but just keep data the same
+      cif1.daddr = address + 4; 
+      // wait a little to allow knew address to settle 
+      #(1)
+      // wait for last dwait to go low
+      wait (cif1.dwait == 0); 
+    end
+  end 
+  endtask
+
+  // runs through a data read process (note: needs to be written)
+  task data_read_process; 
+  begin 
+    input logic cache_num; 
+    input word_t address; 
+    begin 
+      // if cache request for cache0
+      if (cache_num == 0) begin  
+        // 
+      end 
+      // else the cache request is for cache1
+      else begin 
+      end 
     end 
   endtask
 
-  // runs through a cach1 request 
+  // runs through a instruction read process
+  task instruction_read_process;
+  begin 
+    input logic cache_num; 
+    input word_t address; 
+    begin 
+      // if cache request is from cache0
+      if (cache_num == 0) begin 
+      end 
+      // else the cache request is for cache1
+      else begin 
+      end 
+    end 
+  endtask 
+
+  // runs through a cache 0 request
+  task run_cache0_request; 
+  begin 
+    input request_type cache0_request_type; 
+    input word_t address; 
+    begin 
+      // check what type of request this is 
+      casez(cache0_request_type)
+        DATA_READ: data_read_process(0, address); 
+        DATA_WRITE: data_write_process(0, address); 
+        INSTRUCTION_READ: instruction_read_process(0, address); 
+      endcase
+    end 
+  endtask
+
+  // runs through a cache 1 request
   task run_cache1_request; 
   begin 
+    input request_type cache1_request_type; 
+    input word_t address; 
     begin 
+      // check what type of request this is 
+      casez(cache1_request_type)
+        DATA_READ: data_read_process(1, address); 
+        DATA_WRITE: data_write_process(1, address); 
+        INSTRUCTION_READ: instruction_read_process(1, address); 
+      endcase
     end 
   endtask
 
@@ -277,8 +353,7 @@ program test
                 cache1_request;
     input request_type cache0_request_type, 
                        cache1_request_type; 
-    input word_t address, 
-                 data; 
+    input word_t address; 
     begin 
 
       // for the given test case, apply the proper cache requests to the memory controller
@@ -286,9 +361,10 @@ program test
                            cache1_request, 
                            cache0_request_type, 
                            cache1_request_type, 
-                           address, 
-                           data); 
+                           address); 
 
+      // wait a little to allow inputs to settle 
+      #(1)
       // if cache0 is a requestor 
       if (cache0_request == 1) begin 
         // Run through the service of cache0 request
