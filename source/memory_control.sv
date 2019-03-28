@@ -30,6 +30,16 @@ module memory_control (
 
   logic bus_access, next_bus_access;
 
+  logic iwait0, iwait1, dwait0, dwait0;
+  logic next_iwait0, next_iwait1, next_dwait0, next_dwait1;
+  word_t iload0, iload1, dload0, dload1;
+  word_t next_iload0, next_iload1, next_dload0, next_dload1;
+  word_t ramstore, ramaddr, next_ramstore, next_ramaddr;
+  logic ramWEN, ramREN, next_ramWEN, next_ramREN;
+  logic ccwait0, ccwait1, ccinv0, ccinv1;
+  logic next_ccwait0, next_ccwait1, next_ccinv0, next_ccinv1;
+  word_t ccsnoopaddr0, ccsnoopaddr1, next_ccsnoopaddr0, next_ccsnoopaddr1;
+
 /**************************** comb blocks ***********************************/  
 /*
   always_comb begin:  OUTPUT_LOGIC
@@ -104,19 +114,88 @@ module memory_control (
   end 
 */
 
+<<<<<<< HEAD
   always_ff @(posedge CLK, negedge nRST)
+=======
+logic iwait0, iwait1, dwait0, dwait0;
+logic next_iwait0, next_iwait1, next_dwait0, next_dwait1;
+word_t iload0, iload1, dload0, dload1;
+word_t next_iload0, next_iload1, next_dload0, next_dload1;
+word_t ramstore, ramaddr, next_ramstore, next_ramaddr;
+logic ramWEN, ramREN, next_ramWEN, next_ramREN;
+logic ccwait0, ccwait1, ccinv0, ccinv1;
+logic next_ccwait0, next_ccwait1, next_ccinv0, next_ccinv1;
+word_t ccsnoopaddr0, ccsnoopaddr1, next_ccsnoopaddr0, next_ccsnoopaddr1;
+
+  always_ff @(posedge CLK or negedge nRST)
+>>>>>>> 7ad676930d3b459d3f558bea3ce064170fee15bd
   begin
      if(nRST == 0)
      begin
         state <= IDLE;
         bus_access <= 0;
+        iwait0 <= 1;
+        iwait1 <= 1;
+        dwait0 <= 1;
+        dwait1 <= 1;
+        iload0 <= 0;
+        iload1 <= 0;
+        dload0 <= 0;
+        dload1 <= 0;
+        ramstore <= 0;
+        ramaddr <= 0;
+        ramWEN <= 0;
+        ramREN <= 0;
+        ccwait0 <= 0;
+        ccwait1 <= 0;
+        ccinv0 <= 0;
+        ccinv1 <= 0;
+        ccsnoopaddr0 <= 0;
+        ccsnoopaddr1 <= 0;
      end
      else
      begin
         state <= next_state;
         bus_access <= next_bus_access;
+        iwait0 <= next_iwait0;
+        iwait1 <= next_iwait1;
+        dwait0 <= next_dwait0;
+        dwait1 <= next_dwait1;
+        iload0 <= next_iload0;
+        iload1 <= next_iload1;
+        dload0 <= next_dload0;
+        dload1 <= next_dload1;
+        ramstore <= next_ramstore;
+        ramaddr <= next_ramaddr;
+        ramWEN <= next_ramWEN;
+        ramREN <= next_ramREN;
+        ccwait0 <= next_ccwait0;
+        ccwait1 <= next_ccwait1;
+        ccinv0 <= next_ccinv0;
+        ccinv1 <= next_ccinv1;
+        ccsnoopaddr0 <= next_ccsnoopaddr0;
+        ccsnoopaddr1 <= next_ccsnoopaddr1;
      end
   end
+
+  assign ccif.iwait[0] = iwait0;
+  assign ccif.iwait[1] = iwait1;
+  assign ccif.dwait[0] = dwait0;
+  assign ccif.dwait[1] = dwait1;
+  assign ccif.iload[0] = iload0;
+  assign ccif.iload[1] = iload1;
+  assign ccif.dload[0] = dload0;
+  assign ccif.dload[1] = dload1;
+  assign ccif.ramstore = ramstore;
+  assign ccif.ramaddr = ramaddr;
+  assign ccif.ramWEN = ramWEN;
+  assign ccif.ramREN = ramREN;
+  assign ccif.ccwait[0] = ccwait0;
+  assign ccif.ccwait[1] = ccwait1;
+  assign ccif.ccinv[0] = ccinv0;
+  assign ccif.ccinv[1] = ccinv1;
+  assign ccif.ccsnoopaddr[0] = ccsnoopaddr0;
+  assign ccif.ccsnoopaddr[1] = ccsnoopaddr1;
 
   always_comb begin: BUS_CONTROLLER_FSM
     next_state = state;
@@ -271,6 +350,7 @@ module memory_control (
     endcase
   end
 
+<<<<<<< HEAD
   always_comb begin: OUTPUT_LOGIC
     ccif.iwait[0]       = 1;
     ccif.iwait[1]       = 1;
@@ -290,242 +370,300 @@ module memory_control (
     ccif.ccinv[1]       = 0;
     ccif.ccsnoopaddr[0] = ccif.ccsnoopaddr[0];
     ccif.ccsnoopaddr[1] = ccif.ccsnoopaddr[1];
+=======
+  always_comb begin : OUTPUT_LOGIC
+
+    next_iwait0 = 1;
+    next_iwait1 = 1;
+    next_dwait0 = 1;
+    next_dwait1 = 1;
+    next_iload0 = 0;
+    next_iload1 = 0;
+    next_dload0 = 0;
+    next_dload1 = 0;
+    next_ramstore = 0;
+    next_ramaddr = 0;
+    next_ramWEN = 0;
+    next_ramREN = 0;
+    next_ccwait0 = ccwait0;
+    next_ccwait1 = ccwait1;
+    next_ccinv0 = ccinv0;
+    next_ccinv1 = ccinv1;
+    next_ccsnoopaddr0 = ccsnoopaddr0;
+    next_ccsnoopaddr1 = ccsnoopaddr1;
+>>>>>>> 7ad676930d3b459d3f558bea3ce064170fee15bd
 
     casez(state)
       GRANT_D : 
       begin
         if(bus_access == 0)
         begin
-          ccif.ccwait[1] = 1;
-          ccif.ccsnoopaddr[1] = ccif.daddr[0];
-          ccif.ccinv[1] = ccif.ccwrite[0];
+          next_ccwait1 = 1;
+          next_ccsnoopaddr1 = ccif.daddr[0];
+          next_ccinv1 = ccif.ccwrite[0];
         end
         else
         begin
-          ccif.ccwait[0] = 1;
-          ccif.ccsnoopaddr[0] = ccif.daddr[1];
-          ccif.ccinv[0] = ccif.ccwrite[1];
+          next_ccwait0 = 1;
+          next_ccsnoopaddr0 = ccif.daddr[1];
+          next_ccinv0 = ccif.ccwrite[1];
         end
       end
       GRANT_I : 
       begin
-        ccif.ramREN = 1;
+        next_ramREN = 1;
         if(bus_access == 0)
         begin
-          ccif.ramaddr = ccif.iaddr[0];
-          ccif.iload[0] = ccif.ramload;
+          next_ramaddr = ccif.iaddr[0];
+          next_iload0 = ccif.ramload;
           if(ccif.ramstate == ACCESS)
           begin
-            ccif.iwait[0] = 0;
+            next_iwait0 = 0;
           end
           else
           begin
-            ccif.iwait[0] = 1;
+            next_iwait0 = 1;
           end
         end
         else
         begin
-          ccif.ramaddr = ccif.iaddr[1];
-          ccif.iload[1] = ccif.ramload;
+          next_ramaddr = ccif.iaddr[1];
+          next_iload1 = ccif.ramload;
           if(ccif.ramstate == ACCESS)
           begin
-            ccif.iwait[1] = 0;
+            next_iwait1 = 0;
           end
           else
           begin
-            ccif.iwait[1] = 1;
+            next_iwait1 = 1;
           end
         end      
       end
       RAM_WB1 : 
       begin
+<<<<<<< HEAD
         ccif.ramREN = 1; 
+=======
+        next_ramREN = 1
+>>>>>>> 7ad676930d3b459d3f558bea3ce064170fee15bd
         if(bus_access == 0)
         begin
-          ccif.ccwait[1] = 1;
-          ccif.ramaddr = ccif.daddr[0];
-          ccif.dload[0] = ccif.ramload;
+          next_ccwait1 = 1;
+          next_ramaddr = ccif.daddr[0];
+          next_dload0 = ccif.ramload;
           if(ccif.ramstate == ACCESS)
           begin
-            ccif.dwait[0] = 0;
+            next_dwait0 = 0;
           end
           else
           begin
-            ccif.dwait[0] = 1;
+            next_dwait0 = 1;
           end
         end
         else
         begin
-          ccif.ccwait[0] = 1;
-          ccif.ramaddr = ccif.daddr[1];
-          ccif.dload[1] = ccif.ramload;
+          next_ccwait0 = 1;
+          next_ramaddr = ccif.daddr[1];
+          next_dload1 = ccif.ramload;
           if(ccif.ramstate == ACCESS)
           begin
-            ccif.dwait[1] = 0;
+            next_dwait1 = 0;
           end
           else
           begin
-            ccif.dwait[1] = 1;
+            next_dwait1 = 1;
           end
         end      
       end
       RAM_WB2 : 
       begin
+<<<<<<< HEAD
         ccif.ramREN = 1; 
+=======
+        next_ramREN = 1
+>>>>>>> 7ad676930d3b459d3f558bea3ce064170fee15bd
         if(bus_access == 0)
         begin
-          ccif.ccwait[1] = 1;
-          ccif.ramaddr = ccif.daddr[0];
-          ccif.dload[0] = ccif.ramload;
+          next_ccwait1 = 1;
+          next_ramaddr = ccif.daddr[0];
+          next_dload0 = ccif.ramload;
           if(ccif.ramstate == ACCESS)
           begin
-            ccif.dwait[0] = 0;
+            next_dwait0 = 0;
           end
           else
           begin
-            ccif.dwait[0] = 1;
+            next_dwait0 = 1;
           end
         end
         else
         begin
-          ccif.ccwait[0] = 1;
-          ccif.ramaddr = ccif.daddr[1];
-          ccif.dload[1] = ccif.ramload;
+          next_ccwait0 = 1;
+          next_ramaddr = ccif.daddr[1];
+          next_dload1 = ccif.ramload;
           if(ccif.ramstate == ACCESS)
           begin
-            ccif.dwait[1] = 0;
+            next_dwait1 = 0;
           end
           else
           begin
-            ccif.dwait[1] = 1;
+            next_dwait1 = 1;
           end
         end         
       end
       CACHE_WB1 : 
       begin
-        ccif.ramWEN = 1;
+        next_ramWEN = 1;
         if(bus_access == 0)
         begin
+<<<<<<< HEAD
           ccif.ccwait[1] = 1;
           ccif.dload[0] = ccif.dstore[1];
           ccif.ramaddr = ccif.daddr[1];
           ccif.ramstore = ccif.dstore[1];
+=======
+          next_ccwait1 = 1;
+          next_dload0 = ccif.dstore[1];
+          next_ramaddr = ccif.daddr[1];
+          next_ramstore = ccif.dstore[1];
+>>>>>>> 7ad676930d3b459d3f558bea3ce064170fee15bd
           if(ccif.ramstate == ACCESS)
           begin
-            ccif.dwait[0] = 0;
+            next_dwait0 = 0;
           end
           else
           begin
-            ccif.dwait[0] = 1;
+            next_dwait0 = 1;
           end        
         end
         else
         begin
+<<<<<<< HEAD
           ccif.ccwait[0] = 1;
           ccif.dload[1] = ccif.dstore[0];
           ccif.ramaddr = ccif.daddr[0];
           ccif.ramstore = ccif.dstore[0];
+=======
+          next_ccwait0 = 1;
+          next_dload1 = ccif.dstore[0];
+          next_ramaddr = ccif.daddr[0];
+          next_ramstore = ccif.dstore[0];
+>>>>>>> 7ad676930d3b459d3f558bea3ce064170fee15bd
           if(ccif.ramstate == ACCESS)
           begin
-            ccif.dwait[1] = 0;
+            next_dwait1 = 0;
           end
           else
           begin
-            ccif.dwait[1] = 1;
+            next_dwait1 = 1;
           end  
         end
       end
       CACHE_WB2 : 
       begin
-        ccif.ramWEN = 1;
+        next_ramWEN = 1;
         if(bus_access == 0)
         begin
+<<<<<<< HEAD
           ccif.ccwait[1] = 1;
           ccif.dload[0] = ccif.dstore[1];
           ccif.ramaddr = ccif.daddr[1];
           ccif.ramstore = ccif.dstore[1];
+=======
+          next_ccwait1 = 1;
+          next_dload0 = ccif.dstore[1];
+          next_raddr = ccif.daddr[1];
+          next_ramstore = ccif.dstore[1];
+>>>>>>> 7ad676930d3b459d3f558bea3ce064170fee15bd
           if(ccif.ramstate == ACCESS)
           begin
-            ccif.dwait[0] = 0;
+            next_dwait0 = 0;
           end
           else
           begin
-            ccif.dwait[0] = 1;
+            next_dwait0 = 1;
           end        
         end
         else
         begin
+<<<<<<< HEAD
           ccif.ccwait[0] = 1;
           ccif.dload[1] = ccif.dstore[0];
           ccif.ramaddr = ccif.daddr[0];
           ccif.ramstore = ccif.dstore[0];
+=======
+          next_ccwait0 = 1;
+          next_dload1 = ccif.dstore[0];
+          next_raddr = ccif.daddr[0];
+          next_ramstore = ccif.dstore[0];
+>>>>>>> 7ad676930d3b459d3f558bea3ce064170fee15bd
           if(ccif.ramstate == ACCESS)
           begin
-            ccif.dwait[1] = 0;
+            next_dwait1 = 0;
           end
           else
           begin
-            ccif.dwait[1] = 1;
+            next_dwait1 = 1;
           end  
         end      
       end
       WB1_RAM : 
       begin
-        ccif.ramWEN = 1;
+        next_ramWEN = 1;
         if(bus_access == 0)
         begin
-          ccif.ramaddr = ccif.iaddr[0];
-          ccif.iload[0] = ccif.ramload;
+          next_ramaddr = ccif.iaddr[0];
+          next_iload0 = ccif.ramload;
           if(ccif.ramstate == ACCESS)
           begin
-            ccif.iwait[0] = 0;
+            next_iwait0 = 0;
           end
           else
           begin
-            ccif.iwait[0] = 1;
+            next_iwait0 = 1;
           end  
         end
         else
         begin
-          ccif.ramaddr = ccif.iaddr[1];
-          ccif.iload[1] = ccif.ramload;
+          next_ramaddr = ccif.iaddr[1];
+          next_iload1 = ccif.ramload;
           if(ccif.ramstate == ACCESS)
           begin
-            ccif.iwait[1] = 0;
+            next_iwait1 = 0;
           end
           else
           begin
-            ccif.iwait[1] = 1;
+            next_iwait1 = 1;
           end     
         end
       end
       WB2_RAM : 
       begin
-        ccif.ramWEN = 1;
+        next_ramWEN = 1;
         if(bus_access == 0)
         begin
-          ccif.ramaddr = ccif.iaddr[0];
-          ccif.iload[0] = ccif.ramload;
+          next_ramaddr = ccif.iaddr[0];
+          next_iload0 = ccif.ramload;
           if(ccif.ramstate == ACCESS)
           begin
-            ccif.iwait[0] = 0;
+            next_iwait0 = 0;
           end
           else
           begin
-            ccif.iwait[0] = 1;
+            next_iwait0 = 1;
           end  
         end
         else
         begin
-          ccif.ramaddr = ccif.iaddr[1];
-          ccif.iload[1] = ccif.ramload;
+          next_ramaddr = ccif.iaddr[1];
+          next_iload1 = ccif.ramload;
           if(ccif.ramstate == ACCESS)
           begin
-            ccif.iwait[1] = 0;
+            next_iwait1 = 0;
           end
           else
           begin
-            ccif.iwait[1] = 1;
+            next_iwait1 = 1;
           end     
         end      
       end
