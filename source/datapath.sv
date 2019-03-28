@@ -134,8 +134,6 @@ assign id_ex_regif.func_IF_ID = funct_t'(if_id_regif.func_IF_ID); //'
 assign id_ex_regif.instruction_IF_ID = if_id_regif.instruction_IF_ID; 
 assign id_ex_regif.imm16_IF_ID = if_id_regif.imm16_IF_ID; 
 
-
-
 assign id_ex_regif.next_imemaddr_IF_ID = if_id_regif.next_imemaddr_IF_ID; 
 assign id_ex_regif.Rs_IF_ID = if_id_regif.Rs_IF_ID; 
 assign id_ex_regif.extend = cuif.extend; 
