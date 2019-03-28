@@ -53,7 +53,7 @@ register_file_if rfif();
 register_file REGISTER (CLK, nRST, rfif); 
 
 pc_if pcif(); 
-pc PC (CLK, nRST, pcif); 
+pc #(.PC_INIT(PC_INIT)) PC (CLK, nRST, pcif.pc); 
 
 // pipeline registers 
 if_id_reg_if if_id_regif(); 
@@ -69,7 +69,7 @@ mem_wb_reg_if mem_wb_regif();
 mem_wb_reg MEM_WB(CLK, nRST, mem_wb_regif);  
 
 hazard_unit_if huif(); 
-hazard_unit HAZ_UNIT(huif); 
+hazard_unit HAZ_UNIT(huif.hu); 
 
 forward_unit_if fuif();
 forward_unit FU(fuif);
@@ -81,13 +81,12 @@ word_t next_imemaddr, jmp_addr, next_pc;
 logic [27:0] jmp_addr_shifted;
 word_t br_imm, branch_addr, jmp_return_addr; 
 word_t alu_mux_a, alu_mux_b;
+word_t dmemload_reg; 
 
 /************************** glue logic ***************************/
-
 // IF section 
 // program counter inputs
 assign pcif.next_pc = next_pc; 
-assign pcif.ihit = dpif.ihit; 
 assign pcif.enable_pc = huif.enable_pc;
 
 // IF/ID register inputs 
@@ -173,7 +172,8 @@ assign ex_mem_regif.next_imemaddr_ID_EX = id_ex_regif.next_imemaddr_ID_EX;
 assign ex_mem_regif.Rs_ID_EX = id_ex_regif.Rs_ID_EX;
 assign ex_mem_regif.zero = aluif.zero;  
 assign ex_mem_regif.dhit = dpif.dhit; 
-assign ex_mem_regif.dmemload = dpif.dmemload; 
+
+
 
 // MEM state
 // data_path to cache signals 
@@ -193,7 +193,7 @@ assign mem_wb_regif.WEN_EX_MEM = ex_mem_regif.WEN_EX_MEM;
 assign mem_wb_regif.reg_dest_EX_MEM = ex_mem_regif.reg_dest_EX_MEM; 
 assign mem_wb_regif.Rt_EX_MEM = ex_mem_regif.Rt_EX_MEM; 
 assign mem_wb_regif.Rd_EX_MEM = ex_mem_regif.Rd_EX_MEM; 
-assign mem_wb_regif.dmemload_EX_MEM = ex_mem_regif.dmemload_EX_MEM;  
+assign mem_wb_regif.dmemload = dmemload_reg;  
 assign mem_wb_regif.halt_EX_MEM = ex_mem_regif.halt_EX_MEM; 
 assign mem_wb_regif.mem_to_reg_EX_MEM = ex_mem_regif.mem_to_reg_EX_MEM; 
 assign mem_wb_regif.dhit = dpif.dhit; 
@@ -222,12 +222,10 @@ assign fuif.opcode_MEM_WB = mem_wb_regif.opcode_MEM_WB;
 assign fuif.WEN_EX_MEM = ex_mem_regif.WEN_EX_MEM; 
 assign fuif.WEN_MEM_WB = mem_wb_regif.WEN_MEM_WB; 
 
-
 // pipeline controller inputs 
 assign huif.dhit = dpif.dhit; 
 assign huif.ihit = dpif.ihit; 
 assign huif.zero_EX_MEM = ex_mem_regif.zero_EX_MEM; 
-assign huif.func_EX_MEM = funct_t'(ex_mem_regif.func_EX_MEM); //' 
 assign huif.dREN_ID_EX = id_ex_regif.dREN_ID_EX; 
 assign huif.Rt_ID_EX = id_ex_regif.Rt_ID_EX; 
 assign huif.Rs_IF_ID = if_id_regif.Rs_IF_ID; 
@@ -235,9 +233,9 @@ assign huif.Rt_IF_ID = if_id_regif.Rt_IF_ID;
 assign huif.func_IF_ID = if_id_regif.func_IF_ID; 
 assign huif.opcode_IF_ID = if_id_regif.opcode_IF_ID; 
 assign huif.opcode_EX_MEM = opcode_t'(ex_mem_regif.opcode_EX_MEM); //' 
-
-/************************** shift left logic ***************************/
-
+assign huif.dmemWEN = ex_mem_regif.dmemWEN; 
+assign huif.dmemREN = ex_mem_regif.dmemREN; 
+assign huif.halt = mem_wb_regif.halt; 
 
 /************************** Mux logic ***************************/
 
@@ -439,5 +437,25 @@ always_comb begin: FU_SIGS
       SEL_RETURN_REGISTER: fu_reg_dest_MEM_WB = 5'b11111;
    endcase
 end
+
+
+/****************** Sequential logic **********************/ 
+always_ff @(posedge CLK, negedge nRST) begin: IADDR_MEMORY
+  
+  // if reset is brought low 
+  if (nRST == 1'b0) begin 
+    dmemload_reg <= 'b0; 
+  end 
+  // no reset was applied 
+  else begin 
+    if (dpif.dhit == 1) begin 
+      dmemload_reg <= dpif.dmemload;
+    end 
+    else begin 
+      dmemload_reg <= dmemload_reg; 
+    end  
+  end 
+end
+
 
 endmodule

@@ -304,18 +304,11 @@ program test(
 
       #(10)
 
-      // wait a little to allow inputs to settle 
-      count = 0; 
       // wait for flushed signal to be asserted or max clock cycles have been reached
-      while((count < 64) | (dcif.flushed == 0)) begin 
+      while(dcif.flushed == 0) begin 
         @(posedge CLK); 
-        count = count + 1; 
       end  
       
-      // if the max number of clock cycles have been reached
-      if (count >= 64) begin 
-        $display("Time: %00gns The dcache never gave back a flush signal.", $time); 
-      end 
     end 
   endtask 
 
@@ -422,244 +415,20 @@ program test(
 
     /************************************
     *
-    *       Test case 1: Testing for a compulsory miss
-    *
-    ************************************/
-    reset_dut(); 
-    test_description = "Testing for compulsory misses from all blocks.";
-
-    // variable for assigning index 
-
-    index = 3'd0; 
-    // loop through an address sequence that will touch every block in cache 
-    for (int i = 0; i < 8; i++) 
-      // set the address bits 
-      address.tag = 26'd0; 
-      address.idx = index; 
-      address.blkoff = 1'b0; 
-      address.bytoff = 2'b00; 
-      read_dcache(address, 0, 0, 0); 
-      read_dcache(address, 1, 0, 0); 
-      // update index
-      index = index + 3'd1; 
-
-    /************************************
-    *
-    *       Test case 2: Testing write then read from same block
-    *
-    ************************************/
-    test_case_num = test_case_num + 1; ; 
-    test_description = "Performing a write then a read from same block.";
-    reset_dut(); 
-
-    read_dcache(32'd0, 0, 0, 0); 
-    // write cache byte_address, block_present, data
-    write_dcache(32'd0, 1, 32'd45); 
-    // read same value back
-    read_dcache(32'd0, 1, 32'd45, 1);
-
-    /************************************
-    *
-    *       Test case 3: Testing associativity
-    *
-    ************************************/
-    test_case_num = test_case_num + 1; ; 
-    test_description = "Testing associativity.";
-    reset_dut(); 
-
-    // set the desired addresss and data 
-    address.tag = 26'd600; 
-    address.idx = 3'd4; 
-    address.blkoff = 1'b0; 
-    address.bytoff = 2'b00; 
-    address2.tag = 26'd601; 
-    address2.idx = address.idx; 
-    address2.blkoff = address.blkoff;
-    address2.bytoff = address.bytoff;  
-    data = 32'd50; 
-
-
-    // Write to two blocks within the same set but different tags 
-    write_dcache(address, 0, data); 
-    write_dcache(address2, 0, data);
-
-    // now try to read those blocks back 
-    read_dcache(address, 1, data, 1); 
-    read_dcache(address2, 1, data, 1); 
-
-    /************************************
-    *
-    *       Test case 4: Testing flushing 
-    *
-    ************************************/
-    test_case_num = test_case_num + 1; ; 
-    test_description = "Testing flushing.";
-    reset_dut();
-
-    index = 3'd0; 
-    // loop through an address sequence that will touch every block in cache 
-    for (int i = 0; i < 8; i++) 
-      // set the address bits 
-      address.tag = 26'd0; 
-      address.idx = index; 
-      address.blkoff = 1'b0; 
-      address.bytoff = 2'b00; 
-      read_dcache(address, 0, 0, 0); 
-      read_dcache(address, 1, 0, 0); 
-      // update index
-      index = index + 3'd1;  
-
-    // Now tell the cache that processor is halting
-    halt; 
-
-    /************************************
-    *
-    *       Test case 5: Testing read and writes to same tag different blocks.
-    *
-    ************************************/
-    test_case_num = test_case_num + 1; ; 
-    test_description = "Testing read and writes to same tag different blocks.";
-    reset_dut(); 
-
-    // set the desired addresss and data 
-    address.tag = 26'd600; 
-    address.idx = 3'd4; 
-    address.blkoff = 1'b0; 
-    address.bytoff = 2'b00; 
-    address2.tag = address.tag; 
-    address2.idx = 3'd5; 
-    address2.blkoff = address.blkoff;
-    address2.bytoff = address.bytoff;  
-    data = 32'd50; 
-
-    // Write to two different blocks but with same tag
-    write_dcache(address, 0, data); 
-    write_dcache(address2, 0, data);
-
-    // now try to read those blocks back 
-    read_dcache(address, 1, data, 1); 
-    read_dcache(address2, 1, data, 1); 
-
-    /************************************
-    *
-    *       Test case 6: Testing capacity misses
-    *
-    ************************************/
-    test_case_num = test_case_num + 1; ; 
-    test_description = "Testing capacity misses.";
-    reset_dut(); 
-
-    index = 3'd0; 
-    // loop through an address sequence that will touch every block in cache 
-    for (int i = 0; i < 8; i++) 
-      // set the address bits 
-      address.tag = 26'd0; 
-      address.idx = index; 
-      address.blkoff = 1'b0; 
-      address.bytoff = 2'b00; 
-      address2.tag = 26'd1; 
-      address2.idx = index; 
-      address2.blkoff = address.blkoff;
-      address2.bytoff = address.bytoff;  
-
-      read_dcache(address, 0, 0, 0); 
-      read_dcache(address2, 0, 0, 0); 
-      // update index
-      index = index + 3'd1;  
-
-    // no loop thorugh with same indexes but different tags
-    index = 3'd0; 
-    // loop through an address sequence that will touch every block in cache 
-    for (int i = 0; i < 8; i++) 
-      // set the address bits 
-      address.tag = 26'd25; 
-      address.idx = index; 
-      address.blkoff = 1'b0; 
-      address.bytoff = 2'b00; 
-      address2.tag = 26'd26; 
-      address2.idx = index; 
-      address2.blkoff = address.blkoff;
-      address2.bytoff = address.bytoff;  
-
-      read_dcache(address, 0, 0, 0); 
-      read_dcache(address2, 0, 0, 0); 
-      // update index
-      index = index + 3'd1;  
-
-    /************************************
-    *
-    *       Test case 7: Testing conflict misses.
-    *
-    ************************************/
-    test_case_num = test_case_num + 1; ; 
-    test_description = "Testing conflict misses.";
-    reset_dut(); 
-
-
-
-
-    /************************************
-    *
-    *       Test case 8: Testing writeback specification
-    *
-    ************************************/
-    test_case_num = test_case_num + 1; ; 
-    test_description = "Testing writeback specification.";
-    reset_dut(); 
-
-    // set the desired addresss and data 
-    address.tag = 26'd600; 
-    address.idx = 3'd4; 
-    address.blkoff = 1'b0; 
-    address.bytoff = 2'b00; 
-    data = 32'hF0F0F0F0; 
-
-    // Write to address
-    write_dcache(address, 0, data); 
-    // change tag but not index 
-    address.tag = 26'd601; 
-    // write to new cache block 
-    write_dcache(address, 0, data); 
-
-    // Note: At this point both of set0's blocks should be filled with dirty data 
-    // change tag again but keep index the same, while also changing the data. 
-    data = 32'hF0F0F0FF; 
-    address.tag = 26'd602; 
-    // write to new cache block, but this should cause a write back and then read
-    write_dcache(address, 0, data); 
-
-    // now try to read back the last block, because it should be in the cache block 
-      read_dcache(address, 1, data, 1); 
-
-
-    /************************************
-    *
-    *       Test case 9: Testing toggle coverage on dcache table.
-    *
-    ************************************/
-    test_case_num = test_case_num + 1; ; 
-    test_description = "Testing toggle coverage on dcache table.";
-    reset_dut(); 
-
-    toggle(32'h0); 
-    toggle(32'hFFFFFFFF); 
-    toggle(32'h0); 
-    toggle(32'hFFFFFFFF); 
-
-    /************************************
-    *
-    *       Test case 10: Writing data to every cache block and then halt to make sure that data is stored back correctly with a memory dump
+    *       Test case 1: Validate that proper cache blocks are being written back to memory
     *
     ************************************/
     test_case_num = test_case_num + 1;  
-    test_description = "Writing data to every cache block and then halt to make sure that data is stored back correctly with a memory dump";
+    test_description = "Writing nothing to cache, so nothing should be stored back.";
     reset_dut(); 
 
-    toggle(32'hFFFFFFFF); 
+    // write to a block in cache to make it dirty 
+    write_dcache(32'h3C, 0, 32'hABCDEF);
 
+    // tell cache to halt
     halt; 
  
     // dump the memory into memcpu.hex after testbench is finished 
     dump_memory(); 
-  end 
+  end
 endprogram

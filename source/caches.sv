@@ -6,28 +6,40 @@
 */
 
 
+<<<<<<< HEAD
 // interfaces
 `include "datapath_cache_if.vh"
 `include "caches_if.vh"
-
-// cpu types
-`include "cpu_types_pkg.vh"
-
-import cpu_types_pkg::*; 
-
+=======
 module caches (
   input logic CLK, nRST,
   datapath_cache_if.cache dcif,
   caches_if cif
 );
 
-  word_t instr;
-  word_t daddr;
-
   // icache
   //icache  ICACHE(dcif, cif);
   // dcache
   //dcache  DCACHE(dcif, cif);
+
+// cpu types
+`include "cpu_types_pkg.vh"
+
+
+import cpu_types_pkg::*; 
+
+module caches (
+  input logic CLK, nRST,
+  datapath_cache_if dcif,
+  caches_if cif
+);
+
+  word_t instr;
+  word_t daddr;
+
+  // icache and dcache definitions
+  icache  ICACHE(CLK, nRST, dcif.icache, cif.icache);
+  dcache  DCACHE(CLK, nRST, dcif.dcache, cif.dcache);
 
   // single cycle instr saver (for memory ops)
   always_ff @(posedge CLK)
@@ -44,9 +56,7 @@ module caches (
       daddr <= dcif.dmemaddr;
     end
   end
-  // dcache invalidate before halt
-  assign dcif.flushed = dcif.halt;
-
+  
   //singlecycle
   assign dcif.ihit = (dcif.imemREN) ? ~cif.iwait : 0;
   assign dcif.dhit = (dcif.dmemREN|dcif.dmemWEN) ? ~cif.dwait : 0;
