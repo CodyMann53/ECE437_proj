@@ -129,7 +129,8 @@ program test
   typedef enum logic [1:0]{
     DATA_READ = 2'd0, 
     DATA_WRITE = 2'd1, 
-    INSTRUCTION_READ = 2'd2
+    INSTRUCTION_READ = 2'd2, 
+    NONE = 2'd3
   }request_type; 
 
 /*********************** Task Definitions *************************/
@@ -254,6 +255,39 @@ program test
     end 
   endtask 
 
+  task check_snooping; 
+  begin 
+    input logic cache_num; 
+    input word_t expected_ccsnoopaddr; 
+    input logic expected_ccinv; 
+    begin
+      // if checking cache0 snoop address
+      if (cache_num == 0) begin 
+        // check the snoop address
+        if (cif0.ccsnoopaddr != expected_ccsnoopaddr) begin 
+          $display("Time %00gns The ccsnoopaddr to cache0 is not correct. Expecting 0x%h."$time, expected_ccsnoopaddr); 
+        end 
+
+        // checking the invalidate signal 
+        if (cif0.ccinv != expected_ccinv) begin 
+          $display("Time %00gns The ccinv to cache0 is not correct. Expecting %d."$time, expected_ccinv);
+        end 
+      end
+      // else checking cache1
+      else begin 
+        // check the snoop address
+        if (cif1.ccsnoopaddr != expected_ccsnoopaddr) begin 
+          $display("Time %00gns The ccsnoopaddr to cache1 is not correct. Expecting 0x%h."$time, expected_ccsnoopaddr); 
+        end 
+
+        // checking the invalidate signal 
+        if (cif1.ccinv != expected_ccinv) begin 
+          $display("Time %00gns The ccinv to cache1 is not correct. Expecting %d."$time, expected_ccinv);
+        end 
+      end  
+    end 
+  endtask
+
   // runs through a data_write_process
   task data_write_process; 
   begin 
@@ -289,11 +323,35 @@ program test
   task data_read_process; 
   begin 
     input logic cache_num; 
-    input word_t address; 
+    input word_t address;
+    input logic non_requesting_cache_wb;  
     begin 
       // if cache request for cache0
       if (cache_num == 0) begin  
-        // 
+        // check to make sure that the memory controller has provided the correct cache with snoop address and invalidate signal
+        check_snooping(~cache_num, address, 0); 
+        // if a the non-requesting cache is supposed to do the wb 
+        if ( non_requesting_cache_wb == 1) begin 
+        end 
+        // else memory controller should go to ram 
+        else begin 
+          // at the next clock cycle apply signals to memory controller 
+          // to say that non-requesting cache is done transitioning and does not have the block to write back
+          @(posedge CLK); 
+          cif1.cctrans = 1'b1;
+          cif1.ccwrite = 1'b0; 
+
+          //at the next clock cycle bring cctrans low 
+          @(posedge CLK); 
+          cif1.cctrans = 1'b0; 
+
+          // wait for memory controller to give the requesting cache0 two dwaits in a row (wb block from ram to cache0)
+          wait(cif0.dwait == 0); 
+          #(1)
+          wait(cif0.dwait == 0); 
+
+          // process is finished and the memory controller should now be back in the idle state
+        end 
       end 
       // else the cache request is for cache1
       else begin 
@@ -320,11 +378,12 @@ program test
   task run_cache0_request; 
   begin 
     input request_type cache0_request_type; 
-    input word_t address; 
+    input word_t address;
+    input logic non_requesting_cache_wb;   
     begin 
       // check what type of request this is 
       casez(cache0_request_type)
-        DATA_READ: data_read_process(0, address); 
+        DATA_READ: data_read_process(0, address, non_requesting_cache_wb); 
         DATA_WRITE: data_write_process(0, address); 
         INSTRUCTION_READ: instruction_read_process(0, address); 
       endcase
@@ -336,10 +395,11 @@ program test
   begin 
     input request_type cache1_request_type; 
     input word_t address; 
+    input logic non_requesting_cache_wb; 
     begin 
       // check what type of request this is 
       casez(cache1_request_type)
-        DATA_READ: data_read_process(1, address); 
+        DATA_READ: data_read_process(1, address, non_requesting_cache_wb); 
         DATA_WRITE: data_write_process(1, address); 
         INSTRUCTION_READ: instruction_read_process(1, address); 
       endcase
@@ -350,7 +410,8 @@ program test
   task perform_test_case; 
   begin
     input logic cache0_request, 
-                cache1_request;
+                cache1_request, 
+                non_requesting_cache_wb; 
     input request_type cache0_request_type, 
                        cache1_request_type; 
     input word_t address; 
@@ -368,7 +429,7 @@ program test
       // if cache0 is a requestor 
       if (cache0_request == 1) begin 
         // Run through the service of cache0 request
-        run_cache0_request(cache0_request_type, address, data); 
+        run_cache0_request(cache0_request_type, address, data, non_requesting_cache_wb); 
       end 
       // else if cache0 is a requestor 
       else if (cache1_request == 1) begin 
@@ -444,9 +505,25 @@ program test
   cif1.iaddr = 32'd0; 
   cif1.daddr = 32'd0;
   cif1.ccwrite = 1'b0; 
-  cif1.cctrans = 1'b0;  
+  cif1.cctrans = 1'b0; 
+  // initialize testbench signals
+  test_case_num = 0; 
+  test_description = "NULL";  
 
+  /****************************************************************
+  *
+  *   
+  * Test Case #1: Testing for cache0 request memory read and is provided by ram. 
+  *
+  *
+  *****************************************************************/
+  test_case_num = test_case_num + 1; 
+  test_description = "Testing for cache0 request memory read and is provided by ram."
+
+  reset_dut();
+  perform_test_case(1, 0, 0, DATA_READ, NONE, 32'h1C); 
 
   dump_memory();
   end
+
 endprogram
