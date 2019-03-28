@@ -13,6 +13,7 @@
 `include "cpu_types_pkg.vh"
 
 module memory_control (
+  input logic CLK, nRST, 
   cache_control_if.cc ccif
 );
   // type import
@@ -103,7 +104,7 @@ module memory_control (
   end 
 */
 
-  always_ff @(posedge CLK or negedge nRST)
+  always_ff @(posedge CLK, negedge nRST)
   begin
      if(nRST == 0)
      begin
@@ -260,7 +261,7 @@ module memory_control (
           next_state = WB2_RAM;
         end 
       end
-      WB2_RAN :
+      WB2_RAM :
       begin
         if(ccif.ramstate == ACCESS) 
         begin
@@ -270,8 +271,7 @@ module memory_control (
     endcase
   end
 
-  always_comb : OUTPUT_LOGIC
-  begin
+  always_comb begin: OUTPUT_LOGIC
     ccif.iwait[0]       = 1;
     ccif.iwait[1]       = 1;
     ccif.dwait[0]       = 1;
@@ -288,8 +288,8 @@ module memory_control (
     ccif.ccwait[1]      = 0;
     ccif.ccinv[0]       = 0;
     ccif.ccinv[1]       = 0;
-    ccif.ccsnoopaddr[0] = 0;
-    ccif.ccsnoopaddr[1] = 0;
+    ccif.ccsnoopaddr[0] = ccif.ccsnoopaddr[0];
+    ccif.ccsnoopaddr[1] = ccif.ccsnoopaddr[1];
 
     casez(state)
       GRANT_D : 
@@ -339,7 +339,7 @@ module memory_control (
       end
       RAM_WB1 : 
       begin
-        ccif.ramREN = 1
+        ccif.ramREN = 1; 
         if(bus_access == 0)
         begin
           ccif.ccwait[1] = 1;
@@ -371,7 +371,7 @@ module memory_control (
       end
       RAM_WB2 : 
       begin
-        ccif.ramREN = 1
+        ccif.ramREN = 1; 
         if(bus_access == 0)
         begin
           ccif.ccwait[1] = 1;
@@ -408,7 +408,7 @@ module memory_control (
         begin
           ccif.ccwait[1] = 1;
           ccif.dload[0] = ccif.dstore[1];
-          ccif.raddr = ccif.daddr[1];
+          ccif.ramaddr = ccif.daddr[1];
           ccif.ramstore = ccif.dstore[1];
           if(ccif.ramstate == ACCESS)
           begin
@@ -423,7 +423,7 @@ module memory_control (
         begin
           ccif.ccwait[0] = 1;
           ccif.dload[1] = ccif.dstore[0];
-          ccif.raddr = ccif.daddr[0];
+          ccif.ramaddr = ccif.daddr[0];
           ccif.ramstore = ccif.dstore[0];
           if(ccif.ramstate == ACCESS)
           begin
@@ -442,7 +442,7 @@ module memory_control (
         begin
           ccif.ccwait[1] = 1;
           ccif.dload[0] = ccif.dstore[1];
-          ccif.raddr = ccif.daddr[1];
+          ccif.ramaddr = ccif.daddr[1];
           ccif.ramstore = ccif.dstore[1];
           if(ccif.ramstate == ACCESS)
           begin
@@ -457,7 +457,7 @@ module memory_control (
         begin
           ccif.ccwait[0] = 1;
           ccif.dload[1] = ccif.dstore[0];
-          ccif.raddr = ccif.daddr[0];
+          ccif.ramaddr = ccif.daddr[0];
           ccif.ramstore = ccif.dstore[0];
           if(ccif.ramstate == ACCESS)
           begin
@@ -531,5 +531,4 @@ module memory_control (
       end
     endcase
   end 
-
 endmodule

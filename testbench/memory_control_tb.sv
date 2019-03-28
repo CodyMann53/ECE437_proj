@@ -117,7 +117,7 @@ program test
 /*********************** Variable Definitions *************************/
   int test_case_num;
   string test_description;
-
+  word_t data, address; 
 /*********************** Parameter Definitions *************************/
   parameter PERIOD = 10;
 
@@ -157,7 +157,6 @@ program test
 
   // task to request a cache instruction memory request
   task cache_instruction_memory_request; 
-  begin 
     input logic cache_num; 
     input word_t address; 
     begin
@@ -179,10 +178,10 @@ program test
 
   // task to create a cache data memory request
   task cache_data_memory_request;
-  begin 
     input logic cache_num;
     input logic write; 
     input word_t address; 
+    input logic invalidate; 
     begin 
       // wait for next clock cycle before applying inputs 
       @(posedge CLK); 
@@ -192,20 +191,22 @@ program test
         cif0.dWEN = write;
         cif0.dREN = ~write;  
         cif0.daddr = address;
-        cif0.dstore = 32'habcdef;  
+        cif0.dstore = data; 
+        cif0.ccwrite = invalidate; 
       end 
       // else cache1 is making a request
       else begin
         cif1.dWEN = write; 
         cif1.dREN = ~write; 
         cif1.daddr = address;
-        cif1.dstore = 32'habcdef;  
+        cif1.dstore = data;  
+        cif1.ccwrite = invalidate; 
       end 
+    end 
   endtask
 
   // task to relieve a cache request inputs 
   task deasert_inputs; 
-  begin 
     begin 
         // deasert the inputs on next clock cycle
         @(posedge CLK); 
@@ -221,7 +222,6 @@ program test
         cif1.dWEN = 1'b0; 
         cif1.iaddr = 32'd0; 
         cif1.daddr = 32'd0; 
-      end 
     end 
   endtask
 
@@ -231,14 +231,15 @@ program test
                 cache1_request;
     input request_type cache0_request_type, 
                        cache1_request_type; 
-    input word_t address; 
+    input word_t address;
+    input logic invalidate;  
     begin 
       // if cache0 is to perform a request 
       if (cache0_request == 1) begin 
         // determine what type of request cache0 is to make 
         casez (cache0_request_type) 
-          DATA_READ: cache_data_memory_request(0, 0, address); 
-          DATA_WRITE: cache_data_memory_request(0, 1, address); 
+          DATA_READ: cache_data_memory_request(0, 0, address, invalidate); 
+          DATA_WRITE: cache_data_memory_request(0, 1, address, invalidate); 
           INSTRUCTION_READ: cache_instruction_memory_request(0,address); 
         endcase
       end 
@@ -247,50 +248,137 @@ program test
       if (cache1_request == 1) begin 
         // determine what type of request cache1 is to make 
         casez (cache1_request_type) 
-          DATA_READ: cache_data_memory_request(1, 0, address); 
-          DATA_WRITE: cache_data_memory_request(1, 1, address); 
-          INSTRUCTION_READ: cache_instruction_memory_request(0,address); 
+          DATA_READ: cache_data_memory_request(1, 0, address, invalidate); 
+          DATA_WRITE: cache_data_memory_request(1, 1, address, invalidate); 
+          INSTRUCTION_READ: cache_instruction_memory_request(1,address); 
         endcase
       end
     end 
   endtask 
 
-  task check_snooping; 
-  begin 
-    input logic cache_num; 
+  task check_cache0_coherence_outputs; 
     input word_t expected_ccsnoopaddr; 
-    input logic expected_ccinv; 
+    input logic expected_ccinv, 
+                expected_ccwait; 
     begin
-      // if checking cache0 snoop address
-      if (cache_num == 0) begin 
-        // check the snoop address
-        if (cif0.ccsnoopaddr != expected_ccsnoopaddr) begin 
-          $display("Time %00gns The ccsnoopaddr to cache0 is not correct. Expecting 0x%h."$time, expected_ccsnoopaddr); 
-        end 
+      // check the snoop address
+      if (cif0.ccsnoopaddr != expected_ccsnoopaddr) begin 
+        $display("Time %00gns The ccsnoopaddr to cache0 is not correct. Expecting 0x%h.", $time, expected_ccsnoopaddr); 
+      end 
 
-        // checking the invalidate signal 
-        if (cif0.ccinv != expected_ccinv) begin 
-          $display("Time %00gns The ccinv to cache0 is not correct. Expecting %d."$time, expected_ccinv);
-        end 
+      // checking the invalidate signal 
+      if (cif0.ccinv != expected_ccinv) begin 
+        $display("Time %00gns The ccinv to cache0 is not correct. Expecting %d.", $time, expected_ccinv);
+      end 
+
+      // checking the ccwait signal 
+      if (cif0.ccwait != expected_ccwait) begin 
+        $display("Time %00gns The ccwait to cache0 is not correct. Expecting %d.", $time, expected_ccwait);
+      end 
+    end 
+  endtask
+
+  task check_cache1_coherence_outputs; 
+    input word_t expected_ccsnoopaddr; 
+    input logic expected_ccinv, 
+                expected_ccwait; 
+    begin
+      // check the snoop address
+      if (cif1.ccsnoopaddr != expected_ccsnoopaddr) begin 
+        $display("Time %00gns The ccsnoopaddr to cache1 is not correct. Expecting 0x%h.", $time, expected_ccsnoopaddr); 
+      end 
+
+      // checking the invalidate signal 
+      if (cif1.ccinv != expected_ccinv) begin 
+        $display("Time %00gns The ccinv to cache1 is not correct. Expecting %d.", $time, expected_ccinv);
+      end 
+
+      // checking the ccwait signal 
+      if (cif1.ccwait != expected_ccwait) begin 
+        $display("Time %00gns The ccwait to cache1 is not correct. Expecting %d.", $time, expected_ccwait);
+      end 
+    end 
+  endtask
+
+  task check_ram_outputs; 
+    input word_t expected_ramstore,
+                 expected_ramaddr; 
+    input logic expected_ramWEN, 
+                expected_ramREN; 
+    begin 
+      // check ramstore 
+      if (ccif.ramstore != expected_ramstore) begin 
+        $display("Time %00gns The ramstore is not correct. Expecting 0x%h.", $time, expected_ramstore); 
+      end 
+      // check ramaddr
+      if (ccif.ramaddr != expected_ramaddr) begin 
+        $display("Time %00gns The ramaddr is not correct. Expecting 0x%h.", $time, expected_ramaddr); 
+      end 
+      // check ramWEN
+      if (ccif.ramWEN != expected_ramWEN) begin 
+        $display("Time %00gns The ramWEN is not correct. Expecting 0x%h.", $time, expected_ramWEN); 
+      end 
+      // check ramREN
+      if (ccif.ramREN != expected_ramREN) begin 
+        $display("Time %00gns The ramREN is not correct. Expecting 0x%h.", $time, expected_ramREN); 
+      end 
+    end 
+  endtask
+
+  // check the cache outputs 
+  task check_cache0_outputs; 
+    input logic expected_iwait, 
+                expected_dwait; 
+    input word_t expected_iload, 
+                 expected_dload; 
+    begin
+      // check iwait 
+      if (cif0.iwait != expected_iwait) begin 
+        $display("Time %00gns The iwait to cache0 is not correct. Expecting 0x%h.", $time, expected_iwait); 
+      end 
+      // check dwait 
+      if (cif0.dwait != expected_dwait) begin 
+        $display("Time %00gns The dwait to cache0 is not correct. Expecting 0x%h.", $time, expected_dwait); 
+      end 
+      // check iload 
+      if (cif0.iload != expected_iload) begin 
+        $display("Time %00gns The iload to cache0 is not correct. Expecting 0x%h.", $time, expected_iload); 
       end
-      // else checking cache1
-      else begin 
-        // check the snoop address
-        if (cif1.ccsnoopaddr != expected_ccsnoopaddr) begin 
-          $display("Time %00gns The ccsnoopaddr to cache1 is not correct. Expecting 0x%h."$time, expected_ccsnoopaddr); 
-        end 
+      // check dload 
+      if (cif0.dload != expected_dload) begin 
+        $display("Time %00gns The dload to cache0 is not correct. Expecting 0x%h.", $time, expected_dload); 
+      end
+    end 
+  endtask
 
-        // checking the invalidate signal 
-        if (cif1.ccinv != expected_ccinv) begin 
-          $display("Time %00gns The ccinv to cache1 is not correct. Expecting %d."$time, expected_ccinv);
-        end 
-      end  
+  // check the cache outputs 
+  task check_cache1_outputs; 
+    input logic expected_iwait, 
+                expected_dwait; 
+    input word_t expected_iload, 
+                 expected_dload; 
+    begin
+      // check iwait 
+      if (cif1.iwait != expected_iwait) begin 
+        $display("Time %00gns The iwait to cache1 is not correct. Expecting 0x%h.", $time, expected_iwait); 
+      end 
+      // check dwait 
+      if (cif1.dwait != expected_dwait) begin 
+        $display("Time %00gns The dwait to cache1 is not correct. Expecting 0x%h.", $time, expected_dwait); 
+      end 
+      // check iload 
+      if (cif1.iload != expected_iload) begin 
+        $display("Time %00gns The iload to cache1 is not correct. Expecting 0x%h.", $time, expected_iload); 
+      end
+      // check dload 
+      if (cif1.dload != expected_dload) begin 
+        $display("Time %00gns The dload to cache1 is not correct. Expecting 0x%h.", $time, expected_dload); 
+      end
     end 
   endtask
 
   // runs through a data_write_process
   task data_write_process; 
-  begin 
     input logic cache_num; 
     input word_t address; 
     begin 
@@ -299,7 +387,7 @@ program test
       // wait for cache0 dwait to go low 
       wait(cif0.dwait == 0); 
       // increment the address to next block but just keep data the same
-      cif0.daddr = address + 4; 
+      cif0.daddr = address; 
       // wait a little to allow knew address to settle 
       #(1)
       // wait for last dwait to go low
@@ -310,7 +398,7 @@ program test
       // wait for cache1 dwait to go low 
       wait(cif1.dwait == 0); 
       //increment the address to next block but just keep data the same
-      cif1.daddr = address + 4; 
+      cif1.daddr = address; 
       // wait a little to allow knew address to settle 
       #(1)
       // wait for last dwait to go low
@@ -320,48 +408,132 @@ program test
   endtask
 
   // runs through a data read process (note: needs to be written)
-  task data_read_process; 
-  begin 
-    input logic cache_num; 
+  task data_read_process_cache0; 
     input word_t address;
-    input logic non_requesting_cache_wb;  
+    input logic non_requesting_cache_wb, 
+                invalidate; 
     begin 
-      // if cache request for cache0
-      if (cache_num == 0) begin  
-        // check to make sure that the memory controller has provided the correct cache with snoop address and invalidate signal
-        check_snooping(~cache_num, address, 0); 
-        // if a the non-requesting cache is supposed to do the wb 
-        if ( non_requesting_cache_wb == 1) begin 
-        end 
-        // else memory controller should go to ram 
-        else begin 
-          // at the next clock cycle apply signals to memory controller 
-          // to say that non-requesting cache is done transitioning and does not have the block to write back
-          @(posedge CLK); 
-          cif1.cctrans = 1'b1;
-          cif1.ccwrite = 1'b0; 
+      // if a the non-requesting cache is supposed to do the wb 
+      if ( non_requesting_cache_wb == 1) begin 
+        // at the next clock cycle apply signals to memory controller 
+        // to say that non-requesting cache is done transitioning and does not have the block to write back
+        @(posedge CLK); 
+        cif1.cctrans = 1'b1;
+        cif1.ccwrite = 1'b1; 
+        // check to make sure that the memory controller has provided the correct coherence signals to cache1
+        check_cache0_coherence_outputs(32'd0, // ccsnoopaddr
+                                             0, // ccinv
+                                             0 // ccwait
+                                             ); 
+        check_cache1_coherence_outputs(address, // ccsnoopaddr
+                                         invalidate, //ccinv
+                                         1 // ccwait
+                                         ); 
+        check_cache0_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_cache1_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_ram_outputs(32'd0, // ramstore
+                                32'd0, // ramaddr
+                                0, // ramWEN
+                                0  // ramREN
+                                ); 
 
-          //at the next clock cycle bring cctrans low 
-          @(posedge CLK); 
-          cif1.cctrans = 1'b0; 
+        //at the next clock cycle bring cctrans low 
+        @(posedge CLK); 
+        cif1.cctrans = 1'b0; 
+        // check to make sure correct routing of wb signals
+        check_cache0_coherence_outputs(32'd0, // ccsnoopaddr
+                                             0, // ccinv
+                                             0 // ccwait
+                                             ); 
+        check_cache1_coherence_outputs(32'd0, // ccsnoopaddr
+                                         0, //ccinv
+                                         1 // ccwait
+                                         ); 
+        check_cache0_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               data // dload
+                               ); 
+        check_cache1_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_ram_outputs(data, // ramstore
+                                address, // ramaddr
+                                1, // ramWEN
+                                0  // ramREN
+                                );
 
-          // wait for memory controller to give the requesting cache0 two dwaits in a row (wb block from ram to cache0)
-          wait(cif0.dwait == 0); 
-          #(1)
-          wait(cif0.dwait == 0); 
+        // wait for ram to respond
+        wait(cif0.dwait == 0) 
+        #(1)
+        // check to make sure correct routing of wb signals
+        check_cache0_coherence_outputs(32'd0, // ccsnoopaddr
+                                             0, // ccinv
+                                             0 // ccwait
+                                             ); 
+        check_cache1_coherence_outputs(32'd0, // ccsnoopaddr
+                                         0, //ccinv
+                                         1 // ccwait
+                                         ); 
+        check_cache0_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               data // dload
+                               ); 
+        check_cache1_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_ram_outputs(data, // ramstore
+                                address, // ramaddr
+                                1, // ramWEN
+                                0  // ramREN
+                                );
 
-          // process is finished and the memory controller should now be back in the idle state
-        end 
-      end 
-      // else the cache request is for cache1
-      else begin 
+        // wait one more dwait
+        wait(cif0.dwait == 0); 
+        #(1)
+        // make sure signals go back to their idle values 
+        check_cache0_coherence_outputs(32'd0, // ccsnoopaddr
+                                             0, // ccinv
+                                             0 // ccwait
+                                             ); 
+        check_cache1_coherence_outputs(32'd0, // ccsnoopaddr
+                                         0, //ccinv
+                                         0 // ccwait
+                                         ); 
+        check_cache0_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_cache1_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_ram_outputs(32'd0, // ramstore
+                            32'd0, // ramaddr
+                                0, // ramWEN
+                                0  // ramREN
+                                );
       end 
     end 
   endtask
 
   // runs through a instruction read process
   task instruction_read_process;
-  begin 
     input logic cache_num; 
     input word_t address; 
     begin 
@@ -376,14 +548,14 @@ program test
 
   // runs through a cache 0 request
   task run_cache0_request; 
-  begin 
     input request_type cache0_request_type; 
     input word_t address;
-    input logic non_requesting_cache_wb;   
+    input logic non_requesting_cache_wb, 
+                invalidate;   
     begin 
       // check what type of request this is 
       casez(cache0_request_type)
-        DATA_READ: data_read_process(0, address, non_requesting_cache_wb); 
+        DATA_READ: data_read_process_cache0(address, non_requesting_cache_wb, invalidate); 
         DATA_WRITE: data_write_process(0, address); 
         INSTRUCTION_READ: instruction_read_process(0, address); 
       endcase
@@ -392,14 +564,13 @@ program test
 
   // runs through a cache 1 request
   task run_cache1_request; 
-  begin 
     input request_type cache1_request_type; 
     input word_t address; 
     input logic non_requesting_cache_wb; 
     begin 
       // check what type of request this is 
       casez(cache1_request_type)
-        DATA_READ: data_read_process(1, address, non_requesting_cache_wb); 
+        DATA_READ: data_read_process_cache0(1, address, non_requesting_cache_wb); 
         DATA_WRITE: data_write_process(1, address); 
         INSTRUCTION_READ: instruction_read_process(1, address); 
       endcase
@@ -408,13 +579,13 @@ program test
 
   // task to perform a given test case
   task perform_test_case; 
-  begin
     input logic cache0_request, 
                 cache1_request, 
                 non_requesting_cache_wb; 
     input request_type cache0_request_type, 
                        cache1_request_type; 
     input word_t address; 
+    input logic invalidate; 
     begin 
 
       // for the given test case, apply the proper cache requests to the memory controller
@@ -422,14 +593,16 @@ program test
                            cache1_request, 
                            cache0_request_type, 
                            cache1_request_type, 
-                           address); 
+                           address, 
+                           invalidate
+                           ); 
 
       // wait a little to allow inputs to settle 
       #(1)
       // if cache0 is a requestor 
       if (cache0_request == 1) begin 
         // Run through the service of cache0 request
-        run_cache0_request(cache0_request_type, address, data, non_requesting_cache_wb); 
+        run_cache0_request(cache0_request_type, address, non_requesting_cache_wb, invalidate); 
       end 
       // else if cache0 is a requestor 
       else if (cache1_request == 1) begin 
@@ -509,6 +682,8 @@ program test
   // initialize testbench signals
   test_case_num = 0; 
   test_description = "NULL";  
+  data = 32'h13200006; 
+  address = 32'h8; 
 
   /****************************************************************
   *
@@ -518,11 +693,17 @@ program test
   *
   *****************************************************************/
   test_case_num = test_case_num + 1; 
-  test_description = "Testing for cache0 request memory read and is provided by ram."
+  test_description = "Testing for cache0 request memory read and is provided by ram."; 
 
   reset_dut();
-  perform_test_case(1, 0, 0, DATA_READ, NONE, 32'h1C); 
-
+  perform_test_case(1, // cache_0 request
+                    0, // cache_1 request
+                    0, // non_requesting_cache_wb
+                    DATA_READ, // cache_0_request_type
+                    NONE, // cache_1_request_type
+                    address, // address to request from
+                    0 // whether the non-requesting cache should be invalidated
+                    );
   dump_memory();
   end
 
