@@ -123,6 +123,15 @@ program test
 
 /*********************** Struct Definitions *************************/
 
+
+/*********************** Parameters Definitions *************************/
+  // enumberation to describe what type of memory request the test case will be
+  typedef enum logic [1:0]{
+    DATA_READ = 2'd0, 
+    DATA_WRITE = 2'd1, 
+    INSTRUCTION_READ = 2'd2
+  }request_type; 
+
 /*********************** Task Definitions *************************/
   // resets the whole system 
   task reset_dut; 
@@ -145,203 +154,156 @@ program test
     end 
   endtask
 
-  //Checks for correct snoop addresses and ccinv signals sent from requesting cache
-  // to the memory controller and then out to the non-requesting cache
-  task check_coherence_signals; 
+  // task to request a cache instruction memory request
+  task cache_instruction_memory_request; 
   begin 
-    input logic cache_requestor; 
-    input word_t daddr; 
-    input logic dWEN; 
-    input string test_case_description; 
+    input logic cache_num; 
+    input word_t address; 
     begin
-      // if cache0 was the requestor
-      if (cache_requestor == 0) begin 
-        // if the snoop address and daddr do not match 
-        if (cif1.ccsnoopaddr != daddr) begin 
-          $display("Time %00g The snoopaddres is not correct from 
-                    cache1 for test case: %s"$time, test_description)
-          $display("Expected snoop address: 0x%h. Given snoop address: 0x%h", 
-                    daddr, cif1.ccsnoopaddr); 
-        end 
+      // wait for next clock cycle before applying inputs 
+      @(posedge CLK); 
 
-        // if the invalidate signal is not correct 
-        if (cif1.ccinv != dWEN) begin 
-          $display("Time %00g The invalidate signal is not correct from 
-                    cache1 for test case: %s"$time, test_description)
-          $display("Expected ccinv: %d. Given ccinv: %d", 
-                    dWEN, cif1.ccinv); 
-        end 
+      // if cache0 instruction request
+      if (cache_num == 0) begin 
+        cif0.iREN = 1'b1; 
+        cif0.iaddr = address; 
       end 
-      // else cache1 was the requestor
+      // cache1 instruction request
       else begin 
-        // if the snoop address and daddr do not match 
-        if (cif0.ccsnoopaddr != daddr) begin 
-          $display("Time %00g The snoopaddres is not correct from 
-                    cache0 for test case: %s"$time, test_description)
-          $display("Expected snoop address: 0x%h. Given snoop address: 0x%h", 
-                    daddr, cif0.ccsnoopaddr); 
-        end 
-
-        // if the invalidate signal is not correct 
-        if (cif0.ccinv != dWEN) begin 
-          $display("Time %00g The invalidate signal is not correct from 
-                    cache0 for test case: %s"$time, test_description)
-          $display("Expected ccinv: %d. Given ccinv: %d", 
-                    dWEN, cif0.ccinv); 
-      end 
-    end 
-  endtask
-
-  // Will wait for the snoop address and ccinv signal to be sent from controller.
-  // The task will check to make sure that the requestors daddr and dWEN match up with
-  // the snoop address and ccinv signals provided by the controller. 
-  task perform_cache_coherence; 
-  begin 
-    input logic cache0,
-                dWEN0, 
-                dREN0,
-                cache1,
-                dWEN1, 
-                dREN1;
-    input word_t daddr0, 
-                 daddr1; 
-    input string test_case_description; 
-    begin 
-          // if cache 0 is requestor or both caches request at the same time
-          if (cache0 == 1) begin 
-            // at the next posedge of clock, let the memory controller 
-            // know that the non-requesting cache is performing coherence operations
-            @(posedge CLK); 
-            cif1.cctrans = 1'b1; 
-
-            // check the snoopaddr and the ccinv 
-            #(1)
-            check_coherence_signals(0, daddr0,dWEN0, test_case_description);
-
-            // On the next posedge of the clock cycle tell the memory controller 
-            // that the non-requesting cache is done with its coherence operations.
-            @(posedge CLK); 
-            cif1.cctrans = 1'b0; 
-          end
-          // if cache 1 is the requestor 
-          else if (cache1 == 1) begin 
-            // at the next posedge of clock, let the memory controller 
-            // know that the non-requesting cache is performing coherence operations
-            @(posedge CLK); 
-            cif0.cctrans = 1'b1; 
-
-            // check the snoopaddr and the ccinv 
-            #(1)
-            check_coherence_signals(1, daddr1,dWEN1, test_case_description);
-
-            // On the next posedge of the clock cycle tell the memory controller 
-            // that the non-requesting cache is done with its coherence operations.
-            @(posedge CLK); 
-            cif0.cctrans = 1'b0; 
-          end    
-    end 
-  endtask
-
-  // applies signals to request memory from controller
-  task trigger_memory_request; 
-  begin 
-    input logic cache0,
-                dWEN0, 
-                dREN0,  
-                cache1,
-                dWEN1, 
-                dREN1; 
-    begin
-      // at posedge of the clock 
-      @(posedge CLK);
-      // apply inputs to process a request from cache0 
-      cif0.dWEN = cache0 & dWEN0; 
-      cif0.dREN = cache0 & dREN0; 
-      // apply inputs to process a request from cache1
-      cif1.dWEN = cache1 & dWEN1; 
-      cif1.dREN = cache1 & dREN1; 
-    end
-    end 
-  endtask
-
-  // Basically all this task does is waits to make sure that the memory controller
-  // allows the caches to go back and do normal operations
-  task relinquish_request
-  begin 
-    begin
-      // wait unitl the ccwait goes back down
-      // which means the memory controller is granting the cache to 
-      // go off and service request from its processor
-      wait((cif0.ccwait == 0) & (cif1.ccwait == 0));  
-    end 
-  endtask
-
-  // Will Either supply the memory controller with a write back from non-requesting cache
-  // or will tell memory controller to go off to memory. In the case of a write back 
-  // then will check to make sure that the memory controller supplies wb to both the requesting cache and ram. 
-  // If non-requesting cache has no wb, then will make sure that the memory controller sucessfully sends block to the
-  // requesting cache.
-  task process_block; 
-  begin 
-    input logic cache0, 
-                cache1, 
-                write_back; 
-    begin 
-      // if cache0 is the requestor or both requested at the same time 
-      if (cache0 == 1) begin 
-      end   
-      // else cache 1 is the requestor
-      else begin 
+        cif1.iREN = 1'b1; 
+        cif1.iaddr = address; 
       end  
     end 
   endtask
 
-
-  // performs the whole process of a memory request from one of the caches
-  task perform_memory_request; 
+  // task to create a cache data memory request
+  task cache_data_memory_request;
   begin 
-    input logic cache0,
-                dWEN0, 
-                dREN0, 
-                cache1,
-                dWEN1, 
-                dREN1;
-    input word_t daddr0, 
-                 daddr1;  
-    input string test_case_description; 
-      begin
-        // apply the propper signals to request memory from controller
-        trigger_memory_request(cache0, 
-                               dWEN0, 
-                               dREN0, 
-                               cache1
-                               dWEN1, 
-                               dREN1); 
-        #(5)
+    input logic cache_num;
+    input logic write; 
+    input word_t address, 
+          data; 
+    begin 
+      // wait for next clock cycle before applying inputs 
+      @(posedge CLK); 
 
-        // wait for a ccwait signal to both caches so that their cpus are 
-        // halted during a coherence update
-        wait((cif0.ccwait == 1) & (cif1.ccwait == 1)); 
-
-        // check to make sure that propper snooping anc coherence signals are sent 
-        // from one cache to the other
-        perform_cache_coherence(cache0, 
-                                dWEN0, 
-                                dREN0, 
-                                cache1, 
-                                dWEN1, 
-                                dWEN1, 
-                                daddr0, 
-                                daddr1, 
-                                test_description); 
-
-        // Process data block 
-        process_block(); 
-
-        // wait for memory controller to relinquish the memory request 
-        relinquish_request; 
-
+      // if cache0 is making a request 
+      if (cache_num == 0) begin 
+        cif0.dWEN = write;
+        cif0.dREN = ~write;  
+        cif0.daddr = address;
+        cif0.dstore = data;  
       end 
+      // else cache1 is making a request
+      else begin
+        cif1.dWEN = write; 
+        cif1.dREN = ~write; 
+        cif1.daddr = address;
+        cif1.dstore = data;  
+      end 
+  endtask
+
+  // task to relieve a cache request inputs 
+  task deasert_inputs; 
+  begin 
+    begin 
+        // deasert the inputs on next clock cycle
+        @(posedge CLK); 
+        // inputs from cache0
+        cif0.iREN = 1'b0; 
+        cif0.dREN = 1'b0; 
+        cif0.dWEN = 1'b0; 
+        cif0.iaddr = 32'd0; 
+        cif0.daddr = 32'd0; 
+        // inputs from cache1
+        cif1.iREN = 1'b0; 
+        cif1.dREN = 1'b0; 
+        cif1.dWEN = 1'b0; 
+        cif1.iaddr = 32'd0; 
+        cif1.daddr = 32'd0; 
+      end 
+    end 
+  endtask
+
+  // applys cache requests based on what the test case asks for
+  task apply_cache_requests; 
+    input logic cache0_request, 
+                cache1_request;
+    input request_type cache0_request_type, 
+                       cache1_request_type; 
+    input word_t address, 
+                 data; 
+    begin 
+      // if cache0 is to perform a request 
+      if (cache0_request == 1) begin 
+        // determine what type of request cache0 is to make 
+        casez (cache0_request_type) 
+          DATA_READ: cache_data_memory_request(0, 0, address, data); 
+          DATA_WRITE: cache_data_memory_request(0, 1, address, data); 
+          INSTRUCTION_READ: cache_instruction_memory_request(0,address); 
+        endcase
+      end 
+
+      // if cache1 is to perform a request 
+      if (cache1_request == 1) begin 
+        // determine what type of request cache1 is to make 
+        casez (cache1_request_type) 
+          DATA_READ: cache_data_memory_request(1, 0, address, data); 
+          DATA_WRITE: cache_data_memory_request(1, 1, address, data); 
+          INSTRUCTION_READ: cache_instruction_memory_request(0,address); 
+        endcase
+      end
+    end 
+  endtask 
+
+  // runs through a cache 0 request
+  task run_cache0_request; 
+  begin 
+    begin 
+    end 
+  endtask
+
+  // runs through a cach1 request 
+  task run_cache1_request; 
+  begin 
+    begin 
+    end 
+  endtask
+
+  // task to perform a given test case
+  task perform_test_case; 
+  begin
+    input logic cache0_request, 
+                cache1_request;
+    input request_type cache0_request_type, 
+                       cache1_request_type; 
+    input word_t address, 
+                 data; 
+    begin 
+
+      // for the given test case, apply the proper cache requests to the memory controller
+      apply_cache_requests(cache0_request, 
+                           cache1_request, 
+                           cache0_request_type, 
+                           cache1_request_type, 
+                           address, 
+                           data); 
+
+      // if cache0 is a requestor 
+      if (cache0_request == 1) begin 
+        // Run through the service of cache0 request
+        run_cache0_request(cache0_request_type, address, data); 
+      end 
+      // else if cache0 is a requestor 
+      else if (cache1_request == 1) begin 
+        // run through the service of cache1 request
+      end 
+
+      // remove the inputs to the memory controller 
+      // because the chosen cache request has been serviced
+      deasert_inputs; 
+
+    end 
   endtask
 
   // used to dump the contents of ram back inot memcpu.hex
@@ -391,6 +353,24 @@ program test
 /*********************** Initial Block *************************/
   initial begin
 
-    dump_memory();
+  // initialize inputs 
+  nRST = 1'b1; 
+  cif0.iREN = 1'b0; 
+  cif0.dREN = 1'b0; 
+  cif0.dWEN = 1'b0; 
+  cif0.iaddr = 32'd0; 
+  cif0.daddr = 32'd0;
+  cif0.ccwrite = 1'b0; 
+  cif0.cctrans = 1'b0;  
+  cif1.iREN = 1'b0; 
+  cif1.dREN = 1'b0; 
+  cif1.dWEN = 1'b0; 
+  cif1.iaddr = 32'd0; 
+  cif1.daddr = 32'd0;
+  cif1.ccwrite = 1'b0; 
+  cif1.cctrans = 1'b0;  
+
+
+  dump_memory();
   end
 endprogram
