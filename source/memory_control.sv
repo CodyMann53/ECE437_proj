@@ -497,28 +497,28 @@ module memory_control (
         ccif.ramWEN = 1;
         if(bus_access == 0)
         begin
-          ccif.ramaddr = ccif.iaddr[0];
-          ccif.iload[0] = ccif.ramload;
+          ccif.ramaddr = ccif.daddr[0];
+          ccif.ramstore = ccif.dstore[0]; 
           if(ccif.ramstate == ACCESS)
           begin
-            ccif.iwait[0] = 0;
+            ccif.dwait[0] = 0;
           end
           else
           begin
-            ccif.iwait[0] = 1;
+            ccif.dwait[0] = 1;
           end  
         end
         else
         begin
-          ccif.ramaddr = ccif.iaddr[1];
-          ccif.iload[1] = ccif.ramload;
+          ccif.ramaddr = ccif.daddr[1];
+          ccif.ramstore = ccif.dstore[1]; 
           if(ccif.ramstate == ACCESS)
           begin
-            ccif.iwait[1] = 0;
+            ccif.dwait[1] = 0;
           end
           else
           begin
-            ccif.iwait[1] = 1;
+            ccif.dwait[1] = 1;
           end     
         end
       end
@@ -527,28 +527,28 @@ module memory_control (
         ccif.ramWEN = 1;
         if(bus_access == 0)
         begin
-          ccif.ramaddr = ccif.iaddr[0];
-          ccif.iload[0] = ccif.ramload;
+          ccif.ramaddr = ccif.daddr[0];
+          ccif.ramstore = ccif.dstore[0]; 
           if(ccif.ramstate == ACCESS)
           begin
-            ccif.iwait[0] = 0;
+            ccif.dwait[0] = 0;
           end
           else
           begin
-            ccif.iwait[0] = 1;
+            ccif.dwait[0] = 1;
           end  
         end
         else
         begin
-          ccif.ramaddr = ccif.iaddr[1];
-          ccif.iload[1] = ccif.ramload;
+          ccif.ramaddr = ccif.daddr[1];
+          ccif.ramstore = ccif.dstore[1]; 
           if(ccif.ramstate == ACCESS)
           begin
-            ccif.iwait[1] = 0;
+            ccif.dwait[1] = 0;
           end
           else
           begin
-            ccif.iwait[1] = 1;
+            ccif.dwait[1] = 1;
           end     
         end      
       end

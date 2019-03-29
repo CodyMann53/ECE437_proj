@@ -380,36 +380,200 @@ program test
   endtask
 
   // runs through a data_write_process
-  task data_write_process; 
-    input logic cache_num; 
+  task data_write_process_cache0;  
     input word_t address; 
-    begin 
-    // if cache0 was the requestor
-    if (cache_num == 0) begin 
-      // wait for cache0 dwait to go low 
-      wait(cif0.dwait == 0); 
-      // increment the address to next block but just keep data the same
-      cif0.daddr = address; 
-      // wait a little to allow knew address to settle 
-      #(1)
-      // wait for last dwait to go low
-      wait (cif0.dwait == 0); 
-    end
-    // else cache1 was the requestor
-    else begin 
-      // wait for cache1 dwait to go low 
-      wait(cif1.dwait == 0); 
-      //increment the address to next block but just keep data the same
-      cif1.daddr = address; 
-      // wait a little to allow knew address to settle 
-      #(1)
-      // wait for last dwait to go low
-      wait (cif1.dwait == 0); 
-    end
-  end 
+    begin
+        // wait one more clock cycle for memory controller to move out of its idle state
+        @(posedge CLK); 
+        #(1)
+        // check to make sure that inputs to ram are correct
+        check_cache0_coherence_outputs(32'd0, // ccsnoopaddr
+                                             0, // ccinv
+                                             0 // ccwait
+                                             ); 
+        check_cache1_coherence_outputs(32'd0, // ccsnoopaddr
+                                         0, //ccinv
+                                         0 // ccwait
+                                         ); 
+        check_cache0_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_cache1_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_ram_outputs(data, // ramstore
+                                address, // ramaddr
+                                1, // ramWEN
+                                0  // ramREN
+                                );  
+
+        // wait for ram state to give access
+        wait(ccif.ramstate == ACCESS);
+        //increment the address by 4
+        cif0.daddr = address + 4; 
+        #(5)
+
+        // check to make sure that inputs to ram are correct
+        check_cache0_coherence_outputs(32'd0, // ccsnoopaddr
+                                             0, // ccinv
+                                             0 // ccwait
+                                             ); 
+        check_cache1_coherence_outputs(32'd0, // ccsnoopaddr
+                                         0, //ccinv
+                                         0 // ccwait
+                                         ); 
+        check_cache0_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_cache1_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_ram_outputs(data, // ramstore
+                                address + 4, // ramaddr
+                                1, // ramWEN
+                                0  // ramREN
+                                );  
+
+        // wait for one more access
+        wait(ccif.ramstate == ACCESS);
+        // wait a clock cycle and then check to make sure that inputs were removed 
+        @(posedge CLK); 
+        // deasert the inputs to ram 
+        deasert_inputs; 
+        @(posedge CLK)
+        // check to make sure that inputs to ram are correct
+        check_cache0_coherence_outputs(32'd0, // ccsnoopaddr
+                                             0, // ccinv
+                                             0 // ccwait
+                                             ); 
+        check_cache1_coherence_outputs(32'd0, // ccsnoopaddr
+                                         0, //ccinv
+                                         0 // ccwait
+                                         ); 
+        check_cache0_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_cache1_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_ram_outputs(32'd0, // ramstore
+                                32'd0, // ramaddr
+                                0, // ramWEN
+                                0  // ramREN
+                                );  
+    end  
   endtask
 
-  // runs through a data read process (note: needs to be written)
+  // runs through a data_write_process
+  task data_write_process_cache1;  
+    input word_t address; 
+    begin
+        // wait one more clock cycle for memory controller to move out of its idle state
+        @(posedge CLK); 
+        #(1)
+        // check to make sure that inputs to ram are correct
+        check_cache1_coherence_outputs(32'd0, // ccsnoopaddr
+                                             0, // ccinv
+                                             0 // ccwait
+                                             ); 
+        check_cache0_coherence_outputs(32'd0, // ccsnoopaddr
+                                         0, //ccinv
+                                         0 // ccwait
+                                         ); 
+        check_cache1_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_cache0_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_ram_outputs(data, // ramstore
+                                address, // ramaddr
+                                1, // ramWEN
+                                0  // ramREN
+                                );  
+
+        // wait for ram state to give access
+        wait(ccif.ramstate == ACCESS);
+        //increment the address by 4
+        cif1.daddr = address + 4; 
+        #(5)
+
+        // check to make sure that inputs to ram are correct
+        check_cache1_coherence_outputs(32'd0, // ccsnoopaddr
+                                             0, // ccinv
+                                             0 // ccwait
+                                             ); 
+        check_cache0_coherence_outputs(32'd0, // ccsnoopaddr
+                                         0, //ccinv
+                                         0 // ccwait
+                                         ); 
+        check_cache1_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_cache0_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_ram_outputs(data, // ramstore
+                                address + 4, // ramaddr
+                                1, // ramWEN
+                                0  // ramREN
+                                );  
+
+        // wait for one more access
+        wait(ccif.ramstate == ACCESS);
+        // wait a clock cycle and then check to make sure that inputs were removed 
+        @(posedge CLK); 
+        // deasert the inputs to ram 
+        deasert_inputs; 
+        @(posedge CLK)
+        // check to make sure that inputs to ram are correct
+        check_cache1_coherence_outputs(32'd0, // ccsnoopaddr
+                                             0, // ccinv
+                                             0 // ccwait
+                                             ); 
+        check_cache0_coherence_outputs(32'd0, // ccsnoopaddr
+                                         0, //ccinv
+                                         0 // ccwait
+                                         ); 
+        check_cache1_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_cache0_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_ram_outputs(32'd0, // ramstore
+                                32'd0, // ramaddr
+                                0, // ramWEN
+                                0  // ramREN
+                                );  
+    end  
+  endtask
+
+  // runs through a data read process 
   task data_read_process_cache0; 
     input word_t address;
     input logic non_requesting_cache_wb, 
@@ -519,7 +683,9 @@ program test
 
         // wait for ram to respond
         wait(ccif.ramstate == ACCESS); 
-        // wait one clock cycle to allow memory controller to go back to idle
+        // remove the inputs to the memory controller 
+        // because the chosen cache request has been serviced
+        deasert_inputs; 
         @(posedge CLK); 
         // make sure signals go back to their idle values 
         check_cache0_coherence_outputs(32'd0, // ccsnoopaddr
@@ -527,7 +693,7 @@ program test
                                              0 // ccwait
                                              ); 
         check_cache1_coherence_outputs(address, // ccsnoopaddr
-                                         0, //ccinv
+                                         invalidate, //ccinv
                                          0 // ccwait
                                          ); 
         check_cache0_outputs(1, // iwait 
@@ -648,7 +814,9 @@ program test
 
         // wait for ram to respond
         wait(ccif.ramstate == ACCESS); 
-        // wait one clock cycle to allow memory controller to go back to idle
+        // remove the inputs to the memory controller 
+        // because the chosen cache request has been serviced
+        deasert_inputs; 
         @(posedge CLK); 
         // make sure signals go back to their idle values 
         check_cache0_coherence_outputs(32'd0, // ccsnoopaddr
@@ -656,7 +824,7 @@ program test
                                              0 // ccwait
                                              ); 
         check_cache1_coherence_outputs(address, // ccsnoopaddr
-                                         0, //ccinv
+                                         invalidate, //ccinv
                                          0 // ccwait
                                          ); 
         check_cache0_outputs(1, // iwait 
@@ -674,23 +842,414 @@ program test
                               0, // ramWEN
                               0  // ramREN
                               );
-
       end 
     end 
   endtask
 
+    // runs through a data read process 
+  task data_read_process_cache1; 
+    input word_t address;
+    input logic non_requesting_cache_wb, 
+                invalidate; 
+    begin 
+      // if a the non-requesting cache is supposed to do the wb 
+      if ( non_requesting_cache_wb == 1) begin 
+        // wait one clock cycle for the memory controller transfer into the grant cache stage
+        @(posedge CLK); 
+        // wait another clock cycle for the memory controller to latch coherence signals
+        @(posedge CLK); 
+
+        // check to make sure that the memory controller has provided the correct coherence signals to cache1
+        check_cache1_coherence_outputs(32'd0, // ccsnoopaddr
+                                             0, // ccinv
+                                             0 // ccwait
+                                             ); 
+        check_cache0_coherence_outputs(address, // ccsnoopaddr
+                                         invalidate, //ccinv
+                                         1 // ccwait
+                                         ); 
+        check_cache1_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_cache0_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_ram_outputs(32'd0, // ramstore
+                                32'd0, // ramaddr
+                                0, // ramWEN
+                                0  // ramREN
+                                ); 
+
+        // wait another clock cycle to mimic cache controller changing states 
+        @(posedge CLK); 
+        // tell memory controller that done transitioning states
+        // and that it wants to do a write back
+        cif0.cctrans = 1'b1;
+        cif0.ccwrite = 1'b1;
+
+        // wait another clock cycle for the memory controller to move to wb1
+        @(posedge CLK); 
+        cif0.daddr = address; 
+        cif0.cctrans = 1'b0;
+        #(1)
+        // check to make sure correct routing of wb signals
+        check_cache1_coherence_outputs(32'd0, // ccsnoopaddr
+                                             0, // ccinv
+                                             0 // ccwait
+                                             ); 
+        check_cache0_coherence_outputs(address, // ccsnoopaddr
+                                         invalidate, //ccinv
+                                         1 // ccwait
+                                         ); 
+        check_cache1_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               data // dload
+                               ); 
+        check_cache0_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_ram_outputs(data, // ramstore
+                                address, // ramaddr
+                                1, // ramWEN
+                                0  // ramREN
+                                );
+
+        // wait for ram to give back access before checking
+        wait(ccif.ramstate == ACCESS); 
+        // wait one clock cycle to allow memory controller to move to wb2
+        @(posedge CLK); 
+        // Increment address by 4 that non-requesting cache supplies 
+        cif0.daddr = address + 4; 
+
+        #(1)
+        // check to make sure correct routing of wb signals
+        check_cache1_coherence_outputs(32'd0, // ccsnoopaddr
+                                             0, // ccinv
+                                             0 // ccwait
+                                             ); 
+        check_cache0_coherence_outputs(address, // ccsnoopaddr
+                                         invalidate, //ccinv
+                                         1 // ccwait
+                                         ); 
+        check_cache1_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               data // dload
+                               ); 
+        check_cache0_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_ram_outputs(data, // ramstore
+                                address + 4, // ramaddr
+                                1, // ramWEN
+                                0  // ramREN
+                                );
+
+        // wait for ram to respond
+        wait(ccif.ramstate == ACCESS); 
+        // remove the inputs to the memory controller 
+        // because the chosen cache request has been serviced
+        deasert_inputs; 
+        @(posedge CLK); 
+        // make sure signals go back to their idle values 
+        check_cache1_coherence_outputs(32'd0, // ccsnoopaddr
+                                             0, // ccinv
+                                             0 // ccwait
+                                             ); 
+        check_cache0_coherence_outputs(address, // ccsnoopaddr
+                                         invalidate, //ccinv
+                                         0 // ccwait
+                                         ); 
+        check_cache1_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_cache0_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_ram_outputs(32'd0, // ramstore
+                            32'd0, // ramaddr
+                                0, // ramWEN
+                                0  // ramREN
+                                );
+      end 
+      // else memory controller should go to ram for data 
+      else begin
+        // wait one clock cycle for the memory controller transfer into the grant cache stage
+        @(posedge CLK); 
+        // wait another clock cycle for the memory controller to latch coherence signals
+        @(posedge CLK); 
+
+        // check to make sure that the memory controller has provided the correct coherence signals to cache1
+        check_cache1_coherence_outputs(32'd0, // ccsnoopaddr
+                                             0, // ccinv
+                                             0 // ccwait
+                                             ); 
+        check_cache0_coherence_outputs(address, // ccsnoopaddr
+                                         invalidate, //ccinv
+                                         1 // ccwait
+                                         ); 
+        check_cache1_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_cache0_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_ram_outputs(32'd0, // ramstore
+                                32'd0, // ramaddr
+                                0, // ramWEN
+                                0  // ramREN
+                                ); 
+
+        // wait another clock cycle to mimic cache controller changing states 
+        @(posedge CLK); 
+        // tell memory controller that it should go to ram for data
+        cif0.cctrans = 1'b1;
+        cif0.ccwrite = 1'b0;
+
+        // wait another clock cycle for the memory controller to move to ram wb1
+        @(posedge CLK);  
+        cif0.cctrans = 1'b0;
+        #(1)
+        // check to make sure correct routing of wb signals
+        check_cache1_coherence_outputs(32'd0, // ccsnoopaddr
+                                             0, // ccinv
+                                             0 // ccwait
+                                             ); 
+        check_cache0_coherence_outputs(address, // ccsnoopaddr
+                                         invalidate, //ccinv
+                                         1 // ccwait
+                                         ); 
+        check_cache1_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               data // dload
+                               ); 
+        check_cache0_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_ram_outputs(32'd0, // ramstore
+                                address, // ramaddr
+                                0, // ramWEN
+                                1  // ramREN
+                                );
+
+        // wait for ram to give back access before checking
+        wait(ccif.ramstate == ACCESS); 
+        // wait one clock cycle to allow memory controller to move to wb2
+        @(posedge CLK); 
+        // Increment address by 4 that non-requesting cache supplies 
+        cif0.daddr = address + 4; 
+
+        #(1)
+        // check to make sure correct routing of wb signals
+        check_cache1_coherence_outputs(32'd0, // ccsnoopaddr
+                                             0, // ccinv
+                                             0 // ccwait
+                                             ); 
+        check_cache0_coherence_outputs(address, // ccsnoopaddr
+                                         invalidate, //ccinv
+                                         1 // ccwait
+                                         ); 
+        check_cache1_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               data // dload
+                               ); 
+        check_cache0_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_ram_outputs(32'd0, // ramstore
+                                address + 4, // ramaddr
+                                0, // ramWEN
+                                1  // ramREN
+                                );
+
+        // wait for ram to respond
+        wait(ccif.ramstate == ACCESS); 
+        // remove the inputs to the memory controller 
+        // because the chosen cache request has been serviced
+        deasert_inputs; 
+        @(posedge CLK); 
+        // make sure signals go back to their idle values 
+        check_cache1_coherence_outputs(32'd0, // ccsnoopaddr
+                                             0, // ccinv
+                                             0 // ccwait
+                                             ); 
+        check_cache0_coherence_outputs(address, // ccsnoopaddr
+                                         invalidate, //ccinv
+                                         0 // ccwait
+                                         ); 
+        check_cache1_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_cache0_outputs(1, // iwait 
+                               1, // dwait
+                               32'd0, // iload
+                               32'd0 // dload
+                               ); 
+        check_ram_outputs(32'd0, // ramstore
+                          32'd0, // ramaddr
+                              0, // ramWEN
+                              0  // ramREN
+                              );
+      end 
+    end 
+  endtask
 
   // runs through a instruction read process
-  task instruction_read_process;
-    input logic cache_num; 
+  task instruction_read_process_cache0; 
     input word_t address; 
     begin 
-      // if cache request is from cache0
-      if (cache_num == 0) begin 
-      end 
-      // else the cache request is for cache1
-      else begin 
-      end 
+      // wait one clock cycle to allow state machine to transfer out of idle
+      @(posedge CLK); 
+      // check to make sure that memory controller has provided the correct signals to ram 
+      check_cache0_coherence_outputs(32'd0, // ccsnoopaddr
+                                         0, // ccinv
+                                         0 // ccwait
+                                          ); 
+      check_cache1_coherence_outputs(32'd0, // ccsnoopaddr
+                                     0, //ccinv
+                                     0 // ccwait
+                                     ); 
+      check_cache1_outputs(1, // iwait 
+                           1, // dwait
+                       32'd0, // iload
+                       32'd0 // dload
+                           ); 
+      check_ram_outputs(32'd0, // ramstore
+                            address, // ramaddr
+                            0, // ramWEN
+                            1  // ramREN
+                            ); 
+
+      // wait for ram state to give access back 
+      wait(ccif.ramstate == ACCESS);
+      // check to make sure that the correct instruction value is loaded
+      check_cache0_outputs(0, // iwait 
+                           1, // dwait
+                           data, // iload
+                           32'd0 // dload
+                           );  
+      #(5)
+
+      // deasert the inputs to memory controller
+      deasert_inputs(); 
+      // wait for a clock cycle for memory controller to go back to idle 
+      @(posedge CLK); 
+      // check to make sure that memory controler has taken all the signals away from ram
+      check_cache0_coherence_outputs(32'd0, // ccsnoopaddr
+                                         0, // ccinv
+                                         0 // ccwait
+                                          ); 
+      check_cache1_coherence_outputs(32'd0, // ccsnoopaddr
+                                         0, //ccinv
+                                         0 // ccwait
+                                         ); 
+      check_cache0_outputs(1, // iwait 
+                           1, // dwait
+                        32'd0, // iload
+                        32'd0 // dload
+                            ); 
+      check_cache1_outputs(1, // iwait 
+                           1, // dwait
+                       32'd0, // iload
+                       32'd0 // dload
+                           ); 
+      check_ram_outputs(32'd0, // ramstore
+                            32'd0, // ramaddr
+                            0, // ramWEN
+                            0  // ramREN
+                            ); 
+    end 
+  endtask 
+
+    // runs through a instruction read process
+  task instruction_read_process_cache1; 
+    input word_t address; 
+    begin 
+      // wait one clock cycle to allow state machine to transfer out of idle
+      @(posedge CLK); 
+      // check to make sure that memory controller has provided the correct signals to ram 
+      check_cache1_coherence_outputs(32'd0, // ccsnoopaddr
+                                         0, // ccinv
+                                         0 // ccwait
+                                          ); 
+      check_cache0_coherence_outputs(32'd0, // ccsnoopaddr
+                                     0, //ccinv
+                                     0 // ccwait
+                                     ); 
+      check_cache0_outputs(1, // iwait 
+                           1, // dwait
+                       32'd0, // iload
+                       32'd0 // dload
+                           ); 
+      check_ram_outputs(32'd0, // ramstore
+                            address, // ramaddr
+                            0, // ramWEN
+                            1  // ramREN
+                            ); 
+
+      // wait for ram state to give access back 
+      wait(ccif.ramstate == ACCESS);
+      // check to make sure that the correct instruction value is loaded
+      check_cache1_outputs(0, // iwait 
+                           1, // dwait
+                           data, // iload
+                           32'd0 // dload
+                           );  
+      #(5)
+
+      // deasert the inputs to memory controller
+      deasert_inputs(); 
+      // wait for a clock cycle for memory controller to go back to idle 
+      @(posedge CLK); 
+      // check to make sure that memory controler has taken all the signals away from ram
+      check_cache1_coherence_outputs(32'd0, // ccsnoopaddr
+                                         0, // ccinv
+                                         0 // ccwait
+                                          ); 
+      check_cache0_coherence_outputs(32'd0, // ccsnoopaddr
+                                         0, //ccinv
+                                         0 // ccwait
+                                         ); 
+      check_cache1_outputs(1, // iwait 
+                           1, // dwait
+                        32'd0, // iload
+                        32'd0 // dload
+                            ); 
+      check_cache0_outputs(1, // iwait 
+                           1, // dwait
+                       32'd0, // iload
+                       32'd0 // dload
+                           ); 
+      check_ram_outputs(32'd0, // ramstore
+                            32'd0, // ramaddr
+                            0, // ramWEN
+                            0  // ramREN
+                            ); 
     end 
   endtask 
 
@@ -704,8 +1263,8 @@ program test
       // check what type of request this is 
       casez(cache0_request_type)
         DATA_READ: data_read_process_cache0(address, non_requesting_cache_wb, invalidate); 
-        DATA_WRITE: data_write_process(0, address); 
-        INSTRUCTION_READ: instruction_read_process(0, address); 
+        DATA_WRITE: data_write_process_cache0(address); 
+        INSTRUCTION_READ: instruction_read_process_cache0(address); 
       endcase
     end 
   endtask
@@ -714,13 +1273,14 @@ program test
   task run_cache1_request; 
     input request_type cache1_request_type; 
     input word_t address; 
-    input logic non_requesting_cache_wb; 
+    input logic non_requesting_cache_wb, 
+                invalidate; 
     begin 
       // check what type of request this is 
       casez(cache1_request_type)
-        DATA_READ: data_read_process_cache0(1, address, non_requesting_cache_wb); 
-        DATA_WRITE: data_write_process(1, address); 
-        INSTRUCTION_READ: instruction_read_process(1, address); 
+        DATA_READ: data_read_process_cache1(address, non_requesting_cache_wb, invalidate); 
+        DATA_WRITE: data_write_process_cache1(address); 
+        INSTRUCTION_READ: instruction_read_process_cache1(address); 
       endcase
     end 
   endtask
@@ -755,12 +1315,8 @@ program test
       // else if cache0 is a requestor 
       else if (cache1_request == 1) begin 
         // run through the service of cache1 request
-      end 
-
-      // remove the inputs to the memory controller 
-      // because the chosen cache request has been serviced
-      deasert_inputs; 
-
+        run_cache1_request(cache1_request_type, address, non_requesting_cache_wb, invalidate); 
+      end
     end 
   endtask
 
@@ -839,12 +1395,12 @@ program test
   /****************************************************************
   *
   *   
-  * Test Case #1: Testing for cache0 request memory read and is provided by ram. 
+  * Test Case #1: Testing for cache0 request memory read and cache1 goes from M -> S
   *
   *
   *****************************************************************/
   test_case_num = test_case_num + 1; 
-  test_description = "Testing for cache0 request memory read and is provided by ram."; 
+  test_description = "Testing for cache0 request memory read and cache1 goes from M -> S."; 
 
   reset_dut();
   perform_test_case(1, // cache_0 request
@@ -855,6 +1411,218 @@ program test
                     address, // address to request from
                     0 // whether the non-requesting cache should be invalidated
                     );
+  /****************************************************************
+  *
+  *   
+  * Test Case #1: Testing for cache0 request memory read and cache1 goes from M -> I
+  *
+  *
+  *****************************************************************/
+  test_case_num = test_case_num + 1; 
+  test_description = "Testing for cache0 request memory read and cache1 goes from M -> I."; 
+
+  reset_dut();
+  perform_test_case(1, // cache_0 request
+                    0, // cache_1 request
+                    1, // non_requesting_cache_wb
+                    DATA_READ, // cache_0_request_type
+                    NONE, // cache_1_request_type
+                    address, // address to request from
+                    1 // whether the non-requesting cache should be invalidated
+                    );
+
+  /****************************************************************
+  *
+  *   
+  * Test Case #2: Testing for cache0 request memory and gets it from ram
+  *
+  *
+  *****************************************************************/
+  test_case_num = test_case_num + 1; 
+  test_description = "Testing for cache0 request memory and gets it from ram and cache1 invalidates itself."; 
+
+  reset_dut();
+  perform_test_case(1, // cache_0 request
+                    0, // cache_1 request
+                    1, // non_requesting_cache_wb
+                    DATA_READ, // cache_0_request_type
+                    NONE, // cache_1_request_type
+                    address, // address to request from
+                    1 // whether the non-requesting cache should be invalidated
+                    );
+
+  /****************************************************************
+  *
+  *   
+  * Test Case #3: Testing for cache0 write to ram request 
+  *
+  *
+  *****************************************************************/
+  test_case_num = test_case_num + 1; 
+  test_description = "Testing for cache0 write to ram request "; 
+
+  reset_dut();
+  perform_test_case(1, // cache_0 request
+                    0, // cache_1 request
+                    0, // non_requesting_cache_wb
+                    DATA_WRITE, // cache_0_request_type
+                    NONE, // cache_1_request_type
+                    address, // address to request from
+                    0 // whether the non-requesting cache should be invalidated
+                    );
+
+  /****************************************************************
+  *
+  *   
+  * Test Case #4: Testing for cache0 to request an instruction read
+  *
+  *
+  *****************************************************************/
+  test_case_num = test_case_num + 1; 
+  test_description = "Testing for cache0 to request an instruction read"; 
+
+  reset_dut();
+  perform_test_case(1, // cache_0 request
+                    0, // cache_1 request
+                    0, // non_requesting_cache_wb
+                    INSTRUCTION_READ, // cache_0_request_type
+                    NONE, // cache_1_request_type
+                    address, // address to request from
+                    0 // whether the non-requesting cache should be invalidated
+                    );
+
+
+  /****************************************************************
+  *
+  *   
+  * Test Case #5: Testing for cache1 request memory read and cache1 goes from M -> S
+  *
+  *
+  *****************************************************************/
+  test_case_num = test_case_num + 1; 
+  test_description = "Testing for cache1 request memory read and cache1 goes from M -> S."; 
+
+  reset_dut();
+  perform_test_case(0, // cache_0 request
+                    1, // cache_1 request
+                    1, // non_requesting_cache_wb
+                    NONE, // cache_0_request_type
+                    DATA_READ, // cache_1_request_type
+                    address, // address to request from
+                    0 // whether the non-requesting cache should be invalidated
+                    );
+
+  /****************************************************************
+  *
+  *   
+  * Test Case #5: Testing for cache1 request memory read and cache1 goes from M -> I
+  *
+  *
+  *****************************************************************/
+  test_case_num = test_case_num + 1; 
+  test_description = "Testing for cache1 request memory read and cache1 goes from M -> I."; 
+
+  reset_dut();
+  perform_test_case(0, // cache_0 request
+                    1, // cache_1 request
+                    1, // non_requesting_cache_wb
+                    NONE, // cache_0_request_type
+                    DATA_READ, // cache_1_request_type
+                    address, // address to request from
+                    1 // whether the non-requesting cache should be invalidated
+                    );
+  /****************************************************************
+  *
+  *   
+  * Test Case #6: Testing for cache1 request memory and gets it from ram
+  *
+  *
+  *****************************************************************/
+  test_case_num = test_case_num + 1; 
+  test_description = "Testing for cache1 request memory and gets it from ram and cache1 invalidates itself."; 
+
+  reset_dut();
+  perform_test_case(0, // cache_0 request
+                    1, // cache_1 request
+                    1, // non_requesting_cache_wb
+                    NONE, // cache_0_request_type
+                    DATA_READ, // cache_1_request_type
+                    address, // address to request from
+                    1 // whether the non-requesting cache should be invalidated
+                    );
+
+  /****************************************************************
+  *
+  *   
+  * Test Case #7: Testing for cache1 write to ram request 
+  *
+  *
+  *****************************************************************/
+  test_case_num = test_case_num + 1; 
+  test_description = "Testing for cache1 write to ram request "; 
+
+  reset_dut();
+  perform_test_case(0, // cache_0 request
+                    1, // cache_1 request
+                    0, // non_requesting_cache_wb
+                    NONE, // cache_0_request_type
+                    DATA_WRITE, // cache_1_request_type
+                    address, // address to request from
+                    0 // whether the non-requesting cache should be invalidated
+                    );
+
+  /****************************************************************
+  *
+  *   
+  * Test Case #8: Testing for cache1 to request an instruction read
+  *
+  *
+  *****************************************************************/
+  test_case_num = test_case_num + 1; 
+  test_description = "Testing for cache1 to request an instruction read"; 
+
+  reset_dut();
+  perform_test_case(0, // cache_0 request
+                    1, // cache_1 request
+                    0, // non_requesting_cache_wb
+                    NONE, // cache_0_request_type
+                    INSTRUCTION_READ, // cache_1_request_type
+                    address, // address to request from
+                    0 // whether the non-requesting cache should be invalidated
+                    );
+
+  /****************************************************************
+  *
+  *   
+  * Test Case #9: Back to back instruction read request. Make sure that memory controller is fair.
+  *
+  *
+  *****************************************************************/
+  test_case_num = test_case_num + 1; 
+  test_description = "Back to back instruction read request. Make sure that memory controller is fair."; 
+
+  reset_dut();
+  cif1.iREN = 1'b1; 
+  perform_test_case(0, // cache_0 request
+                    1, // cache_1 request
+                    0, // non_requesting_cache_wb
+                    NONE, // cache_0_request_type
+                    INSTRUCTION_READ, // cache_1_request_type
+                    address, // address to request from
+                    0 // whether the non-requesting cache should be invalidated
+                    );
+  @(posedge CLK); 
+  @(posedge CLK); 
+  cif0.iREN = 1'b1; 
+  perform_test_case(1, // cache_0 request
+                    0, // cache_1 request
+                    0, // non_requesting_cache_wb
+                    INSTRUCTION_READ, // cache_0_request_type
+                    NONE, // cache_1_request_type
+                    address, // address to request from
+                    0 // whether the non-requesting cache should be invalidated
+                    );
+
   dump_memory();
   end
 
