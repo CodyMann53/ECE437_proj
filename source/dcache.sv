@@ -20,7 +20,7 @@ typedef struct packed {
 } dcache_block_t;
 
 typedef enum logic[3:0] {
-   IDLE, WB1, WB2, READ1, READ2, HALT, FLUSH1, FLUSH2, DIRTY, COUNT
+   IDLE, WB1, WB2, READ1, READ2, HALT, FLUSH1, FLUSH2, DIRTY, COUNT, SNOOP, WB1_SNOOP, WB2_SNOOP, NO_WB
 } state_t;
 
 logic [25:0] tag;

@@ -63,7 +63,6 @@ module caches (
   assign dcif.imemload = cif.iload;
   assign dcif.dmemload = cif.dload;
 
-
   assign cif.iREN = dcif.imemREN;
   assign cif.dREN = dcif.dmemREN;
   assign cif.dWEN = dcif.dmemWEN;
