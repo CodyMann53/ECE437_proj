@@ -26,8 +26,14 @@ typedef enum logic[3:0] {
 logic [25:0] tag;
 assign tag = dcif.dmemaddr[31:6];
 
+logic [25:0] tag_snoop;
+assign tag_snoop = ccsnoopaddr[31:6];
+
 logic [2:0] cache_index;
 assign cache_index = dcif.dmemaddr[5:3];
+
+logic [2:0] cache_index_snoop;
+assign cache_index_snoop = ccsnoopaddr[5:3];
 
 logic [2:0] data_index;
 assign data_index = dcif.dmemaddr[2:0];
@@ -49,7 +55,10 @@ state_t state, next_state, prev_state, next_prev_state;
 
 logic[4:0] cache_row, next_cache_row, old_cache_row, next_old_cache_row, temp_old_row;
 
-logic next_dmemWEN, dmemWEN; 
+logic next_dmemWEN, dmemWEN;
+logic ccinv;
+logic word_t ccsnoopaddr;  
+
 
 always_ff @(posedge CLK or negedge nRST)
 begin
@@ -71,6 +80,8 @@ begin
       last_daddr <= 0;
       dmemWEN <= 0; 
       dmemREN <= 0; 
+      ccinv <= 1'b0; 
+      ccsnoopaddr <= 32'd0; 
    end
    else
    begin
@@ -86,6 +97,8 @@ begin
       cbl[cache_index].right_valid <= next_right_valid;
       last_daddr <= next_last_daddr;
       dmemWEN <= next_dmemWEN; 
+      ccinv <= cif.ccinv; 
+      ccsnoopaddr <= cif.ccsnoopaddr; 
    end
 end
 
@@ -277,16 +290,70 @@ begin
       end
       HALT: next_state = HALT; 
       SNOOP:
-      begin 
+      begin
+         // if the left tag matches, left block is valid
+         if ((tag_snoop == cbl[cache_index_snoop].left_tag) && (cbl[cache_index_snoop].left_valid == 1)) begin 
+            // if the block is dirty
+            if (cbl[cache_index_snoop].left_dirty == 1) begin 
+               // start the write back
+               next_state = WB1_SNOOP;
+            end
+            // else tell memory controller to go to ram 
+            else begin 
+               next_state = NO_WB; 
+            end
+
+            // invalidate block if needed
+            if (cif.ccinv == 1) begin 
+               // set the left block to invalid
+               next_left_valid = 1'b0; 
+               next_left_dirty = 1'b0; 
+            end 
+         end 
+         // else if the right tag matches, right block is valid
+         else if ((tag_snoop == cbl[cache_index].right_tag) && (cbl[cache_index].right_valid == 1)) begin 
+            // if the block is dirty
+            if (cbl[cache_index_snoop].right_dirty == 1) begin 
+               // start the write back
+               next_state = WB1_SNOOP;
+            end
+            // else tell memory controller to go to ram 
+            else begin 
+               next_state = NO_WB; 
+            end
+
+            // invalidate block if needed
+            if (cif.ccinv == 1) begin 
+               // set the right block to invalid
+               next_right_valid = 1'b0; 
+               next_right_dirty = 1'b0; 
+            end 
+         end 
+         // else tell memory controller to go to ram for data 
+         else begin 
+            next_state = NO_WB; 
+         end
       end 
-      WB1_SNOOP:
+      WB1_SNOOP: 
       begin 
+         // if memory controller says ram is valid 
+         if (cif.dwait == 0) begin 
+            // move to next word to write 
+            next_state = WB2_SNOOP;
+         end  
       end 
       WB2_SNOOP:
       begin 
+         // if memory controller says ram is valid 
+         if (cif.dwait == 0) begin 
+            // Finished providing data so go back to idle  
+            next_state = IDLE;
+         end 
       end 
       NO_WB: 
       begin 
+         // Not supllying the data, so go back to idle
+         next_state = IDLE; 
       end
       default : 
       begin 
@@ -586,6 +653,46 @@ begin
          // set trans high to allow snoopers to progress
          cif.cctrans = 1'b1; 
       end 
+      WB1_SNOOP:
+      begin 
+         // Signal to memory controller that dcache wants to do a write back and also that it is done transitioning
+         cif.cctrans = 1'b1; 
+         cif.ccwrite = 1'b1; 
+
+         // if data in left block
+         if (tag_snoop == cbl[cache_index_snoop].left_tag) begin 
+            // set data address of left block
+            cif.daddr = {cbl[cache_index_snoop].left_tag, cache_index_snoop, 3'b000};
+            cif.dstore = cbl[cache_index_snoop].left_dat0;
+         end 
+         // else in the right block
+         else begin
+            // set data address of right block
+            cif.daddr = {cbl[cache_index_snoop].right_tag, cache_index_snoop, 3'b000};
+            cif.dstore = cbl[cache_index_snoop].right_dat0;
+         end 
+      end 
+      WB2_SNOOP: 
+      begin 
+         // if data in left block
+         if (tag_snoop == cbl[cache_index_snoop].left_tag) begin 
+            // set data address of left block
+            cif.daddr = {cbl[cache_index_snoop].left_tag, cache_index_snoop, 3'b100};
+            cif.dstore = cbl[cache_index_snoop].left_dat1;
+         end 
+         // else in the right block
+         else begin
+            // set data address of right block
+            cif.daddr = {cbl[cache_index_snoop].right_tag, cache_index_snoop, 3'b100};
+            cif.dstore = cbl[cache_index_snoop].right_dat1;
+         end 
+      end 
+      NO_WB: 
+      begin 
+         // Signal to memory controller that it should just go to ram 
+         cif.cctrans = 1'b1; 
+         cif.ccwrite = 1'b0; 
+      end
    endcase
 end
 endmodule
