@@ -27,13 +27,13 @@ logic [25:0] tag;
 assign tag = dcif.dmemaddr[31:6];
 
 logic [25:0] tag_snoop;
-assign tag_snoop = ccsnoopaddr[31:6];
+assign tag_snoop = cif.ccsnoopaddr[31:6];
 
 logic [2:0] cache_index;
 assign cache_index = dcif.dmemaddr[5:3];
 
 logic [2:0] cache_index_snoop;
-assign cache_index_snoop = ccsnoopaddr[5:3];
+assign cache_index_snoop = cif.ccsnoopaddr[5:3];
 
 logic [2:0] data_index;
 assign data_index = dcif.dmemaddr[2:0];
@@ -56,8 +56,9 @@ state_t state, next_state, prev_state, next_prev_state;
 logic[4:0] cache_row, next_cache_row, old_cache_row, next_old_cache_row, temp_old_row;
 
 logic next_dmemWEN, dmemWEN;
+logic next_dmemREN, dmemREN;
 logic ccinv;
-logic word_t ccsnoopaddr;  
+word_t ccsnoopaddr, next_last_address;  
 
 
 always_ff @(posedge CLK or negedge nRST)
@@ -302,13 +303,6 @@ begin
             else begin 
                next_state = NO_WB; 
             end
-
-            // invalidate block if needed
-            if (cif.ccinv == 1) begin 
-               // set the left block to invalid
-               next_left_valid = 1'b0; 
-               next_left_dirty = 1'b0; 
-            end 
          end 
          // else if the right tag matches, right block is valid
          else if ((tag_snoop == cbl[cache_index].right_tag) && (cbl[cache_index].right_valid == 1)) begin 
@@ -321,13 +315,6 @@ begin
             else begin 
                next_state = NO_WB; 
             end
-
-            // invalidate block if needed
-            if (cif.ccinv == 1) begin 
-               // set the right block to invalid
-               next_right_valid = 1'b0; 
-               next_right_dirty = 1'b0; 
-            end 
          end 
          // else tell memory controller to go to ram for data 
          else begin 
@@ -555,10 +542,8 @@ begin
          end
          // let memory controller know that it is requesting a read from memory
          cif.dREN = 1;
-         // set the dad
-         //cif.daddr = {tag, cache_index, 3'b000};
-         // set the daddr to the registered daddr passed in from the processor
-         cif.daddr = daddr; 
+         // set the daddr
+         cif.daddr = {tag, cache_index, 3'b000}; 
          // set the ccwrite if there was a processor write request (Dcache telling other memory that they need to invalidate their blocks)
          cif.ccwrite = dmemWEN; 
       end
@@ -571,16 +556,12 @@ begin
             next_right_dat1 = cif.dload;
             // Set the right block as valid
             next_right_valid = 1;
-            /*if(cif.dwait == 0)
+            if(cif.dwait == 0)
             begin
                next_right_tag = tag;
                // set the left block as the last recently used 
                next_last_used[cache_index] = 1;
-            end*/
-            // set the righ block tag to new tag 
-            next_right_tag = tag; 
-            // set the left block as the last recently used 
-            next_last_used[cache_index] = 1; 
+            end
          end
          // else left block was the last recently used 
          else
@@ -589,22 +570,16 @@ begin
             next_left_dat1 = cif.dload;
             // set the left block to valid
             next_left_valid = 1;
-            //if(cif.dwait == 0)
-            //begin
-               //next_left_tag = tag;
-               //next_last_used[cache_index] = 1;
-            //end
-            // set the left block tag to new tag 
-            next_left_tag = tag;
-            // set the right block as last recently used
-            next_last_used[cache_index] = 0;
+            if(cif.dwait == 0)
+            begin
+               next_left_tag = tag;
+               next_last_used[cache_index] = 0;
+            end
          end
          // let memory controller know that it is requesting a read from memory
          cif.dREN = 1;
-         // set the dad
-         //cif.daddr = {tag, cache_index, 3'b000};
-         // set the daddr to the registered daddr passed in from the processor
-         cif.daddr = daddr; 
+         // set the daddr
+         cif.daddr = {tag, cache_index, 3'b100};
          // set the ccwrite if there was a processor write request (Dcache telling other memory that they need to invalidate their blocks)
          cif.ccwrite = dmemWEN; 
       end
@@ -653,6 +628,27 @@ begin
          // set trans high to allow snoopers to progress
          cif.cctrans = 1'b1; 
       end 
+      SNOOP:
+      begin
+         // if the left tag matches, left block is valid
+         if ((tag_snoop == cbl[cache_index_snoop].left_tag) && (cbl[cache_index_snoop].left_valid == 1)) begin
+            // invalidate block if needed
+            if (cif.ccinv == 1) begin 
+               // set the left block to invalid
+               next_left_valid = 1'b0; 
+               next_left_dirty = 1'b0; 
+            end 
+         end 
+         // else if the right tag matches, right block is valid
+         else if ((tag_snoop == cbl[cache_index].right_tag) && (cbl[cache_index].right_valid == 1)) begin 
+            // invalidate block if needed
+            if (cif.ccinv == 1) begin 
+               // set the right block to invalid
+               next_right_valid = 1'b0; 
+               next_right_dirty = 1'b0; 
+            end 
+         end 
+      end
       WB1_SNOOP:
       begin 
          // Signal to memory controller that dcache wants to do a write back and also that it is done transitioning
