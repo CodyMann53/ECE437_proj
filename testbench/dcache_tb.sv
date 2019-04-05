@@ -307,12 +307,11 @@ program test(
     // Cache Idle
     @(negedge CLK);
     cif.dwait = 1;
-    @(negedge CLK);
-    dcif.dmemWEN = 0;
     cif.ccwait = 1'b1;
-    // Cache Snoop
-    @(negedge CLK);    
+    dcif.dmemWEN = 0;
+    @(negedge CLK);
     cif.ccsnoopaddr = {26'd3, 3'd1, 3'b000};
+    // Cache Snoop    
     @(negedge CLK);
     correct_word = 32'haaaaaaaa;
     correct_addr = {26'd3, 3'd1, 3'b000};
@@ -321,6 +320,8 @@ program test(
     else
     begin
        $display("test case %d FAILED", test_case);
+       $display("cif.daddr: %h", cif.daddr);
+       $display("cif.dstore: %h", cif.dstore);
     end  
     cif.dwait = 0;
     @(negedge CLK);
@@ -335,9 +336,59 @@ program test(
     else
     begin
        $display("test case %d FAILED", test_case);
+       $display("cif.dstore: %h", cif.dstore);
     end  
     cif.dwait = 0;
     @(negedge CLK);
+    cif.ccwait = 1'b0;
+    cif.dwait = 1; 
+
+    // Test Case 9: Sending an invalidation signal to the cache
+    @(negedge CLK);
+    test_case++;
+    cif.ccwait = 1'b1;
+    cif.ccinv = 1'b1; 
+    cif.ccsnoopaddr = {26'd3, 3'd1, 3'b000}; 
+    @(negedge CLK);
+    cif.dwait = 0; 
+    @(negedge CLK);
+    cif.dwait = 1;    
+    @(negedge CLK);
+    cif.dwait = 0; 
+    @(negedge CLK);
+    cif.ccwait = 1'b0;
+    cif.dwait = 1;  
+    // Now back to IDLE state
+    dcif.dmemREN = 1'b1;
+    dcif.dmemaddr = {26'd3, 3'd1, 3'b000};
+    @(negedge CLK); 
+    cif.dload = 32'h33333333;
     cif.dwait = 0;
-  end  
+    @(negedge CLK); 
+    cif.dwait = 1;
+    @(negedge CLK); 
+    @(negedge CLK); 
+    cif.dload = 32'h44444444;
+    cif.dwait = 0;
+    @(negedge CLK); 
+    cif.dwait = 1;
+    dcif.dmemREN = 1'b0;
+    // Testing the cache hit
+    @(negedge CLK); 
+    @(negedge CLK); 
+    dcif.dmemREN = 1'b1;
+    dcif.dmemaddr = {26'd3, 3'd1, 3'b000};    
+    @(negedge CLK);
+    correct_word = 32'h33333333;
+    assert(dcif.dhit == 1 && dcif.dmemload == correct_word)
+       $display("test case %d passed", test_case);
+    else
+    begin
+       $display("test case %d FAILED", test_case);
+       $display("dcif.dmemload: %h", dcif.dmemload);
+    end  
+    @(negedge CLK); 
+    
+
+  end   
 endprogram

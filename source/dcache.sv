@@ -469,7 +469,7 @@ begin
          else if(dcif.dmemWEN == 1)
          begin
             // If left tag matches, left block is valid, and left block is dirty (Writing to a shared block should produce a miss in order to go and invalidate the other caches)
-            if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1 && cbl[cache_index].left_dirty == 1)
+            if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1)
             begin
                // give back a dhit to processor
                dcif.dhit = 1;
@@ -496,7 +496,7 @@ begin
                cif.daddr = dcif.dmemaddr; 
             end
             // if right tag matches, right block is valid, and right block is dirty (Writing to a shared block should produce a miss in order to go and invalidate the other caches)
-            else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1 && cbl[cache_index].right_dirty == 1)
+            else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1)
             begin
                // give back a dhit to the processor
                dcif.dhit = 1;
