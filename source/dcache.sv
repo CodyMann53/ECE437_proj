@@ -464,7 +464,7 @@ begin
                end
                // Tell bus that writing to a block address
                cif.ccwrite = 1'b1; 
-               cif.ccsnoopaddr = dcif.dmemaddr; 
+               cif.daddr = dcif.dmemaddr; 
             end
             // if right tag matches, right block is valid, and right block is dirty (Writing to a shared block should produce a miss in order to go and invalidate the other caches)
             else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1)
@@ -491,7 +491,7 @@ begin
                end
                // Tell bus that writing to a block address
                cif.ccwrite = 1'b1; 
-               cif.ccsnoopaddr = dcif.dmemaddr;
+               cif.daddr = dcif.dmemaddr;
             end
             // A miss
             else begin 
