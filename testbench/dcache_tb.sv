@@ -233,9 +233,9 @@ program test(
     @(negedge CLK); 
     @(negedge CLK); 
     dcif.dmemREN = 1'b1;
-    dcif.dmemaddr = {26'd4, 3'd1, 3'b100};    
+    dcif.dmemaddr = {26'd4, 3'd1, 3'b000};    
     @(negedge CLK);
-    correct_word = 32'h66666666;
+    correct_word = 32'h55555555;
     assert(dcif.dhit == 1 && dcif.dmemload == correct_word)
        $display("test case %d passed", test_case);
     else
@@ -289,46 +289,52 @@ program test(
     test_case++;
     @(negedge CLK);
     cif.ccwait = 1'b0;
+    dcif.dmemREN = 0;
+    dcif.dmemWEN = 0;
+    @(negedge CLK);
+    @(negedge CLK);
     dcif.dmemWEN = 1;
     dcif.dmemaddr = {26'd3, 3'd1, 3'b000};
     dcif.dmemstore = 32'haaaaaaaa;
+    // Cache Read1
+    @(negedge CLK);
+    cif.dwait = 0;
+    @(negedge CLK);
+    cif.dwait = 1;
+    // Cache Read2
+    @(negedge CLK);
+    cif.dwait = 0;
+    // Cache Idle
+    @(negedge CLK);
+    cif.dwait = 1;
     @(negedge CLK);
     dcif.dmemWEN = 0;
     cif.ccwait = 1'b1;
-    @(negedge CLK);
+    // Cache Snoop
+    @(negedge CLK);    
     cif.ccsnoopaddr = {26'd3, 3'd1, 3'b000};
     @(negedge CLK);
-    @(negedge CLK);
     correct_word = 32'haaaaaaaa;
-    correct_addr = {26'd2, 3'd1, 3'b000};
+    correct_addr = {26'd3, 3'd1, 3'b000};
     assert(cif.cctrans == 1 && cif.ccwrite == 1 && cif.daddr == correct_addr && cif.dstore == correct_word)
        $display("test case %d passed", test_case);
     else
     begin
        $display("test case %d FAILED", test_case);
-       $display("cif.cctrans: %h", cif.cctrans);
-       $display("cif.ccwrite: %h", cif.ccwrite);
-       $display("cif.daddr: %h", cif.daddr);
-       $display("cif.daddr: %h", cif.dstore);
     end  
     cif.dwait = 0;
     @(negedge CLK);
-    @(negedge CLK);
     test_case++;
     cif.dwait = 1;
-    cif.ccsnoopaddr = {26'd2, 3'd1, 3'b100};
+    cif.ccsnoopaddr = {26'd3, 3'd1, 3'b100};
     @(negedge CLK);
     correct_word = 32'h44444444;
-    correct_addr = {26'd2, 3'd1, 3'b100};
+    correct_addr = {26'd3, 3'd1, 3'b100};
     assert(cif.daddr == correct_addr && cif.dstore == correct_word)
        $display("test case %d passed", test_case);
     else
     begin
        $display("test case %d FAILED", test_case);
-       $display("cif.cctrans: %h", cif.cctrans);
-       $display("cif.ccwrite: %h", cif.ccwrite);
-       $display("cif.daddr: %h", cif.daddr);
-       $display("cif.daddr: %h", cif.dstore);
     end  
     cif.dwait = 0;
     @(negedge CLK);

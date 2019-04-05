@@ -387,7 +387,7 @@ begin
          if(dcif.dmemREN == 1)
          begin
             // if the left tag matches, block valid, and is dirty
-            if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1 && cbl[cache_index].left_dirty == 1)
+            if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1)
             begin
                // give back a dhit 
                dcif.dhit = 1;
@@ -409,7 +409,7 @@ begin
                end
             end
             // if the right tag matches, block valid, and dirty
-            else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1 && cbl[cache_index].right_dirty == 1)
+            else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1)
             begin
                // give back a dhit to the processor
                dcif.dhit = 1;
