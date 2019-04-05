@@ -140,6 +140,7 @@ begin
    next_last_address = last_daddr; 
    next_dmemWEN = dmemWEN; 
    next_last_state = last_state;
+   next_last_daddr = last_daddr;  
 
    casez(state)
       IDLE :
@@ -368,6 +369,8 @@ end
 integer j;
 
 always_comb begin 
+   cache_index = dcif.dmemaddr[5:3]; 
+
    // if being snooped
    if (cif.ccwait == 1) begin
       cache_index = cif.ccsnoopaddr[5:3];
