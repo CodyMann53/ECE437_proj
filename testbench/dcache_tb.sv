@@ -29,35 +29,30 @@ module dcache_tb;
   datapath_cache_if dcif();
  
   // coherence interface
-  caches_if                 cif0();
-
-  // cif1 will not be used, but ccif expects it as an input
-  caches_if                cif1();
-  cache_control_if #(.CPUS(1))   ccif (cif0, cif1);
-  cpu_ram_if ramif();
+  caches_if cif();
 
   // DUT
   `ifndef MAPPED
-    dcache DUT(CLK, nRST, dcif, cif0);
-    memory_control DUT_MEMORY_CONTROL(ccif);
-    ram RAM(CLK, nRST, ramif);
+    dcache DUT(CLK, nRST, dcif, cif);
+    //memory_control DUT_MEMORY_CONTROL(CLK, nRST, ccif);
+    //ram RAM(CLK, nRST, ramif);
   `else
     dcache DUT(
-      .\dcif.dhit (dcif.dhit), 
-      .\dcif.dmemREN(dcif.dmemREN), 
-      .\dcif.dmemWEN (dcif.dmemWEN), 
-      .\dcif.dmemstore(dcif.dmemstore), 
-      .\dcif.dmemaddr (dcif.dmemaddr), 
-      .\dcif.dmemload (dcif.dmemload),
-      .\cif.dwait (cif.dwait), 
-      .\cif.dload (cif.dload), 
-      .\cif.dREN (cif.dREN), 
-      .\cif.dWEN (cif.dWEN), 
-      .\cif.daddr (cif.daddr), 
-      .\cif.dstore (cif.dstore),  
+      .\dcif.halt(dcif.halt),
+      .\dcif.dmemREN(dcif.dmemREN),
+      .\dcif.dmemWEN(dcif.dmemWEN),
+      .\dcif.datomic(dcif.datomic),
+      .\dcif.dmemstore(dcif.dmemstore),
+      .\dcif.dmemaddr(dcif.dmemaddr),
+      .\cif.dwait(cif.dwait),
+      .\cif.dload(cif.dload),
+      .\cif.ccwait(cif.ccwait),
+      .\cif.ccinv(cif.ccinv),
+      .\cif.ccsnoopaddr(cif.ccsnoopaddr),
       .\nRST (nRST),
       .\CLK (CLK) 
       ); 
+    /*
     memory_control MEMORY_CONTROL(
       .\ccif.iREN (ccif.iREN),
       .\ccif.dREN (ccif.dREN),
@@ -90,11 +85,11 @@ module dcache_tb;
     .\ramif.ramWEN (ramif.ramWEN),
     .\ramif.ramstate (ramif.ramstate),
     .\ramif.ramload (ramif.ramload)
-    );
+    );*/
   `endif
 
 /*******************  CONNECTIONS ********************/
-
+  /*
   // assign statements memory control -> ram
   assign ramif.ramaddr = ccif.ramaddr;
   assign ramif.ramREN = ccif.ramREN;
@@ -104,6 +99,7 @@ module dcache_tb;
   // assign statements ram -> memory control
   assign ccif.ramload = ramif.ramload;
   assign ccif.ramstate = ramif.ramstate;
+  */
 
 
   // test program
@@ -111,7 +107,7 @@ module dcache_tb;
     .CLK(CLK),
     .nRST(nRST),
     .dcif(dcif), 
-    .ccif(ccif)
+    .cif(cif)
     ); 
 
 endmodule
@@ -121,7 +117,7 @@ program test(
   input logic CLK,
   output logic nRST, 
   datapath_cache_if dcif, 
-  cache_control_if ccif
+  caches_if cif
   ); 
 
   // import statements 
@@ -132,303 +128,210 @@ program test(
   parameter PERIOD = 10;
 
   // test information 
-  int test_case_num = 0; 
-  string test_description = "Initializing"; 
+  int test_case = 0;
+  word_t correct_word;
+  word_t correct_addr;
+  initial begin 
 
-  // Data and address testbench variables 
-  dcachef_t address, address2, address3, address4;
-  word_t [31:0] data, data2;  
-  logic [2:0] index; 
-  logic expected; 
+  nRST = 1;
+  dcif.halt = 0;
+  dcif.dmemREN = 0;
+  dcif.dmemWEN = 0;
+  dcif.datomic = 0;
+  dcif.dmemstore = 0;
+  dcif.dmemaddr = 0;
+  cif.dwait = 1;
+  cif.dload = 0;
+  cif.ccwait = 0;
+  cif.ccinv = 0;
+  cif.ccsnoopaddr = 0;
 
-/******************* TEST VECTORS ********************/
+  @(negedge CLK); 
+  nRST = 0;
+  @(negedge CLK); 
+  nRST = 1;
 
-/******************* TEST TASK DEFINITIONS ********************/
-
-  // checks the read data from dcache
-  task check_data_read; 
-    input dcachef_t byte_address; 
-    input word_t exp_data; 
-    begin 
-      // if the data output from dcache is not the same as expected
-      if (dcif.dmemload != exp_data) begin
-        // raise an error 
-        $display("Time: %00gns Expecting %0d to be read from byte_address 0x%0h and not %0d.", $time, exp_data, byte_address, dcif.dmemload); 
-      end 
-    end 
-  endtask 
-
-  // task to wait for a request to cache to complete and then checks for a valid dhit
-  task complete_transaction;
-    input dcachef_t byte_address; 
-    input logic block_present; 
-    begin
-      integer count;
-      // wait a little to allow inputs to settle 
-      #(10)
-      count = 0; 
-      // wait for transaction to complete between dcache and memory or just move on because tag is already in the cache and no write dirty contents to memory should occur. 
-      while(dcif.dhit == 0) begin 
-        @(posedge CLK); 
-        count += 1; 
-      end  
-
-      // If block was expected to be present in the dcache 
-      if (block_present == 1) begin 
-        // if dhit was not given back in same clock cycle 
-        if (count != 0) begin
-          // flag an error message 
-          $display("Time: %00gns Dhit was not given back in same clock cycle for byte_address: 0x%0h that was expected to be in cache.", $time, byte_address); 
-        end 
-      end
-    end 
-  endtask
-
-  // requests a read from the dcache
-  task request_read; 
-    input dcachef_t byte_address; 
-    begin 
-      @(posedge CLK); 
-      // apply propper inputs to cache for a read
-      dcif.halt = 1'b0; 
-      dcif.dmemREN = 1'b1; 
-      dcif.dmemWEN = 1'b0; 
-      dcif.dmemstore = 32'd0; 
-      dcif.dmemaddr = byte_address; 
-    end 
-  endtask 
-
-  // requests a write to the dcache
-  task request_write; 
-    input dcachef_t byte_address; 
-    input word_t data; 
-    begin 
-      // get away from the negative edge of clock 
-      @(posedge CLK); 
-      // apply propper inputs to cache for a write
-      dcif.halt = 1'b0; 
-      dcif.dmemREN = 1'b0; 
-      dcif.dmemWEN = 1'b1; 
-      dcif.dmemstore = data; 
-      dcif.dmemaddr = byte_address; 
-    end 
-  endtask
-
-  // clears the inputs to the dcache
-  task remove_dcache_inputs; 
-    begin 
-      @(posedge CLK); 
-      dcif.halt = 1'b0; 
-      dcif.dmemREN = 1'b0; 
-      dcif.dmemWEN = 1'b0; 
-      dcif.dmemstore = 32'd0; 
-      dcif.dmemaddr = 32'd0; 
-    end 
-  endtask
-
-  // task to read from the dcache
-  task read_dcache;
-    input dcachef_t byte_address;
-    input logic block_present;  
-    input word_t exp_data; 
-    input logic check_data; 
-    begin
-      // request a read from the dcache
-      request_read(byte_address); 
-      // Wait for the transaction to complete
-      complete_transaction(byte_address, block_present); 
-
-      // wait a little for data to settle 
-      #(10)
-      // if supposed to check the data for validity
-      if (check_data == 1) begin 
-        // check data read 
-        check_data_read(byte_address, exp_data); 
-      end 
-
-      // remove the dcache inputs 
-      remove_dcache_inputs(); 
-    end 
-  endtask
-
-    // task to write to the dcache 
-  task write_dcache;
-    input dcachef_t byte_address; 
-    input block_present; 
-    input word_t data; 
-    begin
-      // request a write from the dcache 
-      request_write(byte_address, data); 
-      // wait for the transaction to complete and check for valid dhit 
-      complete_transaction(byte_address, block_present);
-      // remove the dcache inputs 
-      remove_dcache_inputs();  
-    end 
-  endtask
-
-  // resets the whole system 
-  task reset_dut; 
-    begin 
-
-      // get rid of all previous inputs
-      remove_dcache_inputs; 
-
-      // get away from posedge of clock 
-      @(negedge CLK); 
-
-      // bring nRST low 
-      nRST = 1'b0; 
-
-      // wait for a period 
-      #(PERIOD)
-
-      // get away from posedge of clock 
-      @(negedge CLK); 
-
-      // bring nRST back high 
-      nRST = 1'b1; 
-    end 
-  endtask
-
-  // requests a read from the dcache
-  task halt; 
-    begin 
-      int count;
-      @(posedge CLK); 
-      // apply propper inputs to cache for a halt
-      dcif.halt = 1'b1; 
-      dcif.dmemREN = 1'b0; 
-      dcif.dmemWEN = 1'b0; 
-      dcif.dmemstore = 32'd0; 
-      dcif.dmemaddr = 32'd0; 
-
-      #(10)
-
-      // wait for flushed signal to be asserted or max clock cycles have been reached
-      while(dcif.flushed == 0) begin 
-        @(posedge CLK); 
-      end  
-      
-    end 
-  endtask 
-
-  // task to write a value to all blocks and then read them back
-  task toggle;
-    input word_t data;
-    begin 
-      // variable for looping through cache
-      logic [2:0] index; 
-      index = 3'd0; 
-
-      // loop through an address sequence that will touch every block in cache 
-      for (int i = 0; i < 8; i++) begin
-        // set the address bits 
-        address.tag = 26'd0; 
-        address.idx = index; 
-        address.blkoff = 1'b0; 
-        address.bytoff = 2'b00; 
-
-        address2.tag = 26'd0; 
-        address2.idx = index;
-        address2.blkoff = 1'b1; 
-        address2.bytoff = 2'b00;
-
-        address3.tag = 26'd1; 
-        address3.idx = index;
-        address3.blkoff = 1'b0; 
-        address3.bytoff = 2'b00;
-
-        address4.tag = 26'd1; 
-        address4.idx = index;
-        address4.blkoff = 1'b1; 
-        address4.bytoff = 2'b00;
-
-        // Write to two blocks within the same set but different tags 
-        write_dcache(address, 0, data); 
-        write_dcache(address2, 1, data);
-        write_dcache(address3, 0, data); 
-        write_dcache(address4, 1, data); 
-
-
-        // now try to read those blocks back 
-        read_dcache(address, 1, data, 1); 
-        read_dcache(address2, 1, data, 1); 
-        read_dcache(address3, 1, data, 1); 
-        read_dcache(address4, 1, data, 1); 
-
-        index = index + 3'd1; 
-      end 
-
-    end 
-  endtask
-
-  // dumps the meory from ram at end of testbench
-  task automatic dump_memory();
-    string filename = "memcpu.hex";
-    int memfd;
-
-    cif0.daddr = 0;
-    cif0.dREN = 0;
-    cif0.dWEN = 0;
-
-    memfd = $fopen(filename,"w");
-    if (memfd)
-      $display("Starting memory dump.");
+  // Test Case 1: Load cache block with data then testing a cache hit
+    test_case++;
+    dcif.dmemREN = 1'b1;
+    dcif.dmemaddr = {26'd2, 3'd1, 3'b000};
+    @(negedge CLK); 
+    cif.dload = 32'h11111111;
+    cif.dwait = 0;
+    @(negedge CLK); 
+    cif.dwait = 1;
+    @(negedge CLK); 
+    @(negedge CLK); 
+    cif.dload = 32'h22222222;
+    cif.dwait = 0;
+    @(negedge CLK); 
+    cif.dwait = 1;
+    dcif.dmemREN = 1'b0;
+    // Testing the cache hit
+    @(negedge CLK); 
+    @(negedge CLK); 
+    dcif.dmemREN = 1'b1;
+    dcif.dmemaddr = {26'd2, 3'd1, 3'b100};    
+    @(negedge CLK);
+    correct_word = 32'h22222222;
+    assert(dcif.dhit == 1 && dcif.dmemload == correct_word)
+       $display("test case %d passed", test_case);
     else
-      begin $display("Failed to open %s.",filename); $finish; end
-
-    for (int unsigned i = 0; memfd && i < 16384; i++)
     begin
-      int chksum = 0;
-      bit [7:0][7:0] values;
-      string ihex;
+       $display("test case %d FAILED", test_case);
+    end  
+    @(negedge CLK);
 
-      cif0.daddr = i << 2;
-      cif0.dREN = 1;
-      repeat (4) @(posedge CLK);
-      if (cif0.dload === 0)
-        continue;
-      values = {8'h04,16'(i),8'h00,cif0.dload};
-      foreach (values[j])
-        chksum += values[j];
-      chksum = 16'h100 - chksum;
-      ihex = $sformatf(":04%h00%h%h",16'(i),cif0.dload,8'(chksum));
-      $fdisplay(memfd,"%s",ihex.toupper());
-    end //for
-    if (memfd)
+  // Test Case 2: Load cache block with same index and test for a cache hit
+    test_case++;
+    dcif.dmemREN = 1'b1;
+    dcif.dmemaddr = {26'd3, 3'd1, 3'b000};
+    @(negedge CLK); 
+    cif.dload = 32'h33333333;
+    cif.dwait = 0;
+    @(negedge CLK); 
+    cif.dwait = 1;
+    @(negedge CLK); 
+    @(negedge CLK); 
+    cif.dload = 32'h44444444;
+    cif.dwait = 0;
+    @(negedge CLK); 
+    cif.dwait = 1;
+    dcif.dmemREN = 1'b0;
+    // Testing the cache hit
+    @(negedge CLK); 
+    @(negedge CLK); 
+    dcif.dmemREN = 1'b1;
+    dcif.dmemaddr = {26'd3, 3'd1, 3'b000};    
+    @(negedge CLK);
+    correct_word = 32'h33333333;
+    assert(dcif.dhit == 1 && dcif.dmemload == correct_word)
+       $display("test case %d passed", test_case);
+    else
     begin
+       $display("test case %d FAILED", test_case);
+    end  
+    @(negedge CLK);  
 
-      cif0.dREN = 0;
-      $fdisplay(memfd,":00000001FF");
-      $fclose(memfd);
-      $display("Finished memory dump.");
-    end
-  endtask
+  // Test Case 3 and 4: Load cache block with same index and test for LRU replacement
+    test_case++;
+    dcif.dmemREN = 1'b1;
+    dcif.dmemaddr = {26'd4, 3'd1, 3'b000};
+    @(negedge CLK); 
+    cif.dload = 32'h55555555;
+    cif.dwait = 0;
+    @(negedge CLK); 
+    cif.dwait = 1;
+    @(negedge CLK); 
+    @(negedge CLK); 
+    cif.dload = 32'h66666666;
+    cif.dwait = 0;
+    @(negedge CLK); 
+    cif.dwait = 1;
+    dcif.dmemREN = 1'b0;
+    // Testing the cache hit
+    @(negedge CLK); 
+    @(negedge CLK); 
+    dcif.dmemREN = 1'b1;
+    dcif.dmemaddr = {26'd4, 3'd1, 3'b100};    
+    @(negedge CLK);
+    correct_word = 32'h66666666;
+    assert(dcif.dhit == 1 && dcif.dmemload == correct_word)
+       $display("test case %d passed", test_case);
+    else
+    begin
+       $display("test case %d FAILED", test_case);
+    end  
+    dcif.dmemREN = 1'b0;
+    @(negedge CLK); 
+    test_case++; 
+    dcif.dmemREN = 1'b1;
+    dcif.dmemaddr = {26'd3, 3'd1, 3'b000};    
+    @(negedge CLK);
+    correct_word = 32'h33333333;
+    assert(dcif.dhit == 1 && dcif.dmemload == correct_word)
+       $display("test case %d passed", test_case);
+    else
+    begin
+       $display("test case %d FAILED", test_case);
+    end  
+    @(negedge CLK);  
 
-/******************* TEST INITIAL BLOCK ********************/
-  initial begin
+  // Test Case 5: Testing snooping block that is in the shared state
+    test_case++;
+    cif.ccwait = 1'b1;
+    @(negedge CLK);
+    cif.ccsnoopaddr = {26'd3, 3'd1, 3'b000};
+    @(negedge CLK);
+    assert(cif.cctrans == 1 && cif.ccwrite == 0)
+       $display("test case %d passed", test_case);
+    else
+    begin
+       $display("test case %d FAILED", test_case);
+    end  
+    @(negedge CLK);
 
+  // Test Case 6: Testing snooping block when the tag doesn't match
+    test_case++;
+    cif.ccwait = 1'b1;
+    @(negedge CLK);
+    cif.ccsnoopaddr = {26'd2, 3'd1, 3'b000};
+    @(negedge CLK);
+    assert(cif.cctrans == 1 && cif.ccwrite == 0)
+       $display("test case %d passed", test_case);
+    else
+    begin
+       $display("test case %d FAILED", test_case);
+    end  
+    @(negedge CLK);
 
-    /******************* START RUNNING THROUGH TEST CASES ********************/
-    // initialize all inputs 
-    remove_dcache_inputs;
-
-    /************************************
-    *
-    *       Test case 1: Validate that proper cache blocks are being written back to memory
-    *
-    ************************************/
-    test_case_num = test_case_num + 1;  
-    test_description = "Writing nothing to cache, so nothing should be stored back.";
-    reset_dut(); 
-
-    // write to a block in cache to make it dirty 
-    write_dcache(32'h3C, 0, 32'hABCDEF);
-
-    // tell cache to halt
-    halt; 
- 
-    // dump the memory into memcpu.hex after testbench is finished 
-    dump_memory(); 
-  end
+  // Test Case 7 and 8: Testing snooping block when the tag matches and in modified state
+    test_case++;
+    @(negedge CLK);
+    cif.ccwait = 1'b0;
+    dcif.dmemWEN = 1;
+    dcif.dmemaddr = {26'd3, 3'd1, 3'b000};
+    dcif.dmemstore = 32'haaaaaaaa;
+    @(negedge CLK);
+    dcif.dmemWEN = 0;
+    cif.ccwait = 1'b1;
+    @(negedge CLK);
+    cif.ccsnoopaddr = {26'd3, 3'd1, 3'b000};
+    @(negedge CLK);
+    @(negedge CLK);
+    correct_word = 32'haaaaaaaa;
+    correct_addr = {26'd2, 3'd1, 3'b000};
+    assert(cif.cctrans == 1 && cif.ccwrite == 1 && cif.daddr == correct_addr && cif.dstore == correct_word)
+       $display("test case %d passed", test_case);
+    else
+    begin
+       $display("test case %d FAILED", test_case);
+       $display("cif.cctrans: %h", cif.cctrans);
+       $display("cif.ccwrite: %h", cif.ccwrite);
+       $display("cif.daddr: %h", cif.daddr);
+       $display("cif.daddr: %h", cif.dstore);
+    end  
+    cif.dwait = 0;
+    @(negedge CLK);
+    @(negedge CLK);
+    test_case++;
+    cif.dwait = 1;
+    cif.ccsnoopaddr = {26'd2, 3'd1, 3'b100};
+    @(negedge CLK);
+    correct_word = 32'h44444444;
+    correct_addr = {26'd2, 3'd1, 3'b100};
+    assert(cif.daddr == correct_addr && cif.dstore == correct_word)
+       $display("test case %d passed", test_case);
+    else
+    begin
+       $display("test case %d FAILED", test_case);
+       $display("cif.cctrans: %h", cif.cctrans);
+       $display("cif.ccwrite: %h", cif.ccwrite);
+       $display("cif.daddr: %h", cif.daddr);
+       $display("cif.daddr: %h", cif.dstore);
+    end  
+    cif.dwait = 0;
+    @(negedge CLK);
+    cif.dwait = 0;
+  end  
 endprogram
