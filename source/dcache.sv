@@ -30,7 +30,7 @@ logic [25:0] tag_snoop;
 assign tag_snoop = cif.ccsnoopaddr[31:6];
 
 logic [2:0] cache_index;
-assign cache_index = dcif.dmemaddr[5:3];
+
 
 logic [2:0] cache_index_snoop;
 assign cache_index_snoop = cif.ccsnoopaddr[5:3];
@@ -352,8 +352,10 @@ begin
       end 
       NO_WB: 
       begin 
-         // Not supllying the data, so go back to idle
-         next_state = last_state; 
+         // if ccwait goes low 
+         if (cif.ccwait == 0) begin 
+            next_state = last_state; 
+         end 
       end
       default : 
       begin 
@@ -364,6 +366,17 @@ begin
 end
 
 integer j;
+
+always_comb begin 
+   // if being snooped
+   if (cif.ccwait == 1) begin
+      cache_index = cif.ccsnoopaddr[5:3];
+   end 
+   // else not being snooped
+   else begin
+      cache_index = dcif.dmemaddr[5:3];
+   end 
+end 
 
 always_comb
 begin
@@ -669,8 +682,8 @@ begin
       end 
       SNOOP:
       begin
-         // if the left tag matches, left block is valid
-         if ((tag_snoop == cbl[cache_index_snoop].left_tag) && (cbl[cache_index_snoop].left_valid == 1)) begin
+         // if the left tag matches
+         if (tag_snoop == cbl[cache_index_snoop].left_tag) begin
             // invalidate block if needed
             if (cif.ccinv == 1) begin 
                // set the left block to invalid
@@ -678,8 +691,8 @@ begin
                next_left_dirty = 1'b0; 
             end 
          end 
-         // else if the right tag matches, right block is valid
-         else if ((tag_snoop == cbl[cache_index].right_tag) && (cbl[cache_index].right_valid == 1)) begin 
+         // else if the right tag matches
+         else if (tag_snoop == cbl[cache_index].right_tag) begin 
             // invalidate block if needed
             if (cif.ccinv == 1) begin 
                // set the right block to invalid
