@@ -137,5 +137,4 @@ interface cache_control_if(
   );
 
 endinterface
-
 `endif //CACHE_CONTROL_IF_VH

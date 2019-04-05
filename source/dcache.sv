@@ -386,8 +386,8 @@ begin
          // if a processor read
          if(dcif.dmemREN == 1)
          begin
-            // if the left tag matches and block is valid
-            if((tag == cbl[cache_index].left_tag) && (cbl[cache_index].left_valid == 1))
+            // if the left tag matches, block valid, and is dirty
+            if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1 && cbl[cache_index].left_dirty == 1)
             begin
                // give back a dhit 
                dcif.dhit = 1;
@@ -408,8 +408,8 @@ begin
                   dcif.dmemload = cbl[cache_index].left_dat1;
                end
             end
-            // if the right tag matches and block is valid
-            else if((tag == cbl[cache_index].right_tag) && cbl[cache_index].right_valid == 1)
+            // if the right tag matches, block valid, and dirty
+            else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1 && cbl[cache_index].right_dirty == 1)
             begin
                // give back a dhit to the processor
                dcif.dhit = 1;
@@ -572,6 +572,11 @@ begin
             next_right_dat1 = cif.dload;
             // Set the right block as valid
             next_right_valid = 1;
+            // If the processors is about to write to this block
+            if (dmemWEN == 1) begin 
+               // set it to the modified state
+               next_right_dirty = 1'b1; 
+            end
             if(cif.dwait == 0)
             begin
                next_right_tag = tag;
@@ -586,6 +591,11 @@ begin
             next_left_dat1 = cif.dload;
             // set the left block to valid
             next_left_valid = 1;
+            // If the processors is about to write to this block
+            if (dmemWEN == 1) begin 
+               // set it to the modified state
+               next_left_dirty = 1'b1; 
+            end
             if(cif.dwait == 0)
             begin
                next_left_tag = tag;
