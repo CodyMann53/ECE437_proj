@@ -1,263 +1,243 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
-add wave -noupdate -expand -group {System Signals } -radix hexadecimal /system_tb/CLK
-add wave -noupdate -expand -group {System Signals } -radix hexadecimal /system_tb/nRST
-add wave -noupdate -group {Control Unit } -expand -group {Control Unit } -radix hexadecimal /system_tb/DUT/CPU/DP/cuif/opcode_IF_ID
-add wave -noupdate -group {Control Unit } -expand -group {Control Unit } -radix hexadecimal -childformat {{{/system_tb/DUT/CPU/DP/cuif/func_IF_ID[5]} -radix hexadecimal} {{/system_tb/DUT/CPU/DP/cuif/func_IF_ID[4]} -radix hexadecimal} {{/system_tb/DUT/CPU/DP/cuif/func_IF_ID[3]} -radix hexadecimal} {{/system_tb/DUT/CPU/DP/cuif/func_IF_ID[2]} -radix hexadecimal} {{/system_tb/DUT/CPU/DP/cuif/func_IF_ID[1]} -radix hexadecimal} {{/system_tb/DUT/CPU/DP/cuif/func_IF_ID[0]} -radix hexadecimal}} -subitemconfig {{/system_tb/DUT/CPU/DP/cuif/func_IF_ID[5]} {-height 17 -radix hexadecimal} {/system_tb/DUT/CPU/DP/cuif/func_IF_ID[4]} {-height 17 -radix hexadecimal} {/system_tb/DUT/CPU/DP/cuif/func_IF_ID[3]} {-height 17 -radix hexadecimal} {/system_tb/DUT/CPU/DP/cuif/func_IF_ID[2]} {-height 17 -radix hexadecimal} {/system_tb/DUT/CPU/DP/cuif/func_IF_ID[1]} {-height 17 -radix hexadecimal} {/system_tb/DUT/CPU/DP/cuif/func_IF_ID[0]} {-height 17 -radix hexadecimal}} /system_tb/DUT/CPU/DP/cuif/func_IF_ID
-add wave -noupdate -group {Control Unit } -expand -group Outputs -radix hexadecimal /system_tb/DUT/CPU/DP/cuif/WEN
-add wave -noupdate -group {Control Unit } -expand -group Outputs -radix hexadecimal /system_tb/DUT/CPU/DP/cuif/iREN
-add wave -noupdate -group {Control Unit } -expand -group Outputs -radix hexadecimal /system_tb/DUT/CPU/DP/cuif/dWEN
-add wave -noupdate -group {Control Unit } -expand -group Outputs -radix hexadecimal /system_tb/DUT/CPU/DP/cuif/dREN
-add wave -noupdate -group {Control Unit } -expand -group Outputs -radix hexadecimal /system_tb/DUT/CPU/DP/cuif/reg_dest
-add wave -noupdate -group {Control Unit } -expand -group Outputs -radix hexadecimal /system_tb/DUT/CPU/DP/cuif/alu_op
-add wave -noupdate -group {Control Unit } -expand -group Outputs -radix hexadecimal /system_tb/DUT/CPU/DP/cuif/extend
-add wave -noupdate -group {Control Unit } -expand -group Outputs -radix hexadecimal /system_tb/DUT/CPU/DP/cuif/ALUSrc
-add wave -noupdate -group {Control Unit } -expand -group Outputs -radix hexadecimal /system_tb/DUT/CPU/DP/cuif/PCSrc
-add wave -noupdate -group {Control Unit } -expand -group Outputs -radix hexadecimal /system_tb/DUT/CPU/DP/cuif/halt
-add wave -noupdate -group {Control Unit } -expand -group Outputs /system_tb/DUT/CPU/DP/cuif/mem_to_reg
-add wave -noupdate -group ALU -expand -group ALU /system_tb/DUT/CPU/DP/aluif/alu_op
-add wave -noupdate -group ALU -expand -group ALU /system_tb/DUT/CPU/DP/aluif/port_a
-add wave -noupdate -group ALU -expand -group ALU /system_tb/DUT/CPU/DP/aluif/port_b
-add wave -noupdate -group ALU -expand -group Outputs /system_tb/DUT/CPU/DP/aluif/result
-add wave -noupdate -group ALU -expand -group Outputs /system_tb/DUT/CPU/DP/aluif/negative
-add wave -noupdate -group ALU -expand -group Outputs /system_tb/DUT/CPU/DP/aluif/overflow
-add wave -noupdate -group ALU -expand -group Outputs /system_tb/DUT/CPU/DP/aluif/zero
-add wave -noupdate -group {Data Path Ports} -group {Data Path Ports} -radix hexadecimal /system_tb/DUT/CPU/DP/dpif/imemaddr
-add wave -noupdate -group {Data Path Ports} -group {Data Path Ports} -radix hexadecimal /system_tb/DUT/CPU/DP/dpif/dmemaddr
-add wave -noupdate -group {Data Path Ports} -group {Data Path Ports} -radix hexadecimal /system_tb/DUT/CPU/DP/dpif/imemREN
-add wave -noupdate -group {Data Path Ports} -group {Data Path Ports} -radix hexadecimal /system_tb/DUT/CPU/DP/dpif/dmemREN
-add wave -noupdate -group {Data Path Ports} -group {Data Path Ports} -radix hexadecimal /system_tb/DUT/CPU/DP/dpif/dmemWEN
-add wave -noupdate -group {Data Path Ports} -group {Data Path Ports} -radix hexadecimal /system_tb/DUT/CPU/DP/dpif/dmemstore
-add wave -noupdate -group {Data Path Ports} -group Outputs -radix hexadecimal /system_tb/DUT/CPU/DP/dpif/dhit
-add wave -noupdate -group {Data Path Ports} -group Outputs -radix hexadecimal /system_tb/DUT/CPU/DP/dpif/ihit
-add wave -noupdate -group {Data Path Ports} -group Outputs -radix hexadecimal /system_tb/DUT/CPU/DP/dpif/halt
-add wave -noupdate -group {Data Path Ports} -group Outputs -radix hexadecimal /system_tb/DUT/CPU/DP/dpif/imemload
-add wave -noupdate -group {Data Path Ports} -group Outputs -radix hexadecimal /system_tb/DUT/CPU/DP/dpif/dmemload
-add wave -noupdate -group {Hazard Unit} -expand -group {Hazard Unit} /system_tb/DUT/CPU/DP/huif/ihit
-add wave -noupdate -group {Hazard Unit} -expand -group {Hazard Unit} /system_tb/DUT/CPU/DP/huif/dhit
-add wave -noupdate -group {Hazard Unit} -expand -group {Hazard Unit} /system_tb/DUT/CPU/DP/huif/zero_EX_MEM
-add wave -noupdate -group {Hazard Unit} -expand -group {Hazard Unit} /system_tb/DUT/CPU/DP/huif/dREN_ID_EX
-add wave -noupdate -group {Hazard Unit} -expand -group {Hazard Unit} /system_tb/DUT/CPU/DP/huif/opcode_IF_ID
-add wave -noupdate -group {Hazard Unit} -expand -group {Hazard Unit} /system_tb/DUT/CPU/DP/huif/opcode_EX_MEM
-add wave -noupdate -group {Hazard Unit} -expand -group {Hazard Unit} /system_tb/DUT/CPU/DP/huif/func_IF_ID
-add wave -noupdate -group {Hazard Unit} -expand -group {Hazard Unit} /system_tb/DUT/CPU/DP/huif/Rt_ID_EX
-add wave -noupdate -group {Hazard Unit} -expand -group {Hazard Unit} /system_tb/DUT/CPU/DP/huif/Rs_IF_ID
-add wave -noupdate -group {Hazard Unit} -expand -group {Hazard Unit} /system_tb/DUT/CPU/DP/huif/Rt_IF_ID
-add wave -noupdate -group {Hazard Unit} -expand -group Outputs /system_tb/DUT/CPU/DP/huif/flush_IF_ID
-add wave -noupdate -group {Hazard Unit} -expand -group Outputs /system_tb/DUT/CPU/DP/huif/flush_ID_EX
-add wave -noupdate -group {Hazard Unit} -expand -group Outputs /system_tb/DUT/CPU/DP/huif/flush_EX_MEM
-add wave -noupdate -group {Hazard Unit} -expand -group Outputs /system_tb/DUT/CPU/DP/huif/flush_MEM_WB
-add wave -noupdate -group {Hazard Unit} -expand -group Outputs /system_tb/DUT/CPU/DP/huif/enable_pc
-add wave -noupdate -group {Hazard Unit} -expand -group Outputs /system_tb/DUT/CPU/DP/huif/enable_IF_ID
-add wave -noupdate -group {Hazard Unit} -expand -group Outputs /system_tb/DUT/CPU/DP/huif/enable_ID_EX
-add wave -noupdate -group {Hazard Unit} -expand -group Outputs /system_tb/DUT/CPU/DP/huif/enable_EX_MEM
-add wave -noupdate -group {Hazard Unit} -expand -group Outputs /system_tb/DUT/CPU/DP/huif/enable_MEM_WB
-add wave -noupdate -group {Hazard Unit} -expand -group Outputs /system_tb/DUT/CPU/DP/huif/PCSrc
-add wave -noupdate -group {Forward Unit} -group {Forward Unit} -radix unsigned /system_tb/DUT/CPU/DP/fuif/reg_wr_mem
-add wave -noupdate -group {Forward Unit} -group {Forward Unit} /system_tb/DUT/CPU/DP/fuif/reg_wr_wb
-add wave -noupdate -group {Forward Unit} -group {Forward Unit} /system_tb/DUT/CPU/DP/fuif/rs
-add wave -noupdate -group {Forward Unit} -group {Forward Unit} /system_tb/DUT/CPU/DP/fuif/rt
-add wave -noupdate -group {Forward Unit} -expand -group Outputs /system_tb/DUT/CPU/DP/fuif/porta_sel
-add wave -noupdate -group {Forward Unit} -expand -group Outputs /system_tb/DUT/CPU/DP/fuif/portb_sel
-add wave -noupdate -group {Forward Unit} -expand -group Outputs /system_tb/DUT/CPU/DP/fuif/mux6_sel
-add wave -noupdate -expand -group {Program Counter} -expand -group {Program Counter} /system_tb/DUT/CPU/DP/pcif/next_pc
-add wave -noupdate -expand -group {Program Counter} -expand -group {Program Counter} /system_tb/DUT/CPU/DP/pcif/enable_pc
-add wave -noupdate -expand -group {Program Counter} -expand -group Outputs -radix hexadecimal /system_tb/DUT/CPU/DP/pcif/imemaddr
-add wave -noupdate -expand -group {Register File } -expand -group {Register File } /system_tb/DUT/CPU/DP/rfif/WEN
-add wave -noupdate -expand -group {Register File } -expand -group {Register File } /system_tb/DUT/CPU/DP/rfif/wsel
-add wave -noupdate -expand -group {Register File } -expand -group {Register File } /system_tb/DUT/CPU/DP/rfif/rsel1
-add wave -noupdate -expand -group {Register File } -expand -group {Register File } /system_tb/DUT/CPU/DP/rfif/rsel2
-add wave -noupdate -expand -group {Register File } -expand -group {Register File } /system_tb/DUT/CPU/DP/rfif/wdat
-add wave -noupdate -expand -group {Register File } -expand -group Outputs /system_tb/DUT/CPU/DP/rfif/rdat1
-add wave -noupdate -expand -group {Register File } -expand -group Outputs /system_tb/DUT/CPU/DP/rfif/rdat2
-add wave -noupdate -group IF_ID_Register -group IF_ID_Register -radix hexadecimal /system_tb/DUT/CPU/DP/if_id_regif/instruction
-add wave -noupdate -group IF_ID_Register -group IF_ID_Register /system_tb/DUT/CPU/DP/if_id_regif/imemaddr
-add wave -noupdate -group IF_ID_Register -group IF_ID_Register /system_tb/DUT/CPU/DP/if_id_regif/next_imemaddr
-add wave -noupdate -group IF_ID_Register -group IF_ID_Register /system_tb/DUT/CPU/DP/if_id_regif/flush_IF_ID
-add wave -noupdate -group IF_ID_Register -expand -group Outputs -color Orange /system_tb/DUT/CPU/DP/if_id_regif/opcode_IF_ID
-add wave -noupdate -group IF_ID_Register -expand -group Outputs -color Orange /system_tb/DUT/CPU/DP/if_id_regif/func_IF_ID
-add wave -noupdate -group IF_ID_Register -expand -group Outputs /system_tb/DUT/CPU/DP/if_id_regif/next_imemaddr_IF_ID
-add wave -noupdate -group IF_ID_Register -expand -group Outputs /system_tb/DUT/CPU/DP/if_id_regif/imemaddr_IF_ID
-add wave -noupdate -group IF_ID_Register -expand -group Outputs -radix unsigned /system_tb/DUT/CPU/DP/if_id_regif/Rs_IF_ID
-add wave -noupdate -group IF_ID_Register -expand -group Outputs -radix unsigned /system_tb/DUT/CPU/DP/if_id_regif/Rt_IF_ID
-add wave -noupdate -group IF_ID_Register -expand -group Outputs -expand -label sim:/system_tb/DUT/CPU/DP/if_id_regif/Group1 -group {Region: sim:/system_tb/DUT/CPU/DP/if_id_regif} /system_tb/DUT/CPU/DP/if_id_regif/Rd_IF_ID
-add wave -noupdate -group IF_ID_Register -expand -group Outputs /system_tb/DUT/CPU/DP/if_id_regif/imm16_IF_ID
-add wave -noupdate -group IF_ID_Register -expand -group Outputs /system_tb/DUT/CPU/DP/if_id_regif/enable_IF_ID
-add wave -noupdate -group IF_ID_Register -expand -group Outputs /system_tb/DUT/CPU/DP/if_id_regif/instruction_IF_ID
-add wave -noupdate -expand -group ID_EX_Register -group ID_EX_Register /system_tb/DUT/CPU/DP/id_ex_regif/opcode_IF_ID
-add wave -noupdate -expand -group ID_EX_Register -group ID_EX_Register /system_tb/DUT/CPU/DP/id_ex_regif/func_IF_ID
-add wave -noupdate -expand -group ID_EX_Register -group ID_EX_Register /system_tb/DUT/CPU/DP/id_ex_regif/imemaddr_IF_ID
-add wave -noupdate -expand -group ID_EX_Register -group ID_EX_Register /system_tb/DUT/CPU/DP/id_ex_regif/Rt_IF_ID
-add wave -noupdate -expand -group ID_EX_Register -group ID_EX_Register /system_tb/DUT/CPU/DP/id_ex_regif/Rd_IF_ID
-add wave -noupdate -expand -group ID_EX_Register -group ID_EX_Register /system_tb/DUT/CPU/DP/id_ex_regif/Rs_IF_ID
-add wave -noupdate -expand -group ID_EX_Register -group ID_EX_Register /system_tb/DUT/CPU/DP/id_ex_regif/imm16_IF_ID
-add wave -noupdate -expand -group ID_EX_Register -group ID_EX_Register /system_tb/DUT/CPU/DP/id_ex_regif/instruction_IF_ID
-add wave -noupdate -expand -group ID_EX_Register -group ID_EX_Register /system_tb/DUT/CPU/DP/id_ex_regif/next_imemaddr_IF_ID
-add wave -noupdate -expand -group ID_EX_Register -group ID_EX_Register /system_tb/DUT/CPU/DP/id_ex_regif/WEN
-add wave -noupdate -expand -group ID_EX_Register -group ID_EX_Register /system_tb/DUT/CPU/DP/id_ex_regif/iREN
-add wave -noupdate -expand -group ID_EX_Register -group ID_EX_Register /system_tb/DUT/CPU/DP/id_ex_regif/dREN
-add wave -noupdate -expand -group ID_EX_Register -group ID_EX_Register /system_tb/DUT/CPU/DP/id_ex_regif/dWEN
-add wave -noupdate -expand -group ID_EX_Register -group ID_EX_Register /system_tb/DUT/CPU/DP/id_ex_regif/alu_op
-add wave -noupdate -expand -group ID_EX_Register -group ID_EX_Register /system_tb/DUT/CPU/DP/id_ex_regif/PCSrc
-add wave -noupdate -expand -group ID_EX_Register -group ID_EX_Register /system_tb/DUT/CPU/DP/id_ex_regif/reg_dest
-add wave -noupdate -expand -group ID_EX_Register -group ID_EX_Register /system_tb/DUT/CPU/DP/id_ex_regif/ALUSrc
-add wave -noupdate -expand -group ID_EX_Register -group ID_EX_Register /system_tb/DUT/CPU/DP/id_ex_regif/halt
-add wave -noupdate -expand -group ID_EX_Register -group ID_EX_Register /system_tb/DUT/CPU/DP/id_ex_regif/rdat2
-add wave -noupdate -expand -group ID_EX_Register -group ID_EX_Register /system_tb/DUT/CPU/DP/id_ex_regif/rdat1
-add wave -noupdate -expand -group ID_EX_Register -group ID_EX_Register /system_tb/DUT/CPU/DP/id_ex_regif/imm16_ext
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/opcode_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/func_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/dREN_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/dWEN_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/halt_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/WEN_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/enable_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/flush_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/PCSrc_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/alu_op_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/reg_dest_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/iREN_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/ALUSrc_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/rdat2_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/rdat1_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/Rt_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/Rs_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/Rd_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/imm16_ext_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/instruction_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/imm16_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/imemaddr_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/next_imemaddr_ID_EX
-add wave -noupdate -expand -group ID_EX_Register -expand -group Outputs /system_tb/DUT/CPU/DP/id_ex_regif/mem_to_reg_ID_EX
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/opcode_ID_EX
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/func_ID_EX
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/iREN_ID_EX
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/dWEN_ID_EX
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/dREN_ID_EX
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/imm16_ext_ID_EX
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/instruction_ID_EX
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/WEN_ID_EX
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/imm16_ID_EX
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/Rt_ID_EX
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/Rs_ID_EX
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/Rd_ID_EX
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/rdat1_ID_EX
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/imemaddr_ID_EX
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/next_imemaddr_ID_EX
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/halt_ID_EX
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/reg_dest_ID_EX
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/flush_EX_MEM
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/alu_op_ID_EX
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/result
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/enable_EX_MEM
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/data_store
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/zero
-add wave -noupdate -group EX_MEM_Register -group EX_MEM_Register /system_tb/DUT/CPU/DP/ex_mem_regif/mem_to_reg_ID_EX
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/opcode_EX_MEM
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/func_EX_MEM
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/imemaddr_EX_MEM
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/imemREN
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/dmemREN
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/dmemWEN
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs -radix hexadecimal /system_tb/DUT/CPU/DP/ex_mem_regif/dmemaddr_EX_MEM
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/dmemstore_EX_MEM
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/result_EX_MEM
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/WEN_EX_MEM
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/halt_EX_MEM
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/reg_dest_EX_MEM
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/Rs_EX_MEM
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/Rt_EX_MEM
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/Rd_EX_MEM
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/next_imemaddr_EX_MEM
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/instruction_EX_MEM
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/imm16_EX_MEM
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/imm16_ext_EX_MEM
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/rdat1_EX_MEM
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/zero_EX_MEM
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/branch_addr
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/branch_addr_EX_MEM
-add wave -noupdate -group EX_MEM_Register -expand -group Outputs /system_tb/DUT/CPU/DP/ex_mem_regif/mem_to_reg_EX_MEM
-add wave -noupdate -group MEM_WB_Register -expand -group MEM_WB_Register /system_tb/DUT/CPU/DP/mem_wb_regif/result_EX_MEM
-add wave -noupdate -group MEM_WB_Register -expand -group MEM_WB_Register /system_tb/DUT/CPU/DP/mem_wb_regif/WEN_EX_MEM
-add wave -noupdate -group MEM_WB_Register -expand -group MEM_WB_Register /system_tb/DUT/CPU/DP/mem_wb_regif/reg_dest_EX_MEM
-add wave -noupdate -group MEM_WB_Register -expand -group MEM_WB_Register /system_tb/DUT/CPU/DP/mem_wb_regif/halt_EX_MEM
-add wave -noupdate -group MEM_WB_Register -expand -group MEM_WB_Register /system_tb/DUT/CPU/DP/mem_wb_regif/Rt_EX_MEM
-add wave -noupdate -group MEM_WB_Register -expand -group MEM_WB_Register /system_tb/DUT/CPU/DP/mem_wb_regif/Rd_EX_MEM
-add wave -noupdate -group MEM_WB_Register -expand -group MEM_WB_Register /system_tb/DUT/CPU/DP/mem_wb_regif/imemaddr_EX_MEM
-add wave -noupdate -group MEM_WB_Register -expand -group MEM_WB_Register /system_tb/DUT/CPU/DP/mem_wb_regif/next_imemaddr_EX_MEM
-add wave -noupdate -group MEM_WB_Register -expand -group MEM_WB_Register /system_tb/DUT/CPU/DP/mem_wb_regif/opcode_EX_MEM
-add wave -noupdate -group MEM_WB_Register -expand -group MEM_WB_Register /system_tb/DUT/CPU/DP/mem_wb_regif/func_EX_MEM
-add wave -noupdate -group MEM_WB_Register -expand -group MEM_WB_Register /system_tb/DUT/CPU/DP/mem_wb_regif/instruction_EX_MEM
-add wave -noupdate -group MEM_WB_Register -expand -group MEM_WB_Register /system_tb/DUT/CPU/DP/mem_wb_regif/imm16_EX_MEM
-add wave -noupdate -group MEM_WB_Register -expand -group MEM_WB_Register /system_tb/DUT/CPU/DP/mem_wb_regif/imm16_ext_EX_MEM
-add wave -noupdate -group MEM_WB_Register -expand -group MEM_WB_Register /system_tb/DUT/CPU/DP/mem_wb_regif/dmemstore_EX_MEM
-add wave -noupdate -group MEM_WB_Register -expand -group MEM_WB_Register /system_tb/DUT/CPU/DP/mem_wb_regif/rdat1_EX_MEM
-add wave -noupdate -group MEM_WB_Register -expand -group MEM_WB_Register /system_tb/DUT/CPU/DP/mem_wb_regif/Rs_EX_MEM
-add wave -noupdate -group MEM_WB_Register -expand -group MEM_WB_Register /system_tb/DUT/CPU/DP/dmemload_reg
-add wave -noupdate -group MEM_WB_Register -expand -group Outputs /system_tb/DUT/CPU/DP/mem_wb_regif/opcode_MEM_WB
-add wave -noupdate -group MEM_WB_Register -expand -group Outputs /system_tb/DUT/CPU/DP/mem_wb_regif/func_MEM_WB
-add wave -noupdate -group MEM_WB_Register -expand -group Outputs /system_tb/DUT/CPU/DP/mem_wb_regif/Rt_MEM_WB
-add wave -noupdate -group MEM_WB_Register -expand -group Outputs /system_tb/DUT/CPU/DP/mem_wb_regif/WEN_MEM_WB
-add wave -noupdate -group MEM_WB_Register -expand -group Outputs /system_tb/DUT/CPU/DP/mem_wb_regif/imemaddr_MEM_WB
-add wave -noupdate -group MEM_WB_Register -expand -group Outputs /system_tb/DUT/CPU/DP/mem_wb_regif/mem_data_MEM_WB
-add wave -noupdate -group MEM_WB_Register -expand -group Outputs /system_tb/DUT/CPU/DP/mem_wb_regif/mem_to_reg_MEM_WB
-add wave -noupdate -group MEM_WB_Register -expand -group Outputs /system_tb/DUT/CPU/DP/mem_wb_regif/enable_MEM_WB
-add wave -noupdate -group MEM_WB_Register -expand -group Outputs /system_tb/DUT/CPU/DP/mem_wb_regif/flush_MEM_WB
-add wave -noupdate -group MEM_WB_Register -expand -group Outputs /system_tb/DUT/CPU/DP/mem_wb_regif/Rs_MEM_WB
-add wave -noupdate -group MEM_WB_Register -expand -group Outputs /system_tb/DUT/CPU/DP/mem_wb_regif/next_imemaddr_MEM_WB
-add wave -noupdate -group MEM_WB_Register -expand -group Outputs /system_tb/DUT/CPU/DP/mem_wb_regif/reg_dest_MEM_WB
-add wave -noupdate -group MEM_WB_Register -expand -group Outputs /system_tb/DUT/CPU/DP/mem_wb_regif/Rd_MEM_WB
-add wave -noupdate -group MEM_WB_Register -expand -group Outputs /system_tb/DUT/CPU/DP/mem_wb_regif/instruction_MEM_WB
-add wave -noupdate -group MEM_WB_Register -expand -group Outputs /system_tb/DUT/CPU/DP/mem_wb_regif/imm16_MEM_WB
-add wave -noupdate -group MEM_WB_Register -expand -group Outputs /system_tb/DUT/CPU/DP/mem_wb_regif/imm16_ext_MEM_WB
-add wave -noupdate -group MEM_WB_Register -expand -group Outputs /system_tb/DUT/CPU/DP/mem_wb_regif/dmemstore_MEM_WB
-add wave -noupdate -group MEM_WB_Register -expand -group Outputs /system_tb/DUT/CPU/DP/mem_wb_regif/rdat1_MEM_WB
-add wave -noupdate -group MEM_WB_Register -expand -group Outputs /system_tb/DUT/CPU/DP/mem_wb_regif/result_MEM_WB
-add wave -noupdate -group MEM_WB_Register -expand -group Outputs /system_tb/DUT/CPU/DP/mem_wb_regif/halt
-add wave -noupdate -group Mux6 /system_tb/DUT/CPU/DP/d_s
-add wave -noupdate -group {MUX 5} /system_tb/DUT/CPU/DP/jmp_addr
-add wave -noupdate -group {Fu sigs} /system_tb/DUT/CPU/DP/fu_reg_dest_EX_MEM
-add wave -noupdate -group {Fu sigs} /system_tb/DUT/CPU/DP/fu_reg_dest_MEM_WB
-add wave -noupdate -group {Ram } /system_tb/DUT/RAM/ramif/ramREN
-add wave -noupdate -group {Ram } /system_tb/DUT/RAM/ramif/ramWEN
-add wave -noupdate -group {Ram } -radix hexadecimal /system_tb/DUT/RAM/ramif/ramaddr
-add wave -noupdate -group {Ram } /system_tb/DUT/RAM/ramif/ramstore
-add wave -noupdate -group {Ram } /system_tb/DUT/RAM/ramif/ramload
-add wave -noupdate -group {Ram } /system_tb/DUT/RAM/ramif/ramstate
-add wave -noupdate -group MUX3 /system_tb/DUT/CPU/DP/wdat
-add wave -noupdate -group {Brand address calculator} /system_tb/DUT/CPU/DP/branch_addr
-add wave -noupdate -group {Brand address calculator} /system_tb/DUT/CPU/DP/br_imm
-add wave -noupdate -group {Data-Path Cache Interface} /system_tb/DUT/CPU/CM/dcif/dhit
-add wave -noupdate -group {Data-Path Cache Interface} /system_tb/DUT/CPU/CM/dcif/ihit
-add wave -noupdate -group {Data-Path Cache Interface} /system_tb/DUT/CPU/CM/dcif/dmemREN
-add wave -noupdate -group {Data-Path Cache Interface} /system_tb/DUT/CPU/CM/dcif/dmemWEN
-add wave -noupdate -group {Data-Path Cache Interface} /system_tb/DUT/CPU/CM/dcif/dmemaddr
-add wave -noupdate -group {Data-Path Cache Interface} /system_tb/DUT/CPU/CM/dcif/dmemload
-add wave -noupdate -group {Data-Path Cache Interface} /system_tb/DUT/CPU/CM/dcif/dmemstore
-add wave -noupdate -group {Data-Path Cache Interface} /system_tb/DUT/CPU/CM/dcif/flushed
-add wave -noupdate -group {Data-Path Cache Interface} /system_tb/DUT/CPU/CM/dcif/halt
-add wave -noupdate -group {Data-Path Cache Interface} /system_tb/DUT/CPU/CM/dcif/imemREN
-add wave -noupdate -group {Data-Path Cache Interface} /system_tb/DUT/CPU/CM/dcif/imemaddr
-add wave -noupdate -group {Data-Path Cache Interface} /system_tb/DUT/CPU/CM/dcif/imemload
-add wave -noupdate -group {Caches interface} /system_tb/DUT/CPU/CM/cif/iwait
-add wave -noupdate -group {Caches interface} /system_tb/DUT/CPU/CM/cif/iload
-add wave -noupdate -group {Caches interface} /system_tb/DUT/CPU/CM/cif/iaddr
-add wave -noupdate -group {Caches interface} /system_tb/DUT/CPU/CM/cif/iREN
-add wave -noupdate -group {Caches interface} /system_tb/DUT/CPU/CM/cif/dwait
-add wave -noupdate -group {Caches interface} /system_tb/DUT/CPU/CM/cif/dstore
-add wave -noupdate -group {Caches interface} /system_tb/DUT/CPU/CM/cif/dload
-add wave -noupdate -group {Caches interface} /system_tb/DUT/CPU/CM/cif/daddr
-add wave -noupdate -group {Caches interface} /system_tb/DUT/CPU/CM/cif/dWEN
-add wave -noupdate -group {Caches interface} /system_tb/DUT/CPU/CM/cif/dREN
-add wave -noupdate -expand -group {Dcache Values} -expand -subitemconfig {{/system_tb/DUT/CPU/CM/DCACHE/cbl[0]} -expand} /system_tb/DUT/CPU/CM/DCACHE/cbl
-add wave -noupdate -expand -group {Dcache Values} /system_tb/DUT/CPU/CM/DCACHE/state
-add wave -noupdate -expand -group {Dcache Values} /system_tb/DUT/CPU/CM/DCACHE/hit_count
-add wave -noupdate /system_tb/DUT/CPU/CM/DCACHE/last_used
+add wave -noupdate -group {System Signals } -radix hexadecimal /system_tb/CLK
+add wave -noupdate -group {System Signals } -radix hexadecimal /system_tb/nRST
+add wave -noupdate /system_tb/DUT/CPU/DP0/CLK
+add wave -noupdate /system_tb/DUT/CPU/DP0/nRST
+add wave -noupdate -group DataPath0 /system_tb/DUT/CPU/DP0/imm16_ext
+add wave -noupdate -group DataPath0 /system_tb/DUT/CPU/DP0/port_b
+add wave -noupdate -group DataPath0 /system_tb/DUT/CPU/DP0/wdat
+add wave -noupdate -group DataPath0 /system_tb/DUT/CPU/DP0/data_store
+add wave -noupdate -group DataPath0 /system_tb/DUT/CPU/DP0/d_s
+add wave -noupdate -group DataPath0 /system_tb/DUT/CPU/DP0/wsel
+add wave -noupdate -group DataPath0 /system_tb/DUT/CPU/DP0/fu_reg_dest_EX_MEM
+add wave -noupdate -group DataPath0 /system_tb/DUT/CPU/DP0/fu_reg_dest_MEM_WB
+add wave -noupdate -group DataPath0 /system_tb/DUT/CPU/DP0/next_imemaddr
+add wave -noupdate -group DataPath0 /system_tb/DUT/CPU/DP0/jmp_addr
+add wave -noupdate -group DataPath0 /system_tb/DUT/CPU/DP0/next_pc
+add wave -noupdate -group DataPath0 /system_tb/DUT/CPU/DP0/jmp_addr_shifted
+add wave -noupdate -group DataPath0 /system_tb/DUT/CPU/DP0/br_imm
+add wave -noupdate -group DataPath0 /system_tb/DUT/CPU/DP0/branch_addr
+add wave -noupdate -group DataPath0 /system_tb/DUT/CPU/DP0/jmp_return_addr
+add wave -noupdate -group DataPath0 /system_tb/DUT/CPU/DP0/alu_mux_a
+add wave -noupdate -group DataPath0 /system_tb/DUT/CPU/DP0/alu_mux_b
+add wave -noupdate -group DataPath0 /system_tb/DUT/CPU/DP0/dmemload_reg
+add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/imemload
+add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/imemaddr
+add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/imemREN
+add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/ihit
+add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/halt
+add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/flushed
+add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/dmemstore
+add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/dmemload
+add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/dmemaddr
+add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/dmemWEN
+add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/dmemREN
+add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/dhit
+add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/iwait
+add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/iload
+add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/iaddr
+add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/iREN
+add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/dwait
+add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/dstore
+add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/dload
+add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/daddr
+add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/dWEN
+add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/dREN
+add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/ccwrite
+add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/ccwait
+add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/cctrans
+add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/ccsnoopaddr
+add wave -noupdate -group cif0 /system_tb/DUT/CPU/cif0/ccinv
+add wave -noupdate -group {Dcache0 Internal } /system_tb/DUT/CPU/CM0/DCACHE/state
+add wave -noupdate -group {Dcache0 Internal } /system_tb/DUT/CPU/CM0/DCACHE/last_state
+add wave -noupdate -group {Dcache0 Internal } /system_tb/DUT/CPU/CM0/DCACHE/next_state
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/Rd_EX_MEM
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/Rd_ID_EX
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/Rs_EX_MEM
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/Rs_ID_EX
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/Rt_EX_MEM
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/Rt_ID_EX
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/WEN_EX_MEM
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/WEN_ID_EX
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/alu_op_ID_EX
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/branch_addr
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/branch_addr_EX_MEM
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/dREN_ID_EX
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/dWEN_ID_EX
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/data_store
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/dhit
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/dmemREN
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/dmemWEN
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/dmemaddr_EX_MEM
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/dmemstore_EX_MEM
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/enable_EX_MEM
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/flush_EX_MEM
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/func_EX_MEM
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/func_ID_EX
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/halt_EX_MEM
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/halt_ID_EX
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/iREN_ID_EX
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/imemREN
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/imemaddr_EX_MEM
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/imemaddr_ID_EX
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/imm16_EX_MEM
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/imm16_ID_EX
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/imm16_ext_EX_MEM
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/imm16_ext_ID_EX
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/instruction_EX_MEM
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/instruction_ID_EX
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/mem_to_reg_EX_MEM
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/mem_to_reg_ID_EX
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/next_imemaddr_EX_MEM
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/next_imemaddr_ID_EX
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/opcode_EX_MEM
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/opcode_ID_EX
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/rdat1_EX_MEM
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/rdat1_ID_EX
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/reg_dest_EX_MEM
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/reg_dest_ID_EX
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/result
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/result_EX_MEM
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/zero
+add wave -noupdate -group {DataPath0 EX/MEM Register} /system_tb/DUT/CPU/DP0/ex_mem_regif/zero_EX_MEM
+add wave -noupdate -group DataPath1 /system_tb/DUT/CPU/DP1/wsel
+add wave -noupdate -group DataPath1 /system_tb/DUT/CPU/DP1/wdat
+add wave -noupdate -group DataPath1 /system_tb/DUT/CPU/DP1/port_b
+add wave -noupdate -group DataPath1 /system_tb/DUT/CPU/DP1/next_pc
+add wave -noupdate -group DataPath1 /system_tb/DUT/CPU/DP1/next_imemaddr
+add wave -noupdate -group DataPath1 /system_tb/DUT/CPU/DP1/nRST
+add wave -noupdate -group DataPath1 /system_tb/DUT/CPU/DP1/jmp_return_addr
+add wave -noupdate -group DataPath1 /system_tb/DUT/CPU/DP1/jmp_addr_shifted
+add wave -noupdate -group DataPath1 /system_tb/DUT/CPU/DP1/jmp_addr
+add wave -noupdate -group DataPath1 /system_tb/DUT/CPU/DP1/imm16_ext
+add wave -noupdate -group DataPath1 /system_tb/DUT/CPU/DP1/fu_reg_dest_MEM_WB
+add wave -noupdate -group DataPath1 /system_tb/DUT/CPU/DP1/fu_reg_dest_EX_MEM
+add wave -noupdate -group DataPath1 /system_tb/DUT/CPU/DP1/dmemload_reg
+add wave -noupdate -group DataPath1 /system_tb/DUT/CPU/DP1/data_store
+add wave -noupdate -group DataPath1 /system_tb/DUT/CPU/DP1/d_s
+add wave -noupdate -group DataPath1 /system_tb/DUT/CPU/DP1/branch_addr
+add wave -noupdate -group DataPath1 /system_tb/DUT/CPU/DP1/br_imm
+add wave -noupdate -group DataPath1 /system_tb/DUT/CPU/DP1/alu_mux_b
+add wave -noupdate -group DataPath1 /system_tb/DUT/CPU/DP1/alu_mux_a
+add wave -noupdate -group DataPath1 /system_tb/DUT/CPU/DP1/PC_INIT
+add wave -noupdate -group DataPath1 /system_tb/DUT/CPU/DP1/CLK
+add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/imemload
+add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/imemaddr
+add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/imemREN
+add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/ihit
+add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/halt
+add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/flushed
+add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/dmemstore
+add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/dmemload
+add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/dmemaddr
+add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/dmemWEN
+add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/dmemREN
+add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/dhit
+add wave -noupdate -group cif1 /system_tb/DUT/CPU/cif1/iwait
+add wave -noupdate -group cif1 /system_tb/DUT/CPU/cif1/dwait
+add wave -noupdate -group cif1 /system_tb/DUT/CPU/cif1/iREN
+add wave -noupdate -group cif1 /system_tb/DUT/CPU/cif1/dREN
+add wave -noupdate -group cif1 /system_tb/DUT/CPU/cif1/dWEN
+add wave -noupdate -group cif1 /system_tb/DUT/CPU/cif1/iload
+add wave -noupdate -group cif1 /system_tb/DUT/CPU/cif1/dload
+add wave -noupdate -group cif1 /system_tb/DUT/CPU/cif1/dstore
+add wave -noupdate -group cif1 /system_tb/DUT/CPU/cif1/iaddr
+add wave -noupdate -group cif1 /system_tb/DUT/CPU/cif1/daddr
+add wave -noupdate -group cif1 /system_tb/DUT/CPU/cif1/ccwait
+add wave -noupdate -group cif1 /system_tb/DUT/CPU/cif1/ccinv
+add wave -noupdate -group cif1 /system_tb/DUT/CPU/cif1/ccwrite
+add wave -noupdate -group cif1 /system_tb/DUT/CPU/cif1/cctrans
+add wave -noupdate -group cif1 /system_tb/DUT/CPU/cif1/ccsnoopaddr
+add wave -noupdate -group {Dcache1 Internal} /system_tb/DUT/CPU/CM1/DCACHE/state
+add wave -noupdate -group {Dcache1 Internal} /system_tb/DUT/CPU/CM1/DCACHE/last_used
+add wave -noupdate -group {Dcache1 Internal} /system_tb/DUT/CPU/CM1/DCACHE/next_state
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/Rd_EX_MEM
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/Rd_ID_EX
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/Rs_EX_MEM
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/Rs_ID_EX
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/Rt_EX_MEM
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/Rt_ID_EX
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/WEN_EX_MEM
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/WEN_ID_EX
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/alu_op_ID_EX
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/branch_addr
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/branch_addr_EX_MEM
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/dREN_ID_EX
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/dWEN_ID_EX
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/data_store
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/dhit
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/dmemREN
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/dmemWEN
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/dmemaddr_EX_MEM
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/dmemstore_EX_MEM
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/enable_EX_MEM
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/flush_EX_MEM
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/func_EX_MEM
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/func_ID_EX
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/halt_EX_MEM
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/halt_ID_EX
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/iREN_ID_EX
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/imemREN
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/imemaddr_EX_MEM
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/imemaddr_ID_EX
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/imm16_EX_MEM
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/imm16_ID_EX
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/imm16_ext_EX_MEM
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/imm16_ext_ID_EX
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/instruction_EX_MEM
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/instruction_ID_EX
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/mem_to_reg_EX_MEM
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/mem_to_reg_ID_EX
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/next_imemaddr_EX_MEM
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/next_imemaddr_ID_EX
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/opcode_EX_MEM
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/opcode_ID_EX
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/rdat1_EX_MEM
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/rdat1_ID_EX
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/reg_dest_EX_MEM
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/reg_dest_ID_EX
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/result
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/result_EX_MEM
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/zero
+add wave -noupdate -group {DataPath1 EX/MEM Register} /system_tb/DUT/CPU/DP1/ex_mem_regif/zero_EX_MEM
+add wave -noupdate -group {Memory Controller} /system_tb/DUT/CPU/CC/ccif/CPUS
+add wave -noupdate -group {Memory Controller} /system_tb/DUT/CPU/CC/ccif/ccinv
+add wave -noupdate -group {Memory Controller} /system_tb/DUT/CPU/CC/ccif/ccsnoopaddr
+add wave -noupdate -group {Memory Controller} /system_tb/DUT/CPU/CC/ccif/cctrans
+add wave -noupdate -group {Memory Controller} /system_tb/DUT/CPU/CC/ccif/ccwait
+add wave -noupdate -group {Memory Controller} /system_tb/DUT/CPU/CC/ccif/ccwrite
+add wave -noupdate -group {Memory Controller} -expand /system_tb/DUT/CPU/CC/ccif/dREN
+add wave -noupdate -group {Memory Controller} -expand /system_tb/DUT/CPU/CC/ccif/dWEN
+add wave -noupdate -group {Memory Controller} /system_tb/DUT/CPU/CC/ccif/daddr
+add wave -noupdate -group {Memory Controller} /system_tb/DUT/CPU/CC/ccif/dload
+add wave -noupdate -group {Memory Controller} /system_tb/DUT/CPU/CC/ccif/dstore
+add wave -noupdate -group {Memory Controller} /system_tb/DUT/CPU/CC/ccif/dwait
+add wave -noupdate -group {Memory Controller} /system_tb/DUT/CPU/CC/ccif/iREN
+add wave -noupdate -group {Memory Controller} /system_tb/DUT/CPU/CC/ccif/iaddr
+add wave -noupdate -group {Memory Controller} /system_tb/DUT/CPU/CC/ccif/iload
+add wave -noupdate -group {Memory Controller} /system_tb/DUT/CPU/CC/ccif/iwait
+add wave -noupdate -group {Memory Controller} /system_tb/DUT/CPU/CC/ccif/ramREN
+add wave -noupdate -group {Memory Controller} /system_tb/DUT/CPU/CC/ccif/ramWEN
+add wave -noupdate -group {Memory Controller} -radix hexadecimal -childformat {{{/system_tb/DUT/CPU/CC/ccif/ramaddr[31]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[30]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[29]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[28]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[27]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[26]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[25]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[24]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[23]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[22]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[21]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[20]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[19]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[18]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[17]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[16]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[15]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[14]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[13]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[12]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[11]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[10]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[9]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[8]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[7]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[6]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[5]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[4]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[3]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[2]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[1]} -radix hexadecimal} {{/system_tb/DUT/CPU/CC/ccif/ramaddr[0]} -radix hexadecimal}} -subitemconfig {{/system_tb/DUT/CPU/CC/ccif/ramaddr[31]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[30]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[29]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[28]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[27]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[26]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[25]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[24]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[23]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[22]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[21]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[20]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[19]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[18]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[17]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[16]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[15]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[14]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[13]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[12]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[11]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[10]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[9]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[8]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[7]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[6]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[5]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[4]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[3]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[2]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[1]} {-radix hexadecimal} {/system_tb/DUT/CPU/CC/ccif/ramaddr[0]} {-radix hexadecimal}} /system_tb/DUT/CPU/CC/ccif/ramaddr
+add wave -noupdate -group {Memory Controller} /system_tb/DUT/CPU/CC/ccif/ramload
+add wave -noupdate -group {Memory Controller} /system_tb/DUT/CPU/CC/ccif/ramstate
+add wave -noupdate -group {Memory Controller} /system_tb/DUT/CPU/CC/ccif/ramstore
+add wave -noupdate -expand -group {Ram Interface} /system_tb/DUT/RAM/ramif/memREN
+add wave -noupdate -expand -group {Ram Interface} /system_tb/DUT/RAM/ramif/memWEN
+add wave -noupdate -expand -group {Ram Interface} /system_tb/DUT/RAM/ramif/memaddr
+add wave -noupdate -expand -group {Ram Interface} /system_tb/DUT/RAM/ramif/memstore
+add wave -noupdate -expand -group {Ram Interface} /system_tb/DUT/RAM/ramif/ramREN
+add wave -noupdate -expand -group {Ram Interface} /system_tb/DUT/RAM/ramif/ramWEN
+add wave -noupdate -expand -group {Ram Interface} /system_tb/DUT/RAM/ramif/ramaddr
+add wave -noupdate -expand -group {Ram Interface} /system_tb/DUT/RAM/ramif/ramload
+add wave -noupdate -expand -group {Ram Interface} /system_tb/DUT/RAM/ramif/ramstate
+add wave -noupdate -expand -group {Ram Interface} /system_tb/DUT/RAM/ramif/ramstore
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 4} {1178862 ps} 0}
+WaveRestoreCursors {{Cursor 4} {5476627 ps} 1}
 quietly wave cursor active 1
 configure wave -namecolwidth 274
-configure wave -valuecolwidth 540
+configure wave -valuecolwidth 147
 configure wave -justifyvalue left
 configure wave -signalnamewidth 1
 configure wave -snapdistance 10
@@ -270,4 +250,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ps} {1992390 ps}
+WaveRestoreZoom {0 ps} {10826756 ps}

@@ -52,6 +52,7 @@ word_t next_left_dat0, next_left_dat1, next_right_dat0, next_right_dat1;
 logic next_left_dirty, next_left_valid, next_right_dirty, next_right_valid;
 
 state_t state, next_state, prev_state, next_prev_state;
+state_t last_state, next_last_state;
 
 logic[4:0] cache_row, next_cache_row, old_cache_row, next_old_cache_row, temp_old_row;
 
@@ -112,6 +113,7 @@ begin
          last_used[i] <= 0;
       end
       state <= IDLE;
+      last_state <= IDLE;
       prev_state <= IDLE;
       cache_row <= 0;
       old_cache_row <= 0;
@@ -120,11 +122,13 @@ begin
    begin
       last_used[cache_index] <= next_last_used[cache_index];
       state <= next_state;
+      last_state <= next_last_state;
       prev_state <= next_prev_state;
       cache_row <= next_cache_row;
       old_cache_row <= next_old_cache_row;
    end
 end
+
 
 always_comb
 begin
@@ -135,10 +139,12 @@ begin
    next_old_cache_row = old_cache_row;
    next_last_address = last_daddr; 
    next_dmemWEN = dmemWEN; 
+   next_last_state = last_state;
 
    casez(state)
       IDLE :
       begin
+         next_last_state = IDLE; 
          // if being snooped
          if (cif.ccwait == 1) begin
             next_state = SNOOP; 
@@ -191,6 +197,7 @@ begin
       end
       WB1 :
       begin
+         next_last_state = WB1;
          // if being snooped
          if (cif.ccwait == 1) begin 
             next_state = SNOOP; 
@@ -202,6 +209,7 @@ begin
       end
       WB2 :
       begin
+         next_last_state = WB2;
          if (cif.ccwait == 1) begin 
             next_state = SNOOP; 
          end
@@ -212,6 +220,7 @@ begin
       end
       READ1 :
       begin
+         next_last_state = READ1;
          // if being snooped 
          if (cif.ccwait == 1) begin 
             next_state = SNOOP; 
@@ -223,6 +232,7 @@ begin
       end
       READ2 :
       begin
+         next_last_state = READ2;
          // if being snooped 
          if (cif.ccwait == 1) begin 
             next_state = SNOOP; 
@@ -234,6 +244,7 @@ begin
       end
       FLUSH1 :
       begin
+         next_last_state = FLUSH1;
          // if being snooped 
          if (cif.ccwait == 1) begin 
             next_state = SNOOP; 
@@ -245,6 +256,7 @@ begin
       end
       FLUSH2 :
       begin
+         next_last_state = FLUSH2;
          // if being snooped 
          if (cif.ccwait == 1) begin 
             next_state = SNOOP; 
@@ -256,6 +268,7 @@ begin
       end
       DIRTY :
       begin
+         next_last_state = DIRTY;
          // if being snooped 
          if (cif.ccwait == 1) begin 
             next_state = SNOOP; 
@@ -334,13 +347,13 @@ begin
          // if memory controller says ram is valid 
          if (cif.dwait == 0) begin 
             // Finished providing data so go back to idle  
-            next_state = IDLE;
+            next_state = last_state;
          end 
       end 
       NO_WB: 
       begin 
          // Not supllying the data, so go back to idle
-         next_state = IDLE; 
+         next_state = last_state; 
       end
       default : 
       begin 
@@ -387,7 +400,7 @@ begin
          if(dcif.dmemREN == 1)
          begin
             // if the left tag matches, block valid, and is dirty
-            if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1)
+            if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1 )
             begin
                // give back a dhit 
                dcif.dhit = 1;
@@ -409,7 +422,7 @@ begin
                end
             end
             // if the right tag matches, block valid, and dirty
-            else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1)
+            else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1 )
             begin
                // give back a dhit to the processor
                dcif.dhit = 1;
@@ -434,14 +447,13 @@ begin
             else begin 
                dcif.dhit = 1'b0; 
                hit = 1'b0; 
-               cif.daddr = dcif.dmemaddr;
             end 
          end
          // If a processor write is occuring
          else if(dcif.dmemWEN == 1)
          begin
             // If left tag matches, left block is valid, and left block is dirty (Writing to a shared block should produce a miss in order to go and invalidate the other caches)
-            if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1)
+            if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1 && cbl[cache_index].left_dirty == 1)
             begin
                // give back a dhit to processor
                dcif.dhit = 1;
@@ -468,7 +480,7 @@ begin
                cif.daddr = dcif.dmemaddr; 
             end
             // if right tag matches, right block is valid, and right block is dirty (Writing to a shared block should produce a miss in order to go and invalidate the other caches)
-            else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1)
+            else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1 && cbl[cache_index].right_dirty == 1)
             begin
                // give back a dhit to the processor
                dcif.dhit = 1;

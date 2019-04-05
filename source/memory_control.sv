@@ -436,10 +436,12 @@ module memory_control (
           if(ccif.ramstate == ACCESS)
           begin
             ccif.dwait[0] = 0;
+            ccif.dwait[1] = 0;
           end
           else
           begin
             ccif.dwait[0] = 1;
+            ccif.dwait[1] = 1;
           end        
         end
         else
@@ -450,10 +452,12 @@ module memory_control (
           ccif.ramstore = ccif.dstore[0];
           if(ccif.ramstate == ACCESS)
           begin
+            ccif.dwait[0] = 0;
             ccif.dwait[1] = 0;
           end
           else
           begin
+            ccif.dwait[0] = 1;
             ccif.dwait[1] = 1;
           end  
         end
@@ -470,10 +474,12 @@ module memory_control (
           if(ccif.ramstate == ACCESS)
           begin
             ccif.dwait[0] = 0;
+            ccif.dwait[1] = 0;
           end
           else
           begin
             ccif.dwait[0] = 1;
+            ccif.dwait[1] = 1;
           end        
         end
         else
@@ -484,10 +490,12 @@ module memory_control (
           ccif.ramstore = ccif.dstore[0];
           if(ccif.ramstate == ACCESS)
           begin
+            ccif.dwait[0] = 0;
             ccif.dwait[1] = 0;
           end
           else
           begin
+            ccif.dwait[0] = 1;
             ccif.dwait[1] = 1;
           end  
         end      
