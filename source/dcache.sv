@@ -155,8 +155,8 @@ begin
             // If right block in current set was the last recently used 
             if(last_used[cache_index] == 0)
             begin
-               // if the right block is dirty
-               if(cbl[cache_index].right_dirty == 1)
+               // if the right block is dirty and valid
+               if((cbl[cache_index].right_dirty) == 1 && (cbl[cache_index].right_valid == 1))
                begin
                   // start write back process to send it back to ram 
                   next_state = WB1;
@@ -170,8 +170,8 @@ begin
             // the left block in current set was the last recently used
             else
             begin
-               // If the left block is dirty 
-               if(cbl[cache_index].left_dirty == 1)
+               // If the left block is dirty and valid
+               if((cbl[cache_index].left_dirty) == 1 && (cbl[cache_index].left_valid == 1))
                begin
                   // Begin the process of writing to memory
                   next_state = WB1;
@@ -430,12 +430,17 @@ begin
                   dcif.dmemload = cbl[cache_index].right_dat1;
                end
             end
+            // A miss
+            else begin 
+               dcif.dhit = 1'b0; 
+               hit = 1'b0; 
+            end 
          end
          // If a processor write is occuring
          else if(dcif.dmemWEN == 1)
          begin
             // If left tag matches, left block is valid, and left block is dirty (Writing to a shared block should produce a miss in order to go and invalidate the other caches)
-            if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1 && cbl[cache_index].left_dirty == 1)
+            if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1)
             begin
                // give back a dhit to processor
                dcif.dhit = 1;
@@ -457,9 +462,12 @@ begin
                   // set the word1 data to dmemstore line
                   next_left_dat1 = dcif.dmemstore;
                end
+               // Tell bus that writing to a block address
+               cif.ccwrite = 1'b1; 
+               cif.ccsnoopaddr = dcif.dmemaddr; 
             end
             // if right tag matches, right block is valid, and right block is dirty (Writing to a shared block should produce a miss in order to go and invalidate the other caches)
-            else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1 && cbl[cache_index].right_dirty == 1)
+            else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1)
             begin
                // give back a dhit to the processor
                dcif.dhit = 1;
@@ -481,7 +489,15 @@ begin
                   // set word1 data to dmemstore line
                   next_right_dat1 = dcif.dmemstore;
                end
+               // Tell bus that writing to a block address
+               cif.ccwrite = 1'b1; 
+               cif.ccsnoopaddr = dcif.dmemaddr;
             end
+            // A miss
+            else begin 
+               dcif.dhit = 1'b0; 
+               hit = 1'b0; 
+            end 
          end
       end
       WB1 :
