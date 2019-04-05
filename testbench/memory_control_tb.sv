@@ -1623,6 +1623,20 @@ program test
                     0 // whether the non-requesting cache should be invalidated
                     );
 
+  /****************************************************************
+  *
+  *   
+  * Test Case #10: Test to make sure that the memory controller tells a cache if opposite cache just wrote to a block in the shared state
+  *
+  *
+  *****************************************************************/
+  test_case_num = test_case_num + 1; 
+  test_description = "Test to make sure that the memory controller tells a cache if opposite cache just wrote to a block in the shared state"; 
+
+  reset_dut(); 
+
+  // Send write and snoop address to memory controller when it is in the 
+
   dump_memory();
   end
 

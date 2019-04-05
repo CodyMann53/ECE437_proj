@@ -42,5 +42,4 @@ module caches (
       daddr <= dcif.dmemaddr;
     end
   end
-
 endmodule
