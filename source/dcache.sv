@@ -471,62 +471,75 @@ begin
             // If left tag matches, left block is valid, and left block is dirty (Writing to a shared block should produce a miss in order to go and invalidate the other caches)
             if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1)
             begin
-               // give back a dhit to processor
-               dcif.dhit = 1;
-               // set internal hit signal
-               hit = 1;
-               // set the left block to dirty 
-               next_left_dirty = 1;
-               // set the right block as the last used
-               next_last_used[cache_index] = 0;
-               // if writing to word0
-               if(data_index[2] == 0)
+               if(cbl[cache_index].left_dirty == 1)
                begin
-                  // set the word0 data to dmemstore line
-                  next_left_dat0 = dcif.dmemstore;
+                 // give back a dhit to processor
+                 dcif.dhit = 1;
+                 // set internal hit signal
+                 hit = 1;
+                 // set the left block to dirty 
+                 next_left_dirty = 1;
+                 // set the right block as the last used
+                 next_last_used[cache_index] = 0;
+                 // if writing to word0
+                 if(data_index[2] == 0)
+                 begin
+                    // set the word0 data to dmemstore line
+                    next_left_dat0 = dcif.dmemstore;
+                 end
+                 // writing to word1
+                 else
+                 begin
+                    // set the word1 data to dmemstore line
+                    next_left_dat1 = dcif.dmemstore;
+                 end
+                 // Tell bus that writing to a block address
+                 cif.ccwrite = 1'b1; 
+                 cif.daddr = dcif.dmemaddr; 
                end
-               // writing to word1
                else
                begin
-                  // set the word1 data to dmemstore line
-                  next_left_dat1 = dcif.dmemstore;
+                 next_last_used[cache_index] = 1;
+                 dcif.dhit = 1'b0; 
+                 hit = 1'b0; 
                end
-               // Tell bus that writing to a block address
-               cif.ccwrite = 1'b1; 
-               cif.daddr = dcif.dmemaddr; 
             end
             // if right tag matches, right block is valid, and right block is dirty (Writing to a shared block should produce a miss in order to go and invalidate the other caches)
             else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1)
             begin
-               // give back a dhit to the processor
-               dcif.dhit = 1;
-               // set internal hit signal 
-               hit = 1;
-               // set right block to dirty
-               next_right_dirty = 1;
-               // Update the last recently used to the left block
-               next_last_used[cache_index] = 1;
-               // if writing word0
-               if(data_index[2] == 0)
+               if(cbl[cache_index].right_dirty == 1)
                begin
-                  // set word0 data to dmemstore line
-                  next_right_dat0 = dcif.dmemstore;
+                 // give back a dhit to processor
+                 dcif.dhit = 1;
+                 // set internal hit signal
+                 hit = 1;
+                 // set the left block to dirty 
+                 next_right_dirty = 1;
+                 // set the right block as the last used
+                 next_last_used[cache_index] = 1;
+                 // if writing to word0
+                 if(data_index[2] == 0)
+                 begin
+                    // set the word0 data to dmemstore line
+                    next_right_dat0 = dcif.dmemstore;
+                 end
+                 // writing to word1
+                 else
+                 begin
+                    // set the word1 data to dmemstore line
+                    next_right_dat1 = dcif.dmemstore;
+                 end
+                 // Tell bus that writing to a block address
+                 cif.ccwrite = 1'b1; 
+                 cif.daddr = dcif.dmemaddr; 
                end
-               // writing to word1
                else
                begin
-                  // set word1 data to dmemstore line
-                  next_right_dat1 = dcif.dmemstore;
+                 next_last_used[cache_index] = 0;
+                 dcif.dhit = 1'b0; 
+                 hit = 1'b0; 
                end
-               // Tell bus that writing to a block address
-               cif.ccwrite = 1'b1; 
-               cif.daddr = dcif.dmemaddr;
-            end
-            // A miss
-            else begin 
-               dcif.dhit = 1'b0; 
-               hit = 1'b0; 
-            end 
+             end
          end
       end
       WB1 :

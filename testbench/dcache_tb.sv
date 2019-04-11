@@ -355,31 +355,32 @@ program test(
     cif.dwait = 1;    
     @(negedge CLK);
     cif.dwait = 0; 
-    @(negedge CLK);
     cif.ccwait = 1'b0;
-    cif.dwait = 1;  
+    @(negedge CLK);  
     // Now back to IDLE state
     dcif.dmemREN = 1'b1;
     dcif.dmemaddr = {26'd3, 3'd1, 3'b000};
     @(negedge CLK); 
-    cif.dload = 32'h33333333;
+    cif.dload = 32'h88888888;
+    cif.dwait = 1;
+    @(negedge CLK); 
     cif.dwait = 0;
     @(negedge CLK); 
     cif.dwait = 1;
     @(negedge CLK); 
     @(negedge CLK); 
-    cif.dload = 32'h44444444;
+    cif.dload = 32'h99999999;
     cif.dwait = 0;
+    @(negedge CLK); 
+    // Testing the cache hit
     @(negedge CLK); 
     cif.dwait = 1;
     dcif.dmemREN = 1'b0;
-    // Testing the cache hit
-    @(negedge CLK); 
     @(negedge CLK); 
     dcif.dmemREN = 1'b1;
     dcif.dmemaddr = {26'd3, 3'd1, 3'b000};    
     @(negedge CLK);
-    correct_word = 32'h33333333;
+    correct_word = 32'h88888888;
     assert(dcif.dhit == 1 && dcif.dmemload == correct_word)
        $display("test case %d passed", test_case);
     else
