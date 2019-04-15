@@ -2,7 +2,6 @@
 # Author: Cody Mann 
 # Date: 4/15/2019
 #------------------------------------------
-
 #----------------------------------------------------------
 # First Processor
 #----------------------------------------------------------
@@ -11,17 +10,47 @@
   jal   mainp0              # go to program
   halt
 
-# Main function for processor 0
+# Main function for processor 0----------------------------
+# $s0 = number count
 mainp0:
   push  $ra                 # save return address
+  # Initialize the number count to 0
+  ori $s0, $zero, $zero 
 
-  # 1. CODE TO CONSTANTLY BE PULLING DATA OFF THE BUFFER AND UPDATE MIN, MAX, AND RUNNING SUM (FINISH AFTER 256 RANDOM NUMBERS)
-  # USE ONLY LOWER 16 BITS FOR THIS.
-  # 2. CALCULATE THE AVERAGE AND THEN STORE AVERAGE, MIN, AND MAX 
+  # 1. While number_count_p0 < 256, then keep on processing data 
+  loop: 
+    # If number count is equal to 256 then exit 
+    ori $t0, $zero, 256
+    beq $s0, $t0, exit
+      # LOCK lck1
+      ori $a0, $zero, lck1
+      jal lock
+      # Load in stack size
+      ori $t0, $zero, stack_size
+      lw $t1, 0($t0)
+      # If the buffer is empty then jump to else block
+      beq $t1, $zero, else
+        # Pop value off of the stack buffer             <------------------  LEFT OFF HERE
+        # Decrement the stack buffer size by 1
+        # UNLOCK
+        # Update max
+        # Update min 
+        # update running sum
+    # Else the buffer is empy 
+      else:
+        # UNLOCK lck1
+        ori $a0, $zero, lck1
+        unlock
+
+
+  exit:
+    # 2.  Store min_res 
+    # 3. store max_res 
+    # 4. Calculate avg_res
+    # 5. Store the avg_res
 
   pop   $ra                 # get return address
   jr    $ra                 # return to caller
-
 #----------------------------------------------------------
 # Second Processor
 #----------------------------------------------------------
@@ -29,16 +58,28 @@ mainp0:
   ori   $sp, $zero, 0xaffc  # stack initialization 
   jal   mainp1              # go to program
   halt
-
-# main function for processor 1
+# main function for processor 1-----------------------------
+# $s0 = number count
 mainp1:
   push  $ra                 # save return address
 
-  # 1. CODE TO CONSTANTLY GENERATE A RANDOM NUMBER AND THEN STORE IT INTO THE STACK BUFFER IF NOT FULL (FINISH WHEN 256 RANDOM NUMBERS ARE CREATED)
+  # 1. While the number_count_p1 is less than 256
+    # LOCK 
+    # Load in buffer size
+    # if the stack size is less than 10
+      # Calculate random nummber based on prev 
+      # save the current random number
+      # push current random number on to stack 
+      # Increase the stack size by one
+      # increment the number_count_p1 by 1
+      UNLOCK
+    # Else the stack was full
+      UNLOCK
+
+
 
   pop   $ra                 # get return address
   jr    $ra                 # return to caller
-
 #----------------------------------------------------------
 # Sub Routines
 #----------------------------------------------------------
@@ -121,22 +162,27 @@ crc32:
     or $v0, $a0, $0
     jr $ra
 #------------------------------------------------------
-
 #----------------------------------------------------------
-# SHARED VARIABLES REGION (USE LL/SC)
+# Shared variables (use ll/sc)
 #----------------------------------------------------------
 org 0x4000
   lck1:
     cfw 0x0 # Start with unlocked
-  stack_buffer_size:
+  stack_size:
     cfw 0x0                   # Buffer starts out empty
-  stack_buffer_pointer:
+  stack_pointer:
     cfw 0x3ffc                # Set stack_buffer_pointer to the begining of the buffer's spot in memory
+#----------------------------------------------------------
+# Processor0 variables
+#----------------------------------------------------------
   min_res:
     cfw 0x0
   max_res:
     cfw 0x0
   avg_res:
     cfw 0x0
-
-
+#----------------------------------------------------------
+# Processor1 variables
+#----------------------------------------------------------
+  rand_prev:
+    cfw 0x500 # This variable is used as the seed to start out
