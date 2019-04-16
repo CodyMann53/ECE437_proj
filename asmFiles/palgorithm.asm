@@ -5,10 +5,10 @@
 #----------------------------------------------------------
 # First Processor
 #----------------------------------------------------------
-  org   0x0000              # first processor p0
-  ori   $sp, $zero, 0x6ffc  # stack initialization
-  jal   mainp0              # go to program
-  halt
+ org   0x0000              # first processor p0
+ ori   $sp, $zero, 0x6ffc  # stack initialization
+ jal   mainp0              # go to program
+ halt
 
 # Main function for processor 0----------------------------
 # $s0 = number count
@@ -19,12 +19,12 @@
 mainp0:
   push  $ra                 # save return address
   # Initialize the number count to 0
-  ori $s0, $zero, $zero
+  ori $s0, $zero, 0
 
   # 1. While number_count_p0 < 256, then keep on processing data
   loop:
     # If number count is equal to 256 then exit
-    ori $t0, $zero, 256
+    ori $t0, $zero, 7
     beq $s0, $t0, exit
       # LOCK lck1
       ori $a0, $zero, lck1
@@ -38,75 +38,35 @@ mainp0:
       beq $t1, $zero, else
 
         # Pop value off of the stack buffer
-        push $s0
-        push $s1
-        push $s2
-        push $s3
-        push $s4
         jal pop_stack
-        pop $s4
-        pop $s3
-        pop $s2
-        pop $s1
-        pop $s0
 
         # Moved popped value into saved register 1
         or $s1, $zero, $a0
 
         # UNLOCK
-        push $s0
-        push $s1
-        push $s2
-        push $s3
-        push $s4
         ori $a0, $zero, lck1
         jal unlock
-        pop $s4
-        pop $s3
-        pop $s2
-        pop $s1
-        pop $s0
 
         # Update max
         or $a0, $zero, $s1
         or $a1, $zero, $s3
-        push $s0
-        push $s1
-        push $s2
-        push $s3
-        push $s4
         jal max
-        pop $s4
-        pop $s3
-        pop $s2
-        pop $s1
-        pop $s0
         or $s3, $zero, $v0
 
         # Update min
         or $a0, $zero, $s1
         or $a1, $zero, $s2
-        push $s0
-        push $s1
-        push $s2
-        push $s3
-        push $s4
         jal max
-        pop $s4
-        pop $s3
-        pop $s2
-        pop $s1
-        pop $s0
         or $s2, $zero, $v0
 
         # update running sum
-        addiu $s4, $s4, $s1
+        addu $s4, $s4, $s1
 
     # Else the buffer is empy
       else:
         # UNLOCK lck1
         ori $a0, $zero, lck1
-        unlock
+        jal unlock
 
   exit:
     # 2.  Store min_res
@@ -118,8 +78,8 @@ mainp0:
     sw $s3, 0($t0)
 
     # 4. Calculate avg_res (shift logic
-    ori $t0, $zero, 8
-    srlv $s4, $t0, $s0
+    ori $t0, $zero, 3
+    srlv $s4, $t0, $s4
 
     # 5. Store the avg_res
     ori $t0, $zero, avg_res
@@ -131,10 +91,10 @@ mainp0:
 #----------------------------------------------------------
 # Second Processor
 #----------------------------------------------------------
-  org   0x200               # second processor p1
-  ori   $sp, $zero, 0xaffc  # stack initialization
-  jal   mainp1              # go to program
-  halt
+org   0x200               # second processor p1
+ori   $sp, $zero, 0xaffc  # stack initialization
+jal   mainp1              # go to program
+halt
 # main function for processor 1-----------------------------
 # $s0 = number count
 mainp1:
@@ -149,9 +109,9 @@ mainp1:
       # push current random number on to stack
       # Increase the stack size by one
       # increment the number_count_p1 by 1
-      UNLOCK
+    #  UNLOCK
     # Else the stack was full
-      UNLOCK
+    #  UNLOCK
 
 
 
@@ -302,7 +262,7 @@ org 0x4000
   lck1:
     cfw 0x0 # Start with unlocked
   stack_size:
-    cfw 0x0                   # Buffer starts out empty
+    cfw 0x8                   # Buffer starts out empty
   stack_pointer:
     cfw 0x3ffc                # Set stack_buffer_pointer to the begining of the buffer's spot in memory
 #----------------------------------------------------------
@@ -319,3 +279,4 @@ org 0x4000
 #----------------------------------------------------------
   rand_prev:
     cfw 0x500 # This variable is used as the seed to start out
+
