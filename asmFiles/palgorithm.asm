@@ -1,5 +1,5 @@
 #------------------------------------------
-# Author: Cody Mann 
+# Author: Cody Mann
 # Date: 4/15/2019
 #------------------------------------------
 #----------------------------------------------------------
@@ -12,50 +12,127 @@
 
 # Main function for processor 0----------------------------
 # $s0 = number count
+# $s1 = place for popped values
+# $s2 = current min
+# $s3 = current max
+# $s4 = running average
 mainp0:
   push  $ra                 # save return address
   # Initialize the number count to 0
-  ori $s0, $zero, $zero 
+  ori $s0, $zero, $zero
 
-  # 1. While number_count_p0 < 256, then keep on processing data 
-  loop: 
-    # If number count is equal to 256 then exit 
+  # 1. While number_count_p0 < 256, then keep on processing data
+  loop:
+    # If number count is equal to 256 then exit
     ori $t0, $zero, 256
     beq $s0, $t0, exit
       # LOCK lck1
       ori $a0, $zero, lck1
       jal lock
+
       # Load in stack size
       ori $t0, $zero, stack_size
       lw $t1, 0($t0)
+
       # If the buffer is empty then jump to else block
       beq $t1, $zero, else
-        # Pop value off of the stack buffer             <------------------  LEFT OFF HERE
-        # Decrement the stack buffer size by 1
+
+        # Pop value off of the stack buffer
+        push $s0
+        push $s1
+        push $s2
+        push $s3
+        push $s4
+        jal pop_stack
+        pop $s4
+        pop $s3
+        pop $s2
+        pop $s1
+        pop $s0
+
+        # Moved popped value into saved register 1
+        or $s1, $zero, $a0
+
         # UNLOCK
+        push $s0
+        push $s1
+        push $s2
+        push $s3
+        push $s4
+        ori $a0, $zero, lck1
+        jal unlock
+        pop $s4
+        pop $s3
+        pop $s2
+        pop $s1
+        pop $s0
+
         # Update max
-        # Update min 
+        or $a0, $zero, $s1
+        or $a1, $zero, $s3
+        push $s0
+        push $s1
+        push $s2
+        push $s3
+        push $s4
+        jal max
+        pop $s4
+        pop $s3
+        pop $s2
+        pop $s1
+        pop $s0
+        or $s3, $zero, $v0
+
+        # Update min
+        or $a0, $zero, $s1
+        or $a1, $zero, $s2
+        push $s0
+        push $s1
+        push $s2
+        push $s3
+        push $s4
+        jal max
+        pop $s4
+        pop $s3
+        pop $s2
+        pop $s1
+        pop $s0
+        or $s2, $zero, $v0
+
         # update running sum
-    # Else the buffer is empy 
+        addiu $s4, $s4, $s1
+
+    # Else the buffer is empy
       else:
         # UNLOCK lck1
         ori $a0, $zero, lck1
         unlock
 
-
   exit:
-    # 2.  Store min_res 
-    # 3. store max_res 
-    # 4. Calculate avg_res
-    # 5. Store the avg_res
+    # 2.  Store min_res
+    ori $t0, $zero, min_res
+    sw $s2, 0($t0)
 
-  pop   $ra                 # get return address
-  jr    $ra                 # return to caller
+    # 3. store max_res
+    ori $t0, $zero, max_res
+    sw $s3, 0($t0)
+
+    # 4. Calculate avg_res (shift logic
+    ori $t0, $zero, 8
+    srlv $s4, $t0, $s0
+
+    # 5. Store the avg_res
+    ori $t0, $zero, avg_res
+    sw $s4, 0($t0)
+
+    # pop off return address from stack and return
+    pop   $ra
+    jr    $ra
 #----------------------------------------------------------
 # Second Processor
 #----------------------------------------------------------
   org   0x200               # second processor p1
-  ori   $sp, $zero, 0xaffc  # stack initialization 
+  ori   $sp, $zero, 0xaffc  # stack initialization
   jal   mainp1              # go to program
   halt
 # main function for processor 1-----------------------------
@@ -64,12 +141,12 @@ mainp1:
   push  $ra                 # save return address
 
   # 1. While the number_count_p1 is less than 256
-    # LOCK 
+    # LOCK
     # Load in buffer size
     # if the stack size is less than 10
-      # Calculate random nummber based on prev 
+      # Calculate random nummber based on prev
       # save the current random number
-      # push current random number on to stack 
+      # push current random number on to stack
       # Increase the stack size by one
       # increment the number_count_p1 by 1
       UNLOCK
@@ -83,6 +160,62 @@ mainp1:
 #----------------------------------------------------------
 # Sub Routines
 #----------------------------------------------------------
+
+#-push_stack (a0=push_value)--------------------------
+# Push argument a0 on to the top of stack and decrements stack pointer by 4
+# Also will increase stack size by 1
+push_stack:
+  # Load in the stack pointer address
+  ori $t0, $zero, stack_pointer
+  lw $t1, 0($t0)
+
+  # Place arg0 at top of stack
+  sw $a0, 0($t1)
+
+  # Decrement the stack pointer by 4
+  addiu $t1, $t1, -4
+
+  # Load the value of stack size
+  ori $t0, $zero, stack_size
+  lw $t1, 0($t0)
+
+  # Increment stack size by 1
+  addiu $t1, $t1, 1
+
+  # Store stack size back to memory and return
+  sw $t1, 0($t0)
+  jr $ra
+
+#--------------------------------------------------
+
+#-pop_stack (v0=pop_value)--------------------------
+# Returns the value at top of the stack and increments the stack pointer by 4.
+# Also will reduce the stack size by 1
+pop_stack:
+    # Load in stack pointer
+    ori $t0, $zero, stack_pointer
+    lw $t1, 0($t0)
+
+    # place value at top of stack into return register 0
+    lw $v0, 0($t1)
+
+    # Increment the stack pointer by 4
+    addiu $t1, $t1, 4
+
+    # Store the stack pointer back
+    sw $t1, 0($t0)
+
+    # Load the value of stack size
+    ori $t0, $zero, stack_size
+    lw $t1, 0($t0)
+
+    # Decrement stack size by 1
+    addiu $t1, $t1, -1
+
+    # store stack size back and return
+    sw $t1, 0($t0)
+    jr $ra
+#--------------------------------------------------
 
 #-lock (a0=lock address)--------------------------
 # returns when lock is available
