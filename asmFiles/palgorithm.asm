@@ -18,13 +18,17 @@
 # $s4 = running average
 mainp0:
   push  $ra                 # save return address
-  # Initialize the number count to 0
+  # Initialize all saved registers to 
   ori $s0, $zero, 0
+  ori $s1, $zero, 0
+  ori $s2, $zero, 1
+  ori $s3, $zero, 0
+  ori $s4, $zero, 0
 
   # 1. While number_count_p0 < 256, then keep on processing data
   loop:
     # If number count is equal to 256 then exit
-    ori $t0, $zero, 7
+    ori $t0, $zero, 8
     beq $s0, $t0, exit
       # LOCK lck1
       ori $a0, $zero, lck1
@@ -41,7 +45,7 @@ mainp0:
         jal pop_stack
 
         # Moved popped value into saved register 1
-        or $s1, $zero, $a0
+        or $s1, $zero, $v0
 
         # UNLOCK
         ori $a0, $zero, lck1
@@ -56,17 +60,23 @@ mainp0:
         # Update min
         or $a0, $zero, $s1
         or $a1, $zero, $s2
-        jal max
+        jal min
         or $s2, $zero, $v0
 
         # update running sum
         addu $s4, $s4, $s1
+
+        # Update the number count 
+        addiu $s0, $s0, 1
 
     # Else the buffer is empy
       else:
         # UNLOCK lck1
         ori $a0, $zero, lck1
         jal unlock
+
+        # Go to loop 
+        j loop
 
   exit:
     # 2.  Store min_res
@@ -255,16 +265,26 @@ crc32:
     or $v0, $a0, $0
     jr $ra
 #------------------------------------------------------
+
+org 0x3fdc
+  cfw 0
+  cfw 1
+  cfw 2
+  cfw 3
+  cfw 4
+  cfw 5
+  cfw 6
+  cfw 7
 #----------------------------------------------------------
 # Shared variables (use ll/sc)
 #----------------------------------------------------------
-org 0x4000
+org 0xc000
   lck1:
     cfw 0x0 # Start with unlocked
   stack_size:
     cfw 0x8                   # Buffer starts out empty
   stack_pointer:
-    cfw 0x3ffc                # Set stack_buffer_pointer to the begining of the buffer's spot in memory
+    cfw 0x3fdc                # Set stack_buffer_pointer to the begining of the buffer's spot in memory
 #----------------------------------------------------------
 # Processor0 variables
 #----------------------------------------------------------
@@ -279,4 +299,6 @@ org 0x4000
 #----------------------------------------------------------
   rand_prev:
     cfw 0x500 # This variable is used as the seed to start out
+
+
 
