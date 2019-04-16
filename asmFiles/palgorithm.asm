@@ -18,17 +18,13 @@
 # $s4 = running average
 mainp0:
   push  $ra                 # save return address
-  # Initialize all saved registers to 
+  # Initialize number count to 0
   ori $s0, $zero, 0
-  ori $s1, $zero, 0
-  ori $s2, $zero, 1
-  ori $s3, $zero, 0
-  ori $s4, $zero, 0
 
   # 1. While number_count_p0 < 256, then keep on processing data
   loop:
     # If number count is equal to 256 then exit
-    ori $t0, $zero, 8
+    ori $t0, $zero, 256
     beq $s0, $t0, exit
       # LOCK lck1
       ori $a0, $zero, lck1
@@ -44,30 +40,39 @@ mainp0:
         # Pop value off of the stack buffer
         jal pop_stack
 
-        # Moved popped value into saved register 1
-        or $s1, $zero, $v0
+        # If this is the first element being popped off
+        bne $s0, $zero, continue
 
-        # UNLOCK
-        ori $a0, $zero, lck1
-        jal unlock
+          # set it as min and max
+          or $s2, $zero, $v0
+          or $s3, $zero, $v0
 
-        # Update max
-        or $a0, $zero, $s1
-        or $a1, $zero, $s3
-        jal max
-        or $s3, $zero, $v0
+        continue:
 
-        # Update min
-        or $a0, $zero, $s1
-        or $a1, $zero, $s2
-        jal min
-        or $s2, $zero, $v0
+          # Moved popped value into saved register 1
+          or $s1, $zero, $v0
 
-        # update running sum
-        addu $s4, $s4, $s1
+          # UNLOCK
+          ori $a0, $zero, lck1
+          jal unlock
 
-        # Update the number count 
-        addiu $s0, $s0, 1
+          # Update max
+          or $a0, $zero, $s1
+          or $a1, $zero, $s3
+          jal max
+          or $s3, $zero, $v0
+
+          # Update min
+          or $a0, $zero, $s1
+          or $a1, $zero, $s2
+          jal min
+          or $s2, $zero, $v0
+
+          # update running sum
+          addu $s4, $s4, $s1
+
+          # Update the number count 
+          addiu $s0, $s0, 1
 
     # Else the buffer is empy
       else:
@@ -266,15 +271,6 @@ crc32:
     jr $ra
 #------------------------------------------------------
 
-org 0x3fdc
-  cfw 0
-  cfw 1
-  cfw 2
-  cfw 3
-  cfw 4
-  cfw 5
-  cfw 6
-  cfw 7
 #----------------------------------------------------------
 # Shared variables (use ll/sc)
 #----------------------------------------------------------
@@ -282,9 +278,9 @@ org 0xc000
   lck1:
     cfw 0x0 # Start with unlocked
   stack_size:
-    cfw 0x8                   # Buffer starts out empty
+    cfw 0x0                   # Buffer starts out empty
   stack_pointer:
-    cfw 0x3fdc                # Set stack_buffer_pointer to the begining of the buffer's spot in memory
+    cfw 0x3ffc               # Set stack_buffer_pointer to the begining of the buffer's spot in memory
 #----------------------------------------------------------
 # Processor0 variables
 #----------------------------------------------------------
