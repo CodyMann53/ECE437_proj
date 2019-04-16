@@ -93,7 +93,7 @@ mainp0:
     sw $s3, 0($t0)
 
     # 4. Calculate avg_res (shift logic
-    ori $t0, $zero, 3
+    ori $t0, $zero, 8
     srlv $s4, $t0, $s4
 
     # 5. Store the avg_res
@@ -114,24 +114,57 @@ halt
 # $s0 = number count
 mainp1:
   push  $ra                 # save return address
+  # Initialize number count to 0
+  ori $s0, $zero, 0
 
-  # 1. While the number_count_p1 is less than 256
-    # LOCK
-    # Load in buffer size
-    # if the stack size is less than 10
-      # Calculate random nummber based on prev
-      # save the current random number
-      # push current random number on to stack
-      # Increase the stack size by one
-      # increment the number_count_p1 by 1
-    #  UNLOCK
-    # Else the stack was full
-    #  UNLOCK
+  loop2:
+    # If number count is equal to 256 then exit
+    ori $t0, $zero, 256
+    beq $s0, $t0, exit2
+      # LOCK lck1
+      ori $a0, $zero, lck1
+      jal lock
 
+      # Load in stack size
+      ori $t0, $zero, stack_size
+      lw $t1, 0($t0)
 
+      # If the buffer is full (10 elements exist) then jump to else block
+      ori $t3, $zero, 10
+      beq $t1, $t3, else2
 
-  pop   $ra                 # get return address
-  jr    $ra                 # return to caller
+        # Load in previous random number
+        ori $t0, $zero, rand_prev
+        lw $t1, 0($t0) 
+
+        # Generate random number 
+        or $a0, $zero, $t1
+        jal crc32
+
+        # push generated random number to stack 
+        or $a0, $zero, $v0
+        jal push_stack
+
+        # save generated random number
+        ori $t0, $zero, rand_prev
+        sw $a0, 0($t0)
+
+        # increment count number by 1
+        addiu $s0, $s0, 1
+
+    # Else the buffer is empy
+      else2:
+        # UNLOCK lck1
+        ori $a0, $zero, lck1
+        jal unlock
+
+        # Go to loop2
+        j loop2
+
+  exit2:
+    # Return
+    pop   $ra                 # get return address
+    jr    $ra                 # return to caller
 #----------------------------------------------------------
 # Sub Routines
 #----------------------------------------------------------
@@ -149,6 +182,9 @@ push_stack:
 
   # Decrement the stack pointer by 4
   addiu $t1, $t1, -4
+
+  # store stack pointer back 
+  sw $t1, 0($t0)
 
   # Load the value of stack size
   ori $t0, $zero, stack_size
