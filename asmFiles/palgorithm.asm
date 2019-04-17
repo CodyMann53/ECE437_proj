@@ -20,12 +20,14 @@ mainp0:
   push  $ra                 # save return address
   # Initialize number count to 0
   ori $s0, $zero, 0
+  ori $s4, $zero, 0
 
-  # 1. While number_count_p0 < 256, then keep on processing data
   loop:
+
     # If number count is equal to 256 then exit
     ori $t0, $zero, 256
     beq $s0, $t0, exit
+
       # LOCK lck1
       ori $a0, $zero, lck1
       jal lock
@@ -39,6 +41,9 @@ mainp0:
 
         # Pop value off of the stack buffer
         jal pop_stack
+
+        # Only grab the lower 16 bits
+        andi $v0, $v0, 0x0000FFFF
 
         # If this is the first element being popped off
         bne $s0, $zero, continue
@@ -73,6 +78,8 @@ mainp0:
 
           # Update the number count 
           addiu $s0, $s0, 1
+
+          j loop 
 
     # Else the buffer is empy
       else:
@@ -118,9 +125,11 @@ mainp1:
   ori $s0, $zero, 0
 
   loop2:
+
     # If number count is equal to 256 then exit
     ori $t0, $zero, 256
     beq $s0, $t0, exit2
+
       # LOCK lck1
       ori $a0, $zero, lck1
       jal lock
@@ -133,21 +142,18 @@ mainp1:
       ori $t3, $zero, 10
       beq $t1, $t3, else2
 
-        # Load in previous random number
+        # Load in previous random number and generate a random number
         ori $t0, $zero, rand_prev
-        lw $t1, 0($t0) 
-
-        # Generate random number 
-        or $a0, $zero, $t1
+        lw $a0, 0($t0) 
         jal crc32
+
+        # save generated random number
+        ori $t0, $zero, rand_prev
+        sw $v0, 0($t0)
 
         # push generated random number to stack 
         or $a0, $zero, $v0
         jal push_stack
-
-        # save generated random number
-        ori $t0, $zero, rand_prev
-        sw $a0, 0($t0)
 
         # increment count number by 1
         addiu $s0, $s0, 1
@@ -177,11 +183,11 @@ push_stack:
   ori $t0, $zero, stack_pointer
   lw $t1, 0($t0)
 
-  # Place arg0 at top of stack
-  sw $a0, 0($t1)
-
   # Decrement the stack pointer by 4
   addiu $t1, $t1, -4
+
+  # Place arg0 at top of stack
+  sw $a0, 0($t1)
 
   # store stack pointer back 
   sw $t1, 0($t0)
