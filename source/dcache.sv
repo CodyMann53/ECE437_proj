@@ -166,38 +166,35 @@ begin
          // if a miss and actually trying to read or write 
          else if(hit == 0 && (dcif.dmemREN == 1 || dcif.dmemWEN == 1))
          begin
-            if((dcif.datomic == 0 && dcif.dmemWEN == 1) || (dcif.dmemREN == 1))
+            // If right block in current set was the last recently used 
+            if(last_used[cache_index] == 0)
             begin
-               // If right block in current set was the last recently used 
-               if(last_used[cache_index] == 0)
+               // if the right block is dirty and valid
+               if((cbl[cache_index].right_dirty) == 1 && (cbl[cache_index].right_valid == 1))
                begin
-                  // if the right block is dirty and valid
-                  if((cbl[cache_index].right_dirty) == 1 && (cbl[cache_index].right_valid == 1))
-                  begin
-                     // start write back process to send it back to ram 
-                     next_state = WB1;
-                  end
-                  else
-                  begin
-                     // else start reading in the requested memory block
-                     next_state = READ1;
-                  end
+                  // start write back process to send it back to ram 
+                  next_state = WB1;
                end
-               // the left block in current set was the last recently used
                else
                begin
-                  // If the left block is dirty and valid
-                  if((cbl[cache_index].left_dirty) == 1 && (cbl[cache_index].left_valid == 1))
-                  begin
-                     // Begin the process of writing to memory
-                     next_state = WB1;
-                  end
-                  // the block is not dirty
-                  else
-                  begin
-                     // Start process of reading block from memory 
-                     next_state = READ1;
-                  end
+                  // else start reading in the requested memory block
+                  next_state = READ1;
+               end
+            end
+            // the left block in current set was the last recently used
+            else
+            begin
+               // If the left block is dirty and valid
+               if((cbl[cache_index].left_dirty) == 1 && (cbl[cache_index].left_valid == 1))
+               begin
+                  // Begin the process of writing to memory
+                  next_state = WB1;
+               end
+               // the block is not dirty
+               else
+               begin
+                  // Start process of reading block from memory 
+                  next_state = READ1;
                end
             end
          end
@@ -437,7 +434,7 @@ begin
                next_link_valid = 1;
             end
             // if the left tag matches, block valid, and is dirty
-            if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1 && dcif.datomic == 0)
+            if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1)
             begin
                // give back a dhit 
                dcif.dhit = 1;
@@ -445,6 +442,11 @@ begin
                hit = 1;
                // Set the left block as last recently used
                next_last_used[cache_index] = 0;
+               // Let other cache know that it is trying to do an atomic RMW process
+               if (dcif.datomic == 1) begin 
+                  cif.ccwrite = 1'b1; 
+                 cif.daddr = dcif.dmemaddr; 
+               end 
                // If processor requesting the first word in the block
                if(data_index[2] == 0)
                begin
@@ -459,7 +461,7 @@ begin
                end
             end
             // if the right tag matches, block valid, and dirty
-            else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1 && dcif.datomic == 0)
+            else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1)
             begin
                // give back a dhit to the processor
                dcif.dhit = 1;
@@ -467,6 +469,11 @@ begin
                hit = 1;
                // sed the right block as last recently used
                next_last_used[cache_index] = 1;
+               // Let other cache know that it is trying to do an atomic RMW process
+               if (dcif.datomic == 1) begin 
+                  cif.ccwrite = 1'b1; 
+                 cif.daddr = dcif.dmemaddr; 
+               end 
                // if the processor was requesting word0
                if(data_index[2] == 0)
                begin
@@ -507,7 +514,7 @@ begin
             // If left tag matches, left block is valid, and left block is dirty (Writing to a shared block should produce a miss in order to go and invalidate the other caches)
             if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1)
             begin
-               if(cbl[cache_index].left_dirty == 1 && store == 1)
+               if(cbl[cache_index].left_dirty == 1)
                begin
                  // give back a dhit to processor
                  dcif.dhit = 1;
@@ -518,13 +525,13 @@ begin
                  // set the right block as the last used
                  next_last_used[cache_index] = 0;
                  // if writing to word0
-                 if(data_index[2] == 0)
+                 if(data_index[2] == 0 && store == 1)
                  begin
                     // set the word0 data to dmemstore line
                     next_left_dat0 = dcif.dmemstore;
                  end
                  // writing to word1
-                 else
+                 else if(store == 1)
                  begin
                     // set the word1 data to dmemstore line
                     next_left_dat1 = dcif.dmemstore;
@@ -543,7 +550,7 @@ begin
             // if right tag matches, right block is valid, and right block is dirty (Writing to a shared block should produce a miss in order to go and invalidate the other caches)
             else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1)
             begin
-               if(cbl[cache_index].right_dirty == 1 && store == 1)
+               if(cbl[cache_index].right_dirty == 1)
                begin
                  // give back a dhit to processor
                  dcif.dhit = 1;
@@ -554,13 +561,13 @@ begin
                  // set the right block as the last used
                  next_last_used[cache_index] = 1;
                  // if writing to word0
-                 if(data_index[2] == 0)
+                 if(data_index[2] == 0  && store == 1)
                  begin
                     // set the word0 data to dmemstore line
                     next_right_dat0 = dcif.dmemstore;
                  end
                  // writing to word1
-                 else
+                 else if(store == 1)
                  begin
                     // set the word1 data to dmemstore line
                     next_right_dat1 = dcif.dmemstore;

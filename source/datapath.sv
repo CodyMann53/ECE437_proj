@@ -239,6 +239,8 @@ assign huif.opcode_EX_MEM = opcode_t'(ex_mem_regif.opcode_EX_MEM); //'
 assign huif.dmemWEN = ex_mem_regif.dmemWEN; 
 assign huif.dmemREN = ex_mem_regif.dmemREN; 
 assign huif.halt = mem_wb_regif.halt; 
+assign huif.opcode_ID_EX = id_ex_regif.opcode_ID_EX; 
+
 
 /************************** Mux logic ***************************/
 
