@@ -67,7 +67,7 @@ always_comb begin: DATA_HAZARD_DETECTION_LOGIC
 	load_data_haz_flag = 1'b0; 
 
 	// If there is an occurance where loading value into register and then trying to use that value on next instruction
-	if (((huif.Rt_ID_EX == huif.Rs_IF_ID) | (huif.Rt_ID_EX == huif.Rt_IF_ID)) & (huif.dREN_ID_EX == 1)) begin 
+	if (((huif.Rt_ID_EX == huif.Rs_IF_ID) | (huif.Rt_ID_EX == huif.Rt_IF_ID)) & (huif.dREN_ID_EX == 1) begin 
 		// flag the load data hazard flag 
 		load_data_haz_flag = 1'b1; 
 	end 
