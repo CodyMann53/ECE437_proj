@@ -30,7 +30,7 @@ module control_unit
 // control signal logic equations 
 assign cuif.dWEN = ((opcode_t'(cuif.opcode_IF_ID) == SW) | (opcode_t'(cuif.opcode_IF_ID) == SC)) ? 1'b1 : 1'b0; 
 assign cuif.dREN = ((cuif.opcode_IF_ID == LUI) | (cuif.opcode_IF_ID == LW) | (cuif.opcode_IF_ID == LL)) ? 1'b1 : 1'b0; 
-assign cuif.WEN = ((cuif.opcode_IF_ID == J) | (cuif.opcode_IF_ID == SW) | (cuif.opcode_IF_ID == SC) | (cuif.opcode_IF_ID == BNE) | (cuif.opcode_IF_ID == BEQ) | ( (cuif.opcode_IF_ID == RTYPE) & (cuif.func_IF_ID == JR) ) | (cuif.opcode_IF_ID == HALT)) ? 1'b0 : 1'b1; 
+assign cuif.WEN = ((cuif.opcode_IF_ID == J) | (cuif.opcode_IF_ID == SW) | (cuif.opcode_IF_ID == BNE) | (cuif.opcode_IF_ID == BEQ) | ( (cuif.opcode_IF_ID == RTYPE) & (cuif.func_IF_ID == JR) ) | (cuif.opcode_IF_ID == HALT)) ? 1'b0 : 1'b1; 
 
 /********** Combination Logic Blocks ***************************/
 

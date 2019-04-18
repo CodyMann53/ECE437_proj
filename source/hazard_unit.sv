@@ -67,7 +67,7 @@ always_comb begin: DATA_HAZARD_DETECTION_LOGIC
 	load_data_haz_flag = 1'b0; 
 
 	// If there is an occurance where loading value into register and then trying to use that value on next instruction
-	if (((huif.Rt_ID_EX == huif.Rs_IF_ID) | (huif.Rt_ID_EX == huif.Rt_IF_ID)) & (huif.dREN_ID_EX == 1) begin 
+	if (((huif.Rt_ID_EX == huif.Rs_IF_ID) | (huif.Rt_ID_EX == huif.Rt_IF_ID)) & ( huif.dREN_ID_EX == 1 | huif.opcode_ID_EX == SC)) begin 
 		// flag the load data hazard flag 
 		load_data_haz_flag = 1'b1; 
 	end 
@@ -86,7 +86,7 @@ always_comb begin: PCSRC_ENABLE_AND_FLUSH_LOGIC
 	huif.flush_MEM_WB = 1'b0; 
 	huif.enable_pc = move; 
 
-	if (((huif.opcode_IF_ID == BEQ) | (huif.opcode_IF_ID == BNE)) & (move == 1'b1)) begin 
+	if (((huif.opcode_IF_ID == BEQ) | (huif.opcode_IF_ID == BNE)) & (move == 1'b1) & (load_data_haz_flag != 1) ) begin 
 		huif.PCSrc = SEL_LOAD_BR_ADDR; 
 		huif.flush_IF_ID = 1'b1; 
 	end
@@ -118,6 +118,13 @@ always_comb begin: PCSRC_ENABLE_AND_FLUSH_LOGIC
 		// tell the program counter to go to the return address which comes from the register 31 from register file 
 		huif.PCSrc = SEL_LOAD_JR_ADDR; 
 		huif.flush_IF_ID = 1'b1;
+	end 
+
+	// if a halt is present in wb stage
+	if (huif.halt == 1) begin 	
+		huif.flush_IF_ID = 1'b1; 
+		huif.flush_ID_EX = 1'b1; 
+		huif.flush_EX_MEM = 1'b1;
 	end 
 end
 endmodule

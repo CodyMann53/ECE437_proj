@@ -521,7 +521,7 @@ begin
                  // set internal hit signal
                  hit = 1;
                  // set the left block to dirty 
-                 next_left_dirty = 1;
+                 next_left_dirty = 0;
                  // set the right block as the last used
                  next_last_used[cache_index] = 0;
                  // if writing to word0
@@ -529,12 +529,14 @@ begin
                  begin
                     // set the word0 data to dmemstore line
                     next_left_dat0 = dcif.dmemstore;
+                    next_left_dirty = 1;
                  end
                  // writing to word1
                  else if(store == 1)
                  begin
                     // set the word1 data to dmemstore line
                     next_left_dat1 = dcif.dmemstore;
+                    next_left_dirty = 1;
                  end
                  // Tell bus that writing to a block address
                  cif.ccwrite = 1'b1; 
@@ -557,7 +559,7 @@ begin
                  // set internal hit signal
                  hit = 1;
                  // set the left block to dirty 
-                 next_right_dirty = 1;
+                 next_right_dirty = 0;
                  // set the right block as the last used
                  next_last_used[cache_index] = 1;
                  // if writing to word0
@@ -565,12 +567,14 @@ begin
                  begin
                     // set the word0 data to dmemstore line
                     next_right_dat0 = dcif.dmemstore;
+                    next_right_dirty = 1; 
                  end
                  // writing to word1
                  else if(store == 1)
                  begin
                     // set the word1 data to dmemstore line
                     next_right_dat1 = dcif.dmemstore;
+                    next_right_dirty = 1; 
                  end
                  // Tell bus that writing to a block address
                  cif.ccwrite = 1'b1; 
@@ -743,13 +747,17 @@ begin
       begin
          snoop_store = 1;
          // First check datomic for load conditional
-         if(dcif.datomic == 1)
-         begin
-            if(cif.ccsnoopaddr == link_addr)
-            begin
-               next_link_valid = 0;
-            end
-         end
+         //if(dcif.datomic == 1)
+         //begin
+            //if(cif.ccsnoopaddr == link_addr)
+            //begin
+               //next_link_valid = 0;
+            //end
+         //end
+         // If the snoop address matches the link address
+         if (cif.ccsnoopaddr == link_addr & cif.ccinv == 1) begin 
+            next_link_valid = 0; 
+         end 
          // if the left tag matches
          if (tag_snoop == cbl[cache_index_snoop].left_tag) begin
             // invalidate block if needed
