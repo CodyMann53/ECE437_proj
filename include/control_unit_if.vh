@@ -16,7 +16,7 @@ interface control_unit_if;
  import cpu_types_pkg::*;
  import data_path_muxs_pkg::*; 
 
-  logic WEN, iREN, dWEN, dREN, halt; 
+  logic WEN, iREN, dWEN, dREN, halt, datomic; 
   logic [1:0] extend; 
   mem_to_reg_mux_selection mem_to_reg; 
   reg_dest_mux_selection reg_dest;  
@@ -30,7 +30,7 @@ interface control_unit_if;
   modport cu (
     input  opcode_IF_ID, func_IF_ID,
     output WEN, reg_dest, alu_op, ALUSrc, mem_to_reg, iREN, dWEN, dREN, 
-    PCSrc, halt, extend, imm16
+    PCSrc, halt, extend, imm16, datomic
   );
 endinterface
 `endif //CONTROL_UNIT_IF_VH

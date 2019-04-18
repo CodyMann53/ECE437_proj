@@ -125,6 +125,7 @@ assign id_ex_regif.rdat1 = rfif.rdat1;
 assign id_ex_regif.rdat2 = rfif.rdat2; 
 assign id_ex_regif.imm16_ext = imm16_ext; 
 assign id_ex_regif.mem_to_reg = cuif.mem_to_reg; 
+assign id_ex_regif.datomic = cuif.datomic;
 
 // ID/EX register inputs for cpu tracker 
 assign id_ex_regif.imemaddr_IF_ID = if_id_regif.imemaddr_IF_ID; 
@@ -160,6 +161,7 @@ assign ex_mem_regif.rdat1_ID_EX = id_ex_regif.rdat1_ID_EX;
 assign ex_mem_regif.mem_to_reg_ID_EX = id_ex_regif.mem_to_reg_ID_EX; 
 assign ex_mem_regif.data_store = d_s; 
 assign ex_mem_regif.branch_addr = branch_addr; 
+assign ex_mem_regif.datomic_ID_EX = id_ex_regif.datomic_ID_EX;
 
 // EX/MEM register inputs for cpu tracker 
 assign ex_mem_regif.imemaddr_ID_EX = id_ex_regif.imemaddr_ID_EX; 
@@ -184,6 +186,7 @@ assign dpif.dmemREN = ex_mem_regif.dmemREN;
 assign dpif.dmemaddr = ex_mem_regif.dmemaddr_EX_MEM; 
 assign dpif.dmemstore = ex_mem_regif.dmemstore_EX_MEM; 
 assign dpif.halt = mem_wb_regif.halt; 
+assign dpif.datomic = ex_mem_regif.datomic_EX_MEM; 
 
 // MEM/WB register inputs 
 assign mem_wb_regif.enable_MEM_WB = huif.enable_MEM_WB; 
@@ -236,6 +239,8 @@ assign huif.opcode_EX_MEM = opcode_t'(ex_mem_regif.opcode_EX_MEM); //'
 assign huif.dmemWEN = ex_mem_regif.dmemWEN; 
 assign huif.dmemREN = ex_mem_regif.dmemREN; 
 assign huif.halt = mem_wb_regif.halt; 
+assign huif.opcode_ID_EX = id_ex_regif.opcode_ID_EX; 
+
 
 /************************** Mux logic ***************************/
 

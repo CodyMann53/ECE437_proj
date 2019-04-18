@@ -26,6 +26,7 @@ interface hazard_unit_if;
         dmemWEN,
         halt; 
   opcode_t  opcode_IF_ID, 
+            opcode_ID_EX, 
             opcode_EX_MEM;
   funct_t func_IF_ID; 
   regbits_t Rt_ID_EX, 
@@ -52,6 +53,7 @@ interface hazard_unit_if;
           dREN_ID_EX, 
           opcode_EX_MEM, 
           opcode_IF_ID,  
+          opcode_ID_EX, 
           func_IF_ID, 
           halt, 
           Rt_ID_EX, 

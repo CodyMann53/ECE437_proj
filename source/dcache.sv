@@ -60,6 +60,9 @@ logic next_dmemWEN, dmemWEN;
 logic next_dmemREN, dmemREN;
 logic ccinv;
 word_t ccsnoopaddr, next_last_address;  
+word_t link_addr, next_link_addr;
+logic link_valid, next_link_valid;
+logic store, snoop_store;
 
 
 always_ff @(posedge CLK or negedge nRST)
@@ -117,6 +120,8 @@ begin
       prev_state <= IDLE;
       cache_row <= 0;
       old_cache_row <= 0;
+      link_addr <= 0;
+      link_valid <= 0;
    end
    else
    begin
@@ -126,6 +131,8 @@ begin
       prev_state <= next_prev_state;
       cache_row <= next_cache_row;
       old_cache_row <= next_old_cache_row;
+      link_addr = next_link_addr;
+      link_valid = next_link_valid;
    end
 end
 
@@ -405,9 +412,14 @@ begin
    dcif.dmemload = 0;
    dcif.flushed = 0;
 
+   next_link_addr = link_addr;
+   next_link_valid = link_valid;
+
    next_last_used = last_used;
    temp_old_row = next_cache_row;
    hit = 0;
+   store = 1;
+   snoop_store = 1;
 
    casez(state)
       IDLE :
@@ -415,8 +427,14 @@ begin
          // if a processor read
          if(dcif.dmemREN == 1)
          begin
+            // Check datomic for load linked
+            if(dcif.datomic == 1)
+            begin
+               next_link_addr = dcif.dmemaddr;
+               next_link_valid = 1;
+            end
             // if the left tag matches, block valid, and is dirty
-            if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1 )
+            if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1)
             begin
                // give back a dhit 
                dcif.dhit = 1;
@@ -424,6 +442,11 @@ begin
                hit = 1;
                // Set the left block as last recently used
                next_last_used[cache_index] = 0;
+               // Let other cache know that it is trying to do an atomic RMW process
+               if (dcif.datomic == 1) begin 
+                  cif.ccwrite = 1'b1; 
+                 cif.daddr = dcif.dmemaddr; 
+               end 
                // If processor requesting the first word in the block
                if(data_index[2] == 0)
                begin
@@ -438,7 +461,7 @@ begin
                end
             end
             // if the right tag matches, block valid, and dirty
-            else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1 )
+            else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1)
             begin
                // give back a dhit to the processor
                dcif.dhit = 1;
@@ -446,6 +469,11 @@ begin
                hit = 1;
                // sed the right block as last recently used
                next_last_used[cache_index] = 1;
+               // Let other cache know that it is trying to do an atomic RMW process
+               if (dcif.datomic == 1) begin 
+                  cif.ccwrite = 1'b1; 
+                 cif.daddr = dcif.dmemaddr; 
+               end 
                // if the processor was requesting word0
                if(data_index[2] == 0)
                begin
@@ -468,6 +496,21 @@ begin
          // If a processor write is occuring
          else if(dcif.dmemWEN == 1)
          begin
+            store = 1;
+            // First check datomic for load conditional
+            if(dcif.datomic == 1)
+            begin
+               if(dcif.dmemaddr == link_addr && link_valid == 1)
+               begin
+                  dcif.dmemload = 32'h00000001;
+               end
+               else
+               begin
+                  next_link_valid = 0;
+                  dcif.dmemload = 32'h00000000;
+                  store = 0;
+               end
+            end
             // If left tag matches, left block is valid, and left block is dirty (Writing to a shared block should produce a miss in order to go and invalidate the other caches)
             if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1)
             begin
@@ -482,13 +525,13 @@ begin
                  // set the right block as the last used
                  next_last_used[cache_index] = 0;
                  // if writing to word0
-                 if(data_index[2] == 0)
+                 if(data_index[2] == 0 && store == 1)
                  begin
                     // set the word0 data to dmemstore line
                     next_left_dat0 = dcif.dmemstore;
                  end
                  // writing to word1
-                 else
+                 else if(store == 1)
                  begin
                     // set the word1 data to dmemstore line
                     next_left_dat1 = dcif.dmemstore;
@@ -518,13 +561,13 @@ begin
                  // set the right block as the last used
                  next_last_used[cache_index] = 1;
                  // if writing to word0
-                 if(data_index[2] == 0)
+                 if(data_index[2] == 0  && store == 1)
                  begin
                     // set the word0 data to dmemstore line
                     next_right_dat0 = dcif.dmemstore;
                  end
                  // writing to word1
-                 else
+                 else if(store == 1)
                  begin
                     // set the word1 data to dmemstore line
                     next_right_dat1 = dcif.dmemstore;
@@ -698,6 +741,15 @@ begin
       end 
       SNOOP:
       begin
+         snoop_store = 1;
+         // First check datomic for load conditional
+         if(dcif.datomic == 1)
+         begin
+            if(cif.ccsnoopaddr == link_addr)
+            begin
+               next_link_valid = 0;
+            end
+         end
          // if the left tag matches
          if (tag_snoop == cbl[cache_index_snoop].left_tag) begin
             // invalidate block if needed
@@ -760,34 +812,6 @@ begin
    endcase
 end
 endmodule
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
