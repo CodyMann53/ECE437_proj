@@ -336,7 +336,7 @@ org 0xc000
 # Processor1 variables
 #----------------------------------------------------------
   rand_prev:
-    cfw 0x500 # This variable is used as the seed to start out
+    cfw 0x5 # This variable is used as the seed to start out
 
 
 

@@ -73,4 +73,4 @@ mainp1:
   jr    $ra                 # return to caller
 
 res:
-  cfw 0x0                   # end result should be 3
+  cfw 0x0                   # end result should be 2
