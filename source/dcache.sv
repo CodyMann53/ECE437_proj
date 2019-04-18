@@ -60,6 +60,9 @@ logic next_dmemWEN, dmemWEN;
 logic next_dmemREN, dmemREN;
 logic ccinv;
 word_t ccsnoopaddr, next_last_address;  
+word_t link_addr, next_link_addr;
+logic link_valid, next_link_valid;
+logic store, snoop_store;
 
 
 always_ff @(posedge CLK or negedge nRST)
@@ -117,6 +120,8 @@ begin
       prev_state <= IDLE;
       cache_row <= 0;
       old_cache_row <= 0;
+      link_addr <= 0;
+      link_valid <= 0;
    end
    else
    begin
@@ -126,6 +131,8 @@ begin
       prev_state <= next_prev_state;
       cache_row <= next_cache_row;
       old_cache_row <= next_old_cache_row;
+      link_addr = next_link_addr;
+      link_valid = next_link_valid;
    end
 end
 
@@ -159,35 +166,38 @@ begin
          // if a miss and actually trying to read or write 
          else if(hit == 0 && (dcif.dmemREN == 1 || dcif.dmemWEN == 1))
          begin
-            // If right block in current set was the last recently used 
-            if(last_used[cache_index] == 0)
+            if((dcif.datomic == 0 && dcif.dmemWEN == 1) || (dcif.dmemREN == 1))
             begin
-               // if the right block is dirty and valid
-               if((cbl[cache_index].right_dirty) == 1 && (cbl[cache_index].right_valid == 1))
+               // If right block in current set was the last recently used 
+               if(last_used[cache_index] == 0)
                begin
-                  // start write back process to send it back to ram 
-                  next_state = WB1;
+                  // if the right block is dirty and valid
+                  if((cbl[cache_index].right_dirty) == 1 && (cbl[cache_index].right_valid == 1))
+                  begin
+                     // start write back process to send it back to ram 
+                     next_state = WB1;
+                  end
+                  else
+                  begin
+                     // else start reading in the requested memory block
+                     next_state = READ1;
+                  end
                end
+               // the left block in current set was the last recently used
                else
                begin
-                  // else start reading in the requested memory block
-                  next_state = READ1;
-               end
-            end
-            // the left block in current set was the last recently used
-            else
-            begin
-               // If the left block is dirty and valid
-               if((cbl[cache_index].left_dirty) == 1 && (cbl[cache_index].left_valid == 1))
-               begin
-                  // Begin the process of writing to memory
-                  next_state = WB1;
-               end
-               // the block is not dirty
-               else
-               begin
-                  // Start process of reading block from memory 
-                  next_state = READ1;
+                  // If the left block is dirty and valid
+                  if((cbl[cache_index].left_dirty) == 1 && (cbl[cache_index].left_valid == 1))
+                  begin
+                     // Begin the process of writing to memory
+                     next_state = WB1;
+                  end
+                  // the block is not dirty
+                  else
+                  begin
+                     // Start process of reading block from memory 
+                     next_state = READ1;
+                  end
                end
             end
          end
@@ -405,9 +415,14 @@ begin
    dcif.dmemload = 0;
    dcif.flushed = 0;
 
+   next_link_addr = link_addr;
+   next_link_valid = link_valid;
+
    next_last_used = last_used;
    temp_old_row = next_cache_row;
    hit = 0;
+   store = 1;
+   snoop_store = 1;
 
    casez(state)
       IDLE :
@@ -415,8 +430,14 @@ begin
          // if a processor read
          if(dcif.dmemREN == 1)
          begin
+            // Check datomic for load linked
+            if(dcif.datomic == 1)
+            begin
+               next_link_addr = dcif.dmemaddr;
+               next_link_valid = 1;
+            end
             // if the left tag matches, block valid, and is dirty
-            if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1 )
+            if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1 && dcif.datomic == 0)
             begin
                // give back a dhit 
                dcif.dhit = 1;
@@ -438,7 +459,7 @@ begin
                end
             end
             // if the right tag matches, block valid, and dirty
-            else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1 )
+            else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1 && dcif.datomic == 0)
             begin
                // give back a dhit to the processor
                dcif.dhit = 1;
@@ -468,10 +489,25 @@ begin
          // If a processor write is occuring
          else if(dcif.dmemWEN == 1)
          begin
+            store = 1;
+            // First check datomic for load conditional
+            if(dcif.datomic == 1)
+            begin
+               if(dcif.dmemaddr == link_addr && link_valid == 1)
+               begin
+                  dcif.dmemload = 32'h00000001;
+               end
+               else
+               begin
+                  next_link_valid = 0;
+                  dcif.dmemload = 32'h00000000;
+                  store = 0;
+               end
+            end
             // If left tag matches, left block is valid, and left block is dirty (Writing to a shared block should produce a miss in order to go and invalidate the other caches)
             if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1)
             begin
-               if(cbl[cache_index].left_dirty == 1)
+               if(cbl[cache_index].left_dirty == 1 && store == 1)
                begin
                  // give back a dhit to processor
                  dcif.dhit = 1;
@@ -507,7 +543,7 @@ begin
             // if right tag matches, right block is valid, and right block is dirty (Writing to a shared block should produce a miss in order to go and invalidate the other caches)
             else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1)
             begin
-               if(cbl[cache_index].right_dirty == 1)
+               if(cbl[cache_index].right_dirty == 1 && store == 1)
                begin
                  // give back a dhit to processor
                  dcif.dhit = 1;
@@ -698,6 +734,15 @@ begin
       end 
       SNOOP:
       begin
+         snoop_store = 1;
+         // First check datomic for load conditional
+         if(dcif.datomic == 1)
+         begin
+            if(cif.ccsnoopaddr == link_addr)
+            begin
+               next_link_valid = 0;
+            end
+         end
          // if the left tag matches
          if (tag_snoop == cbl[cache_index_snoop].left_tag) begin
             // invalidate block if needed
@@ -760,34 +805,6 @@ begin
    endcase
 end
 endmodule
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

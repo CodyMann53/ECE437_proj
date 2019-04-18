@@ -32,16 +32,16 @@ unlock:
 # main function does something ugly but demonstrates beautifully
 mainp0:
   push  $ra                 # save return address
-  ori   $a0, $zero, l1      # move lock to arguement register
-  jal   lock                # try to aquire the lock
+  #ori   $a0, $zero, l1      # move lock to arguement register
+  #jal   lock                # try to aquire the lock
   # critical code segment
-  ori   $t2, $zero, res
-  lw    $t0, 0($t2)
-  addiu $t1, $t0, 2
-  sw    $t1, 0($t2)
+  #ori   $t2, $zero, res
+  #lw    $t0, 0($t2)
+  #addiu $t1, $t0, 2
+  #sw    $t1, 0($t2)
   # critical code segment
-  ori   $a0, $zero, l1      # move lock to arguement register
-  jal   unlock              # release the lock
+  #ori   $a0, $zero, l1      # move lock to arguement register
+  #jal   unlock              # release the lock
   pop   $ra                 # get return address
   jr    $ra                 # return to caller
 l1:

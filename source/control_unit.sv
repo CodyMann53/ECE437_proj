@@ -93,7 +93,7 @@ always_comb begin: MUX_REG_DEST
 		(cuif.opcode_IF_ID == XORI) |
 		(cuif.opcode_IF_ID == ANDI) |
 		(cuif.opcode_IF_ID == ADDI) |
-		(cuif.opcode_IF_ID == ADDIU)) begin 
+		(cuif.opcode_IF_ID == ADDIU) | cuif.opcode_IF_ID == LL) begin 
 
 		// destination should be RT
 		cuif.reg_dest = SEL_RT; 
@@ -147,6 +147,7 @@ always_comb begin: ALU_OPERATION_SIGNAL_LOGIC
 			ORI:	cuif.alu_op = ALU_OR; 
 			XORI:	cuif.alu_op = ALU_XOR; 
 			SW:		cuif.alu_op = ALU_ADD; 
+         SC:   cuif.alu_op = ALU_ADD;
 		endcase
 	end 
 end 
@@ -182,12 +183,27 @@ always_comb begin: EXTEND_LOGIC
 		ADDIU: cuif.extend = 2'd1; 
 		ADDI: cuif.extend = 2'd1; 
 		LW: cuif.extend = 2'd1; 
+      LL: cuif.extend = 2'd1;
 		BEQ: cuif.extend = 2'd1; 
 		BNE: cuif.extend = 2'd1; 
 		SLTI: cuif.extend = 2'd1; 
 		SLTIU: cuif.extend = 2'd1; 
 		SW: cuif.extend = 2'd1; 
+      SC: cuif.extend = 2'd1;
 		LUI: cuif.extend = 2'd2; 
 	endcase
 end 
+
+// datomic signal 
+always_comb begin: DATOMIC_LOGIC
+
+	// default value
+	cuif.datomic = 1'b0; 
+
+	casez (cuif.opcode_IF_ID); 
+      LL: cuif.datomic = 1'b1; 
+      SC: cuif.datomic = 1'b1; 
+	endcase
+end 
+
 endmodule
