@@ -28,6 +28,7 @@ logic iREN_reg, iREN_nxt,
 	  dWEN_reg, dWEN_nxt,
 	  halt_reg, halt_nxt, 
 	  WEN_reg, WEN_nxt; 
+logic datomic_nxt, datomic_reg; 
 pc_mux_input_selection PCSrc_reg, PCSrc_nxt; 
 reg_dest_mux_selection reg_dest_reg, reg_dest_nxt; 
 aluop_t alu_op_reg, alu_op_nxt; 
@@ -77,6 +78,7 @@ assign id_ex_regif.imm16_ID_EX = imm16_reg;
 assign id_ex_regif.next_imemaddr_ID_EX = next_imemaddr_reg;
 assign id_ex_regif.Rs_ID_EX = rs_reg;  
 assign id_ex_regif.mem_to_reg_ID_EX = mem_to_reg_reg; 
+assign id_ex_regif.datomic_ID_EX = datomic_reg; 
 
 /********** Combination Logic Blocks ***************************/
 always_comb begin: NXT_LOGIC
@@ -98,6 +100,7 @@ always_comb begin: NXT_LOGIC
 	PCSrc_nxt = PCSrc_reg;   
 	mem_to_reg_nxt = mem_to_reg_reg; 
 	extend_nxt = extend_reg; 
+	datomic_nxt = datomic_reg; 
 
 	// cpu pass through signals 
 	imemaddr_nxt = imemaddr_reg; 
@@ -125,6 +128,7 @@ always_comb begin: NXT_LOGIC
 		PCSrc_nxt = id_ex_regif.PCSrc; 
 		mem_to_reg_nxt = id_ex_regif.mem_to_reg; 
 		extend_nxt = id_ex_regif.extend; 
+		datomic_nxt = id_ex_regif.datomic; 
 
 		// cpu tracker signals 
 		imemaddr_nxt = id_ex_regif.imemaddr_IF_ID; 
@@ -152,6 +156,7 @@ always_comb begin: NXT_LOGIC
 		PCSrc_nxt = SEL_LOAD_NXT_INSTR; 
 		mem_to_reg_nxt = SEL_RESULT; 
 		extend_nxt = 2'b00; 
+		datomic_nxt = 1'b0; 
 
 		// cpu tracker signals   
 		imemaddr_nxt = 32'd0; 
@@ -188,6 +193,7 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		PCSrc_reg <= SEL_LOAD_NXT_INSTR;
 		mem_to_reg_reg <= SEL_RESULT; 
 		extend_reg <= 2'b00; 
+		datomic_reg <= 1'b0; 
 
 		// cpu tracker signals 
 		imemaddr_reg <= 32'd0; 
@@ -220,6 +226,7 @@ always_ff @(posedge CLK, negedge nRST) begin: REG_LOGIC
 		PCSrc_reg <= PCSrc_nxt; 
 		mem_to_reg_reg <= mem_to_reg_nxt; 
 		extend_reg <= extend_nxt; 
+		datomic_reg <= datomic_nxt; 
 
 		// cpu tracker signals 
 		imemaddr_reg <= imemaddr_nxt; 
