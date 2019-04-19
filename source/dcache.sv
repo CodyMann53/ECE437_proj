@@ -379,14 +379,14 @@ always_comb begin
    cache_index = dcif.dmemaddr[5:3]; 
 
    // if being snooped
-   if (cif.ccwait == 1) begin
+   if (state == SNOOP | state == NO_WB | state == WB1_SNOOP | state == WB2_SNOOP) begin
       cache_index = cif.ccsnoopaddr[5:3];
    end 
    // else not being snooped
    else begin
       cache_index = dcif.dmemaddr[5:3];
    end 
-end 
+end
 
 always_comb
 begin
@@ -795,7 +795,7 @@ begin
             end 
          end 
          // else if the right tag matches
-         else if (tag_snoop == cbl[cache_index].right_tag) begin 
+         else if (tag_snoop == cbl[cache_index_snoop].right_tag) begin 
             // invalidate block if needed
             if (cif.ccinv == 1) begin 
                // set the right block to invalid

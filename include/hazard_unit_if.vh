@@ -28,7 +28,9 @@ interface hazard_unit_if;
   opcode_t  opcode_IF_ID, 
             opcode_ID_EX, 
             opcode_EX_MEM;
-  funct_t func_IF_ID; 
+  funct_t func_IF_ID,
+          func_EX_MEM, 
+          func_ID_EX; 
   regbits_t Rt_ID_EX, 
             Rs_IF_ID, 
             Rt_IF_ID; 
@@ -55,12 +57,14 @@ interface hazard_unit_if;
           opcode_IF_ID,  
           opcode_ID_EX, 
           func_IF_ID, 
+          func_ID_EX, 
+          func_EX_MEM,
           halt, 
           Rt_ID_EX, 
           Rs_IF_ID, 
           Rt_IF_ID, 
           dmemWEN, 
-          dmemREN,  
+          dmemREN,   
     output  enable_IF_ID, 
             flush_IF_ID, 
             enable_ID_EX, 
@@ -92,6 +96,8 @@ interface hazard_unit_if;
           opcode_EX_MEM, 
           opcode_IF_ID, 
           func_IF_ID, 
+          func_ID_EX, 
+          func_EX_MEM,
           halt, 
           Rt_ID_EX, 
           Rs_IF_ID, 

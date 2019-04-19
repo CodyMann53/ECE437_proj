@@ -24,8 +24,8 @@ mainp0:
 
   loop:
 
-    # If number count is equal to 256 then exit
-    ori $t0, $zero, 64
+    # If number count is equal to 4 then exit
+    ori $t0, $zero, 10
     beq $s0, $t0, exit
 
       # LOCK lck1
@@ -129,7 +129,7 @@ mainp1:
   loop2:
 
     # If number count is equal to 256 then exit
-    ori $t0, $zero, 64
+    ori $t0, $zero, 10
     beq $s0, $t0, exit2
 
       # LOCK lck1
@@ -221,7 +221,7 @@ pop_stack:
     lw $v0, 0($t1)
 
     # Increment the stack pointer by 4
-    addiu $t1, $t1, 4
+    addiu $t1, $t1, 10
 
     # Store the stack pointer back
     sw $t1, 0($t0)

@@ -240,6 +240,8 @@ assign huif.dmemWEN = ex_mem_regif.dmemWEN;
 assign huif.dmemREN = ex_mem_regif.dmemREN; 
 assign huif.halt = mem_wb_regif.halt; 
 assign huif.opcode_ID_EX = id_ex_regif.opcode_ID_EX; 
+assign huif.func_ID_EX = id_ex_regif.func_ID_EX; 
+assign huif.func_EX_MEM = ex_mem_regif.func_EX_MEM; 
 
 
 /************************** Mux logic ***************************/
@@ -382,6 +384,9 @@ always_comb begin: RETURN_ADDR_LOGIC
    begin
       jmp_return_addr = mem_wb_regif.next_imemaddr_MEM_WB;
    end
+   /*else if (mem_wb_regif.opcode_MEM_WB == LW & mem_wb_regif.Rt_MEM_WB == 5'd31) begin 
+      jmp_return_addr = mem_wb_regif.mem_to_reg_MEM_WB; 
+   end */
    else
    begin
       jmp_return_addr = rfif.rdat1;

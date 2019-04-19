@@ -20,7 +20,7 @@ module hazard_unit
   
 /********** Local variable definitions ***************************/	
 logic load_data_haz_flag, control_haz_flag, move; 
-
+logic i = 0; 
 /********** Combinational Logic ***************************/
 always_comb begin: ADVANCE_LOGIC
 	// set default value 
@@ -67,7 +67,7 @@ always_comb begin: DATA_HAZARD_DETECTION_LOGIC
 	load_data_haz_flag = 1'b0; 
 
 	// If there is an occurance where loading value into register and then trying to use that value on next instruction
-	if (((huif.Rt_ID_EX == huif.Rs_IF_ID) | (huif.Rt_ID_EX == huif.Rt_IF_ID)) & ( huif.dREN_ID_EX == 1 | huif.opcode_ID_EX == SC)) begin 
+	if (((huif.Rt_ID_EX == huif.Rs_IF_ID) | (huif.Rt_ID_EX == huif.Rt_IF_ID)) & ( huif.dREN_ID_EX == 1 | huif.opcode_ID_EX == SC ) ) begin 
 		// flag the load data hazard flag 
 		load_data_haz_flag = 1'b1; 
 	end 
@@ -85,6 +85,7 @@ always_comb begin: PCSRC_ENABLE_AND_FLUSH_LOGIC
 	huif.flush_EX_MEM = 1'b0;
 	huif.flush_MEM_WB = 1'b0; 
 	huif.enable_pc = move; 
+
 
 	if (((huif.opcode_IF_ID == BEQ) | (huif.opcode_IF_ID == BNE)) & (move == 1'b1) & (load_data_haz_flag != 1) ) begin 
 		huif.PCSrc = SEL_LOAD_BR_ADDR; 
@@ -126,5 +127,16 @@ always_comb begin: PCSRC_ENABLE_AND_FLUSH_LOGIC
 		huif.flush_ID_EX = 1'b1; 
 		huif.flush_EX_MEM = 1'b1;
 	end 
+
+	// Jump return hazard
+	/*if((huif.func_IF_ID == JR & huif.opcode_IF_ID == RTYPE & move == 1))
+	 begin 
+	 	huif.enable_IF_ID = 0;
+		if(huif.func_EX_MEM == JR & huif.opcode_EX_MEM == RTYPE)
+		begin
+			huif.enable_IF_ID = 1;
+			huif.PCSrc = SEL_LOAD_JR_ADDR; 
+		end
+	end*/
 end
 endmodule
