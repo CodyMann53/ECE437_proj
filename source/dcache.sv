@@ -530,6 +530,8 @@ begin
                     // set the word0 data to dmemstore line
                     next_left_dat0 = dcif.dmemstore;
                     next_left_dirty = 1;
+                    cif.ccwrite = 1'b1; 
+                    cif.daddr = dcif.dmemaddr;                    
                  end
                  // writing to word1
                  else if(store == 1)
@@ -537,10 +539,10 @@ begin
                     // set the word1 data to dmemstore line
                     next_left_dat1 = dcif.dmemstore;
                     next_left_dirty = 1;
+                    cif.ccwrite = 1'b1; 
+                    cif.daddr = dcif.dmemaddr; 
                  end
-                 // Tell bus that writing to a block address
-                 cif.ccwrite = 1'b1; 
-                 cif.daddr = dcif.dmemaddr; 
+                 // Tell bus that writing to a block address 
                end
                else
                begin
@@ -568,6 +570,8 @@ begin
                     // set the word0 data to dmemstore line
                     next_right_dat0 = dcif.dmemstore;
                     next_right_dirty = 1; 
+                    cif.ccwrite = 1'b1; 
+                    cif.daddr = dcif.dmemaddr;                     
                  end
                  // writing to word1
                  else if(store == 1)
@@ -575,10 +579,10 @@ begin
                     // set the word1 data to dmemstore line
                     next_right_dat1 = dcif.dmemstore;
                     next_right_dirty = 1; 
+                    cif.ccwrite = 1'b1; 
+                    cif.daddr = dcif.dmemaddr;                     
                  end
                  // Tell bus that writing to a block address
-                 cif.ccwrite = 1'b1; 
-                 cif.daddr = dcif.dmemaddr; 
                end
                else
                begin
@@ -803,12 +807,14 @@ begin
             // set data address of left block
             cif.daddr = {cbl[cache_index_snoop].left_tag, cache_index_snoop, 3'b100};
             cif.dstore = cbl[cache_index_snoop].left_dat1;
+            next_left_dirty = 1'b0; 
          end 
          // else in the right block
          else begin
             // set data address of right block
             cif.daddr = {cbl[cache_index_snoop].right_tag, cache_index_snoop, 3'b100};
             cif.dstore = cbl[cache_index_snoop].right_dat1;
+            next_right_dirty = 1'b0; 
          end 
       end 
       NO_WB: 
