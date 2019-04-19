@@ -503,44 +503,53 @@ begin
                begin
                   dcif.dmemload = 32'h00000001;
                   next_link_valid = 0;
-                  if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1 && cbl[cache_index].left_dirty == 1)
-                  begin   
-                     dcif.dhit = 1;
-                     hit = 1;
-                     next_left_dirty = 1;
-                     next_last_used[cache_index] = 0;
-                     cif.ccwrite = 1'b1;
-                     cif.daddr = dcif.dmemaddr;
-                     if(data_index[2] == 0)
+                  if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1)
+                  begin
+                     if(cbl[cache_index].left_dirty == 1)
                      begin
-                        next_left_dat0 = dcif.dmemstore;
+                        dcif.dhit = 1'b1;
+                        hit = 1;
+                        next_last_used[cache_index] = 0;
+                        cif.ccwrite = 1'b1;
+                        cif.daddr = dcif.dmemaddr;
+                        if(data_index[2] == 0)
+                        begin
+                           next_left_dat0 = dcif.dmemstore;
+                        end
+                        else
+                        begin
+                           next_left_dat1 = dcif.dmemstore;
+                        end
                      end
                      else
                      begin
-                        next_left_dat1 = dcif.dmemstore;
+                        dcif.dhit = 1'b0;
+                        hit = 0;
                      end
                   end
-                  else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1 && cbl[cache_index].right_dirty == 1)
-                  begin   
-                     dcif.dhit = 1;
-                     hit = 1;
-                     next_right_dirty = 1;
-                     next_last_used[cache_index] = 1;
-                     cif.ccwrite = 1'b1;
-                     cif.daddr = dcif.dmemaddr;
-                     if(data_index[2] == 0)
+                  else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1)
+                  begin
+                     if(cbl[cache_index].right_dirty == 1)
                      begin
-                        next_right_dat0 = dcif.dmemstore;
+                        dcif.dhit = 1'b1;
+                        hit = 1;
+                        next_last_used[cache_index] = 1;
+                        cif.ccwrite = 1'b1;
+                        cif.daddr = dcif.dmemaddr;
+                        if(data_index[2] == 0)
+                        begin
+                           next_right_dat0 = dcif.dmemstore;
+                        end
+                        else
+                        begin
+                           next_right_dat1 = dcif.dmemstore;
+                        end
                      end
                      else
                      begin
-                        next_right_dat1 = dcif.dmemstore;
+                        dcif.dhit = 1'b0;
+                        hit = 0;
                      end
-                  end 
-                  else
-                  begin
-                     dcif.dhit = 1'b0; 
-                     hit = 1'b0; 
                   end
                end
                else
@@ -557,42 +566,53 @@ begin
                begin
                   next_link_valid = 1'b0;
                end
-               if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1 && cbl[cache_index].left_dirty == 1)
+               if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1)
                begin
-                  dcif.dhit = 1'b1;
-                  hit = 1;
-                  next_last_used[cache_index] = 0;
-                  cif.ccwrite = 1'b1;
-                  cif.daddr = dcif.dmemaddr;
-                  if(data_index[2] == 0)
+                  if(cbl[cache_index].left_dirty == 1)
                   begin
-                     next_left_dat0 = dcif.dmemstore;
+                     dcif.dhit = 1'b1;
+                     hit = 1;
+                     next_last_used[cache_index] = 0;
+                     cif.ccwrite = 1'b1;
+                     cif.daddr = dcif.dmemaddr;
+                     if(data_index[2] == 0)
+                     begin
+                        next_left_dat0 = dcif.dmemstore;
+                     end
+                     else
+                     begin
+                        next_left_dat1 = dcif.dmemstore;
+                     end
                   end
                   else
                   begin
-                     next_left_dat1 = dcif.dmemstore;
+                     dcif.dhit = 1'b0;
+                     hit = 0;
                   end
                end
-               else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1 && cbl[cache_index].right_dirty == 1)
+               else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1 )
                begin
-                  dcif.dhit = 1'b1;
-                  hit = 1;
-                  next_last_used[cache_index] = 1;
-                  cif.ccwrite = 1'b1;
-                  cif.daddr = dcif.dmemaddr;
-                  if(data_index[2] == 0)
+                  if(cbl[cache_index].right_dirty == 1)
                   begin
-                     next_right_dat0 = dcif.dmemstore;
+                     dcif.dhit = 1'b1;
+                     hit = 1;
+                     next_last_used[cache_index] = 1;
+                     cif.ccwrite = 1'b1;
+                     cif.daddr = dcif.dmemaddr;
+                     if(data_index[2] == 0)
+                     begin
+                        next_right_dat0 = dcif.dmemstore;
+                     end
+                     else
+                     begin
+                        next_right_dat1 = dcif.dmemstore;
+                     end
                   end
                   else
                   begin
-                     next_right_dat1 = dcif.dmemstore;
+                     dcif.dhit = 1'b0;
+                     hit = 0;
                   end
-               end
-               else
-               begin
-                  dcif.dhit = 1'b0;
-                  hit = 0;
                end
             end
          end
@@ -641,17 +661,27 @@ begin
       end
       READ1 :
       begin
-         // if right block was the last recently used
-         if(last_used[cache_index] == 0)
+         if(tag == cbl[cache_index].left_tag)
          begin
-            // read data into word0 or right block
+            next_left_dat0 = cif.dload;
+         end
+         else if(tag == cbl[cache_index].right_tag)
+         begin
             next_right_dat0 = cif.dload;
          end
-         // else left block was the last recently used
          else
          begin
-            // read data into word0 of left block
-            next_left_dat0 = cif.dload;
+            if(last_used[cache_index] == 0)
+            begin
+               // read data into word0 or right block
+               next_right_dat0 = cif.dload;
+            end
+            // else left block was the last recently used
+            else
+            begin
+               // read data into word0 of left block
+               next_left_dat0 = cif.dload;
+            end
          end
          // let memory controller know that it is requesting a read from memory
          cif.dREN = 1;
@@ -662,41 +692,48 @@ begin
       end
       READ2 :
       begin
-         // if right block was the last recently used 
-         if(last_used[cache_index] == 0)
+         if(tag == cbl[cache_index].left_tag)
          begin
-            // read in word1
-            next_right_dat1 = cif.dload;
-            // Set the right block as valid
-            next_right_valid = 1;
-            // If the processors is about to write to this block
-            if (dmemWEN == 1) begin 
-               // set it to the modified state
-               next_right_dirty = 1'b1; 
-            end
-            if(cif.dwait == 0)
+            next_left_dat1 = cif.dload;
+            next_left_valid = 1'b1;
+            if(dmemWEN == 1)
             begin
-               next_right_tag = tag;
-               // set the left block as the last recently used 
-               next_last_used[cache_index] = 1;
+               next_left_dirty = 1'b1;
             end
          end
-         // else left block was the last recently used 
+         else if(tag == cbl[cache_index].right_tag)
+         begin
+            next_right_dat1 = cif.dload;
+            next_right_valid = 1'b1;
+            if(dmemWEN == 1)
+            begin
+               next_right_dirty = 1'b1;
+            end
+         end
          else
          begin
-            // read in word1
-            next_left_dat1 = cif.dload;
-            // set the left block to valid
-            next_left_valid = 1;
-            // If the processors is about to write to this block
-            if (dmemWEN == 1) begin 
-               // set it to the modified state
-               next_left_dirty = 1'b1; 
-            end
-            if(cif.dwait == 0)
+            if(last_used[cache_index] == 0)
             begin
+               // read data into word0 or right block
+               next_right_dat1 = cif.dload;
+               next_right_valid = 1'b1;
+               next_right_tag = tag;
+               if(dmemWEN == 1)
+               begin
+                  next_right_dirty = 1'b1;
+               end
+            end
+            // else left block was the last recently used
+            else
+            begin
+               // read data into word0 of left block
+               next_left_dat1 = cif.dload;
+               next_left_valid = 1'b1;
                next_left_tag = tag;
-               next_last_used[cache_index] = 0;
+               if(dmemWEN == 1)
+               begin
+                  next_left_dirty = 1'b1;
+               end
             end
          end
          // let memory controller know that it is requesting a read from memory
