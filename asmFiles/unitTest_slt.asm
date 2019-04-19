@@ -49,7 +49,19 @@ mainp0:
 l1:
   cfw 0x0
 
+#----------------------------------------------------------
+# Second Processor
+#----------------------------------------------------------
+  org   0x200               # second processor p1
+  ori   $sp, $zero, 0x7ffc  # stack
+  jal   mainp1              # go to program
+  halt
 
+# main function does something ugly but demonstrates beautifully
+mainp1:
+  push  $ra                 # save return address
+  pop   $ra                 # get return address
+  jr    $ra                 # return to caller
 
 res:
   cfw 0x0                   # end result should be 2

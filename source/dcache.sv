@@ -442,11 +442,6 @@ begin
                hit = 1;
                // Set the left block as last recently used
                next_last_used[cache_index] = 0;
-               // Let other cache know that it is trying to do an atomic RMW process
-               if (dcif.datomic == 1) begin 
-                  cif.ccwrite = 1'b1; 
-                 cif.daddr = dcif.dmemaddr; 
-               end 
                // If processor requesting the first word in the block
                if(data_index[2] == 0)
                begin
@@ -469,11 +464,6 @@ begin
                hit = 1;
                // sed the right block as last recently used
                next_last_used[cache_index] = 1;
-               // Let other cache know that it is trying to do an atomic RMW process
-               if (dcif.datomic == 1) begin 
-                  cif.ccwrite = 1'b1; 
-                 cif.daddr = dcif.dmemaddr; 
-               end 
                // if the processor was requesting word0
                if(data_index[2] == 0)
                begin
@@ -502,7 +492,6 @@ begin
                if(dcif.dmemaddr == link_addr && link_valid == 1)
                begin
                   dcif.dmemload = 32'h00000001;
-                  next_link_valid = 0;
                   if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1)
                   begin
                      if(cbl[cache_index].left_dirty == 1)
@@ -512,6 +501,7 @@ begin
                         next_last_used[cache_index] = 0;
                         cif.ccwrite = 1'b1;
                         cif.daddr = dcif.dmemaddr;
+                        next_link_valid = 0;
                         if(data_index[2] == 0)
                         begin
                            next_left_dat0 = dcif.dmemstore;
@@ -536,6 +526,7 @@ begin
                         next_last_used[cache_index] = 1;
                         cif.ccwrite = 1'b1;
                         cif.daddr = dcif.dmemaddr;
+                        next_link_valid = 0;
                         if(data_index[2] == 0)
                         begin
                            next_right_dat0 = dcif.dmemstore;
@@ -790,15 +781,6 @@ begin
       end 
       SNOOP:
       begin
-         snoop_store = 1;
-         // First check datomic for load conditional
-         //if(dcif.datomic == 1)
-         //begin
-            //if(cif.ccsnoopaddr == link_addr)
-            //begin
-               //next_link_valid = 0;
-            //end
-         //end
          // If the snoop address matches the link address
          if (cif.ccsnoopaddr == link_addr & cif.ccinv == 1) begin 
             next_link_valid = 0; 
