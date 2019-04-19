@@ -496,101 +496,105 @@ begin
          // If a processor write is occuring
          else if(dcif.dmemWEN == 1)
          begin
-            store = 1;
-            // First check datomic for load conditional
+            // Case of SC
             if(dcif.datomic == 1)
             begin
                if(dcif.dmemaddr == link_addr && link_valid == 1)
                begin
                   dcif.dmemload = 32'h00000001;
-               end
-               else
-               begin
                   next_link_valid = 0;
+                  if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1 && cbl[cache_index].left_dirty == 1)
+                  begin   
+                     dcif.dhit = 1;
+                     hit = 1;
+                     next_left_dirty = 1;
+                     next_last_used[cache_index] = 0;
+                     cif.ccwrite = 1'b1;
+                     cif.daddr = dcif.dmemaddr;
+                     if(data_index[2] == 0)
+                     begin
+                        next_left_dat0 = dcif.dmemstore;
+                     end
+                     else
+                     begin
+                        next_left_dat1 = dcif.dmemstore;
+                     end
+                  end
+                  else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1 && cbl[cache_index].right_dirty == 1)
+                  begin   
+                     dcif.dhit = 1;
+                     hit = 1;
+                     next_right_dirty = 1;
+                     next_last_used[cache_index] = 1;
+                     cif.ccwrite = 1'b1;
+                     cif.daddr = dcif.dmemaddr;
+                     if(data_index[2] == 0)
+                     begin
+                        next_right_dat0 = dcif.dmemstore;
+                     end
+                     else
+                     begin
+                        next_right_dat1 = dcif.dmemstore;
+                     end
+                  end 
+                  else
+                  begin
+                     dcif.dhit = 1'b0; 
+                     hit = 1'b0; 
+                  end
+               end
+               else
+               begin
                   dcif.dmemload = 32'h00000000;
-                  store = 0;
-               end
+                  dcif.dhit = 1'b1;
+                  hit = 1;
+               end          
             end
-            // If left tag matches, left block is valid, and left block is dirty (Writing to a shared block should produce a miss in order to go and invalidate the other caches)
-            if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1)
+            // Case of SW
+            else
             begin
-               if(cbl[cache_index].left_dirty == 1)
+               if(dcif.dmemaddr == link_addr && link_valid == 1)
                begin
-                 // give back a dhit to processor
-                 dcif.dhit = 1;
-                 // set internal hit signal
-                 hit = 1;
-                 // set the left block to dirty 
-                 next_left_dirty = 0;
-                 // set the right block as the last used
-                 next_last_used[cache_index] = 0;
-                 // if writing to word0
-                 if(data_index[2] == 0 && store == 1)
-                 begin
-                    // set the word0 data to dmemstore line
-                    next_left_dat0 = dcif.dmemstore;
-                    next_left_dirty = 1;
-                    cif.ccwrite = 1'b1; 
-                    cif.daddr = dcif.dmemaddr;                    
-                 end
-                 // writing to word1
-                 else if(store == 1)
-                 begin
-                    // set the word1 data to dmemstore line
-                    next_left_dat1 = dcif.dmemstore;
-                    next_left_dirty = 1;
-                    cif.ccwrite = 1'b1; 
-                    cif.daddr = dcif.dmemaddr; 
-                 end
-                 // Tell bus that writing to a block address 
+                  next_link_valid = 1'b0;
+               end
+               if(tag == cbl[cache_index].left_tag && cbl[cache_index].left_valid == 1 && cbl[cache_index].left_dirty == 1)
+               begin
+                  dcif.dhit = 1'b1;
+                  hit = 1;
+                  next_last_used[cache_index] = 0;
+                  cif.ccwrite = 1'b1;
+                  cif.daddr = dcif.dmemaddr;
+                  if(data_index[2] == 0)
+                  begin
+                     next_left_dat0 = dcif.dmemstore;
+                  end
+                  else
+                  begin
+                     next_left_dat1 = dcif.dmemstore;
+                  end
+               end
+               else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1 && cbl[cache_index].right_dirty == 1)
+               begin
+                  dcif.dhit = 1'b1;
+                  hit = 1;
+                  next_last_used[cache_index] = 1;
+                  cif.ccwrite = 1'b1;
+                  cif.daddr = dcif.dmemaddr;
+                  if(data_index[2] == 0)
+                  begin
+                     next_right_dat0 = dcif.dmemstore;
+                  end
+                  else
+                  begin
+                     next_right_dat1 = dcif.dmemstore;
+                  end
                end
                else
                begin
-                 next_last_used[cache_index] = 1;
-                 dcif.dhit = 1'b0; 
-                 hit = 1'b0; 
+                  dcif.dhit = 1'b0;
+                  hit = 0;
                end
             end
-            // if right tag matches, right block is valid, and right block is dirty (Writing to a shared block should produce a miss in order to go and invalidate the other caches)
-            else if(tag == cbl[cache_index].right_tag && cbl[cache_index].right_valid == 1)
-            begin
-               if(cbl[cache_index].right_dirty == 1)
-               begin
-                 // give back a dhit to processor
-                 dcif.dhit = 1;
-                 // set internal hit signal
-                 hit = 1;
-                 // set the left block to dirty 
-                 next_right_dirty = 0;
-                 // set the right block as the last used
-                 next_last_used[cache_index] = 1;
-                 // if writing to word0
-                 if(data_index[2] == 0  && store == 1)
-                 begin
-                    // set the word0 data to dmemstore line
-                    next_right_dat0 = dcif.dmemstore;
-                    next_right_dirty = 1; 
-                    cif.ccwrite = 1'b1; 
-                    cif.daddr = dcif.dmemaddr;                     
-                 end
-                 // writing to word1
-                 else if(store == 1)
-                 begin
-                    // set the word1 data to dmemstore line
-                    next_right_dat1 = dcif.dmemstore;
-                    next_right_dirty = 1; 
-                    cif.ccwrite = 1'b1; 
-                    cif.daddr = dcif.dmemaddr;                     
-                 end
-                 // Tell bus that writing to a block address
-               end
-               else
-               begin
-                 next_last_used[cache_index] = 0;
-                 dcif.dhit = 1'b0; 
-                 hit = 1'b0; 
-               end
-             end
          end
       end
       WB1 :
