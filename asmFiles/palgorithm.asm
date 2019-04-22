@@ -25,7 +25,7 @@ mainp0:
   loop:
 
     # If number count is equal to 256 then exit
-    ori $t0, $zero, 75
+    ori $t0, $zero, 256
     beq $s0, $t0, exit
 
       # LOCK lck1
@@ -129,7 +129,7 @@ mainp1:
   loop2:
 
     # If number count is equal to 256 then exit
-    ori $t0, $zero, 75
+    ori $t0, $zero, 256
     beq $s0, $t0, exit2
 
       # LOCK lck1

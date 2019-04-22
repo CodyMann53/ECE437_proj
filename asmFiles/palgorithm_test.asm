@@ -22,90 +22,19 @@ mainp0:
   ori $s0, $zero, 0
   ori $s4, $zero, 0
 
-  loop:
+  loop1:
 
-    # If number count is equal to 4 then exit
-    ori $t0, $zero, 10
-    beq $s0, $t0, exit
+    # If number count is equal to 256 then exit
+    ori $t0, $zero, 100
+    beq $s0, $t0, exit1
+      addiu $s0, $s0, 1
+      addiu $s0, $s0, 1
+    # Go to loop 
+    j loop1
 
-      # LOCK lck1
-      ori $a0, $zero, lck1
-      jal lock
-
-      # Load in stack size
-      ori $t0, $zero, stack_size
-      lw $t1, 0($t0)
-
-      # If the buffer is empty then jump to else block
-      beq $t1, $zero, else
-
-        # Pop value off of the stack buffer
-        jal pop_stack
-
-        # Only grab the lower 16 bits
-        andi $v0, $v0, 0x0000FFFF
-
-        # If this is the first element being popped off
-        bne $s0, $zero, continue
-
-          # set it as min and max
-          or $s2, $zero, $v0
-          or $s3, $zero, $v0
-
-        continue:
-
-          # Moved popped value into saved register 1
-          or $s1, $zero, $v0
-
-          # UNLOCK
-          ori $a0, $zero, lck1
-          jal unlock
-
-          # Update max
-          or $a0, $zero, $s1
-          or $a1, $zero, $s3
-          jal max
-          or $s3, $zero, $v0
-
-          # Update min
-          or $a0, $zero, $s1
-          or $a1, $zero, $s2
-          jal min
-          or $s2, $zero, $v0
-
-          # update running sum
-          addu $s4, $s4, $s1
-
-          # Update the number count 
-          addiu $s0, $s0, 1
-
-          j loop 
-
-    # Else the buffer is empy
-      else:
-        # UNLOCK lck1
-        ori $a0, $zero, lck1
-        jal unlock
-
-        # Go to loop 
-        j loop
-
-  exit:
-    # 2.  Store min_res
-    ori $t0, $zero, min_res
-    sw $s2, 0($t0)
-
-    # 3. store max_res
-    ori $t0, $zero, max_res
-    sw $s3, 0($t0)
-
-    # 4. Calculate avg_res (shift logic
-    ori $t0, $zero, 8
-    srlv $s4, $t0, $s4
-
-    # 5. Store the avg_res
+  exit1:
     ori $t0, $zero, avg_res
-    sw $s4, 0($t0)
+    sw $s0, 0($t0)
 
     # pop off return address from stack and return
     pop   $ra
@@ -126,51 +55,19 @@ mainp1:
   # Initialize number count to 0
   ori $s0, $zero, 0
 
-  loop2:
+  loop:
 
     # If number count is equal to 256 then exit
-    ori $t0, $zero, 10
-    beq $s0, $t0, exit2
+    ori $t0, $zero, 100
+    beq $s0, $t0, exit
+      addiu $s0, $s0, 1
+      addiu $s0, $s0, 1
+    # Go to loop 
+    j loop
 
-      # LOCK lck1
-      ori $a0, $zero, lck1
-      jal lock
-
-      # Load in stack size
-      ori $t0, $zero, stack_size
-      lw $t1, 0($t0)
-
-      # If the buffer is full (10 elements exist) then jump to else block
-      ori $t3, $zero, 10
-      beq $t1, $t3, else2
-
-        # Load in previous random number and generate a random number
-        ori $t0, $zero, rand_prev
-        lw $a0, 0($t0) 
-        jal crc32
-
-        # save generated random number
-        ori $t0, $zero, rand_prev
-        sw $v0, 0($t0)
-
-        # push generated random number to stack 
-        or $a0, $zero, $v0
-        jal push_stack
-
-        # increment count number by 1
-        addiu $s0, $s0, 1
-
-    # Else the buffer is empy
-      else2:
-        # UNLOCK lck1
-        ori $a0, $zero, lck1
-        jal unlock
-
-        # Go to loop2
-        j loop2
-
-  exit2:
-    # Return
+  exit:
+    ori $t0, $zero, avg_res
+    sw $s0, 0($t0)
     pop   $ra                 # get return address
     nop
     nop
@@ -221,7 +118,7 @@ pop_stack:
     lw $v0, 0($t1)
 
     # Increment the stack pointer by 4
-    addiu $t1, $t1, 10
+    addiu $t1, $t1, 4
 
     # Store the stack pointer back
     sw $t1, 0($t0)
